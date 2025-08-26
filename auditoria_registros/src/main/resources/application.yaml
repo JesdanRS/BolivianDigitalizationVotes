@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: auditoria_registros
+server:
+  port: 7005
