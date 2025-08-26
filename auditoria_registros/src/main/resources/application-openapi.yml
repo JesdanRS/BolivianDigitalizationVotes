@@ -1,0 +1,38 @@
+springdoc:
+  swagger-ui.path: /openapi/swagger-ui.html
+  api-docs.path: /openapi/v3/api-docs
+  packagesToScan: com.votaciones.auditoria_registros.controller
+  pathsToMatch: /**
+
+api:
+  common:
+    version: 1.0.0
+    title: API Auditoría y Registros - Sistema de Votaciones
+    description: Microservicio para la auditoría y registro de acciones dentro del sistema de votaciones electorales.
+    termsOfService: https://www.tuvotacion.com/terminos
+    license: Licencia MIT
+    licenseUrl: https://opensource.org/licenses/MIT
+    externalDocDesc: Documentación en Wiki
+    externalDocUrl: https://www.tuvotacion.com/wiki
+    contact:
+      name: Soporte Sistema de Votaciones
+      url: https://www.tuvotacion.com/contacto
+      email: soporte@tuvotacion.com
+
+  responseCodes:
+    ok.description: OK
+    badRequest.description: Solicitud incorrecta, formato inválido o parámetros erróneos.
+    notFound.description: No encontrado, el id especificado no existe en los registros de auditoría.
+    unprocessableEntity.description: Entidad no procesable, no se pueden procesar los parámetros de entrada.
+
+  auditoriaRegistros:
+    get-auditoriaRegistro:
+      description: Retorna la información de un registro de auditoría según el ID proporcionado.
+      notes: |
+        # Respuesta exitosa
+        Si el ID del registro de auditoría existe, se retorna la información correspondiente.
+
+        # Respuestas con error
+        1. Si el ID es inválido o no existe, se devuelve un error **404 - Not Found**.
+      parameters:
+        id: ID del registro de auditoría a consultar.

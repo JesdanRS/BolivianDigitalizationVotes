@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.votaciones.auditoria_registros.exception.ResourceNotFoundException;
 import com.votaciones.auditoria_registros.dto.auditoriaRegistrosDto;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 @RestController
 @RequestMapping("/auditoriaRegistros")
 
@@ -19,6 +23,14 @@ public class auditoriaRegistrosController {
     
     private static final Logger logger = LoggerFactory.getLogger(auditoriaRegistrosController.class);
 
+    @Operation(
+        summary = "${api.auditoriaRegistros.get-auditoriaRegistro.description}",
+        description = "${api.auditoriaRegistros.get-auditoriaRegistro.notes}"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "${api.responseCodes.ok.description}"),
+        @ApiResponse(responseCode = "404", description = "${api.responseCodes.notFound.description}")
+    })
     @GetMapping("/{id}")
     public auditoriaRegistrosDto getAuditoriaRegistroById(@PathVariable("id") BigDecimal id) {
         logger.info("Request para auditoria registros con id: {}", id);
