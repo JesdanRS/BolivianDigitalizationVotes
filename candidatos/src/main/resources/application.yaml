@@ -1,0 +1,2 @@
+spring.application.name : candidatos
+server.port: 7002
