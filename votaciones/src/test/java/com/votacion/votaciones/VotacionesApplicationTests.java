@@ -1,0 +1,13 @@
+package com.votacion.votaciones;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class VotacionesApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
