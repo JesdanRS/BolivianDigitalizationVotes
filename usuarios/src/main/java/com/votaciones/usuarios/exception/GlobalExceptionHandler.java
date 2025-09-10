@@ -75,6 +75,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(SolicitudInvalidaException.class)
+    public ResponseEntity<Map<String, Object>> manejarSolicitudInvalida(
+            SolicitudInvalidaException ex, ServerWebExchange exchange) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", Instant.now());
+        error.put("status", HttpStatus.BAD_REQUEST.value());
+        error.put("error", "Solicitud inválida");
+        error.put("message", ex.getMessage());
+        error.put("path", exchange.getRequest().getPath().value());
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> manejarExcepcionesGenerales(
             Exception ex, ServerWebExchange exchange) {
@@ -83,6 +96,19 @@ public class GlobalExceptionHandler {
         error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         error.put("error", "Error interno del servidor");
         error.put("message", "Ocurrió un error inesperado en el servidor");
+        error.put("path", exchange.getRequest().getPath().value());
+        
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(ErrorInternoServidorException.class)
+    public ResponseEntity<Map<String, Object>> manejarErrorInternoControlado(
+            ErrorInternoServidorException ex, ServerWebExchange exchange) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", Instant.now());
+        error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.put("error", "Error interno del servidor");
+        error.put("message", ex.getMessage());
         error.put("path", exchange.getRequest().getPath().value());
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
