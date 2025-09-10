@@ -2,16 +2,16 @@ package com.votaciones.auditoria_registros.dto;
 
 import com.votaciones.auditoria_registros.exception.InvalidArgumentException;
 
-public class auditoriaRegistrosDto {
+public class AuditoriaRegistrosDto {
     private String id;
     private String action;
     private String timestamp;
 
-    public auditoriaRegistrosDto() {
+    public AuditoriaRegistrosDto() {
         super();
     }
 
-    public auditoriaRegistrosDto(String id, String action, String timestamp) {
+    public AuditoriaRegistrosDto(String id, String action, String timestamp) {
         setId(id);
         setAction(action);
         setTimestamp(timestamp);

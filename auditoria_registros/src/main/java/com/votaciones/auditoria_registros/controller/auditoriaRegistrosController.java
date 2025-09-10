@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.votaciones.auditoria_registros.exception.ResourceNotFoundException;
-import com.votaciones.auditoria_registros.dto.auditoriaRegistrosDto;
+import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,9 +17,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 @RestController
 @RequestMapping("/auditoriaRegistros")
 
-public class auditoriaRegistrosController {
+public class AuditoriaRegistrosController {
     
-    private static final Logger logger = LoggerFactory.getLogger(auditoriaRegistrosController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuditoriaRegistrosController.class);
 
     @Operation(
         summary = "${api.auditoriaRegistros.get-auditoriaRegistro.description}",
@@ -30,13 +30,13 @@ public class auditoriaRegistrosController {
         @ApiResponse(responseCode = "404", description = "${api.responseCodes.notFound.description}")
     })
     @GetMapping(value = "/{id}", produces = "application/json")
-    public auditoriaRegistrosDto getAuditoriaRegistroById(@PathVariable("id") int id) {
+    public AuditoriaRegistrosDto getAuditoriaRegistroById(@PathVariable("id") int id) {
         logger.info("Request para auditoria registros con id: {}", id);
         if (id <= 0) {
             throw new ResourceNotFoundException("Registro con id " + id + " no encontrado");
         }
 
-        auditoriaRegistrosDto registro = new auditoriaRegistrosDto();
+        AuditoriaRegistrosDto registro = new AuditoriaRegistrosDto();
         registro.setId(String.valueOf(id));
         registro.setAction("Acción de ejemplo");
         registro.setTimestamp("2023-10-01T12:00:00Z");
