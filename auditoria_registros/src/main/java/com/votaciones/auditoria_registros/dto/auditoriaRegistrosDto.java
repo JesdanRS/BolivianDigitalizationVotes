@@ -8,6 +8,7 @@ public class auditoriaRegistrosDto {
     private String timestamp;
 
     public auditoriaRegistrosDto() {
+        super();
     }
 
     public auditoriaRegistrosDto(String id, String action, String timestamp) {
@@ -47,5 +48,10 @@ public class auditoriaRegistrosDto {
             throw new InvalidArgumentException("El timestamp no puede ser nulo o vacío");
         }
         this.timestamp = timestamp;
+    }
+
+    @Override
+    public String toString() {
+        return "auditoriaRegistrosDto [id=" + id + ", action=" + action + ", timestamp=" + timestamp + "]";
     }
 }

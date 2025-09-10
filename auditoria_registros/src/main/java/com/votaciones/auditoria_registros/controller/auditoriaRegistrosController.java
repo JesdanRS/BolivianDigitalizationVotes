@@ -1,7 +1,5 @@
 package com.votaciones.auditoria_registros.controller;
 
-import java.math.BigDecimal;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,15 +29,15 @@ public class auditoriaRegistrosController {
         @ApiResponse(responseCode = "200", description = "${api.responseCodes.ok.description}"),
         @ApiResponse(responseCode = "404", description = "${api.responseCodes.notFound.description}")
     })
-    @GetMapping("/{id}")
-    public auditoriaRegistrosDto getAuditoriaRegistroById(@PathVariable("id") BigDecimal id) {
+    @GetMapping(value = "/{id}", produces = "application/json")
+    public auditoriaRegistrosDto getAuditoriaRegistroById(@PathVariable("id") int id) {
         logger.info("Request para auditoria registros con id: {}", id);
-        if (id == null || id.compareTo(BigDecimal.ZERO) <= 0) {
+        if (id <= 0) {
             throw new ResourceNotFoundException("Registro con id " + id + " no encontrado");
         }
 
         auditoriaRegistrosDto registro = new auditoriaRegistrosDto();
-        registro.setId(id.toString());
+        registro.setId(String.valueOf(id));
         registro.setAction("Acción de ejemplo");
         registro.setTimestamp("2023-10-01T12:00:00Z");
 
