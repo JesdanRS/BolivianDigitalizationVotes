@@ -91,7 +91,7 @@ public class AuditoriaRegistrosController {
         @ApiResponse(responseCode = "200", description = "Registros exportados exitosamente"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/exportarCsv")
+    @GetMapping("/formatoCsv")
     public ResponseEntity<List<String>> exportar() {
         return ResponseEntity.ok(auditoriaService.exportarRegistrosCSV());
     }
