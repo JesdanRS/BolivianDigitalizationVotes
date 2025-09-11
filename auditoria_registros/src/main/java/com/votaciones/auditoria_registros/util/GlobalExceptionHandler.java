@@ -1,46 +1,67 @@
 package com.votaciones.auditoria_registros.util;
 
-import com.votaciones.auditoria_registros.exception.ResourceNotFoundException;
-import com.votaciones.auditoria_registros.exception.UnprocessableEntityException;
-import com.votaciones.auditoria_registros.exception.DuplicateResourceException;
-import com.votaciones.auditoria_registros.exception.InvalidArgumentException;
-
-import jakarta.servlet.http.HttpServletRequest;
+import com.votaciones.auditoria_registros.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
-@ControllerAdvice
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<HttpErrorInfo> handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
-        HttpErrorInfo errorInfo = new HttpErrorInfo(HttpStatus.NOT_FOUND, request.getRequestURI(), ex.getMessage());
-        return new ResponseEntity<>(errorInfo, HttpStatus.NOT_FOUND);
+    //Validaciones de DTO
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<HttpErrorInfo> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
+        Map<String, String> errores = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            String campo = ((FieldError) error).getField();
+            String mensaje = error.getDefaultMessage();
+            errores.put(campo, mensaje);
+        });
+        return new ResponseEntity<>(
+                new HttpErrorInfo(HttpStatus.BAD_REQUEST, request.getDescription(false), errores.toString()),
+                HttpStatus.BAD_REQUEST
+        );
     }
 
+    //Reglas de negocio
     @ExceptionHandler(InvalidArgumentException.class)
-    public ResponseEntity<HttpErrorInfo> handleInvalidArgument(InvalidArgumentException ex, HttpServletRequest request) {
-        HttpErrorInfo errorInfo = new HttpErrorInfo(HttpStatus.BAD_REQUEST, request.getRequestURI(), ex.getMessage());
-        return new ResponseEntity<>(errorInfo, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<HttpErrorInfo> handleDuplicate(DuplicateResourceException ex, HttpServletRequest request) {
-        HttpErrorInfo errorInfo = new HttpErrorInfo(HttpStatus.CONFLICT, request.getRequestURI(), ex.getMessage());
-        return new ResponseEntity<>(errorInfo, HttpStatus.CONFLICT);
+    public ResponseEntity<HttpErrorInfo> handleInvalidArgument(InvalidArgumentException ex, WebRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, request.getDescription(false), ex.getMessage());
     }
 
     @ExceptionHandler(UnprocessableEntityException.class)
-    public ResponseEntity<HttpErrorInfo> handleUnprocessable(UnprocessableEntityException ex, HttpServletRequest request) {
-        HttpErrorInfo errorInfo = new HttpErrorInfo(HttpStatus.UNPROCESSABLE_ENTITY, request.getRequestURI(), ex.getMessage());
-        return new ResponseEntity<>(errorInfo, HttpStatus.UNPROCESSABLE_ENTITY);
+    public ResponseEntity<HttpErrorInfo> handleUnprocessableEntity(UnprocessableEntityException ex, WebRequest request) {
+        return buildError(HttpStatus.UNPROCESSABLE_ENTITY, request.getDescription(false), ex.getMessage());
     }
 
+    @ExceptionHandler(EventoDuplicadoException.class)
+    public ResponseEntity<HttpErrorInfo> handleEventoDuplicado(EventoDuplicadoException ex, WebRequest request) {
+        return buildError(HttpStatus.CONFLICT, request.getDescription(false), ex.getMessage());
+    }
+
+    @ExceptionHandler(RegistroNoEncontradoException.class)
+    public ResponseEntity<HttpErrorInfo> handleRegistroNoEncontrado(RegistroNoEncontradoException ex, WebRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, request.getDescription(false), ex.getMessage());
+    }
+
+    //Excepción general
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<HttpErrorInfo> handleGeneralException(Exception ex, HttpServletRequest request) {
-        HttpErrorInfo errorInfo = new HttpErrorInfo(HttpStatus.INTERNAL_SERVER_ERROR, request.getRequestURI(), "Error interno del servidor");
-        return new ResponseEntity<>(errorInfo, HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<HttpErrorInfo> handleGeneral(Exception ex, WebRequest request) {
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, request.getDescription(false), "Error interno del servidor");
+    }
+
+    //Método privado para construir HttpErrorInfo
+    private ResponseEntity<HttpErrorInfo> buildError(HttpStatus status, String path, String mensaje) {
+        return new ResponseEntity<>(
+                new HttpErrorInfo(status, path, mensaje),
+                status
+        );
     }
 }

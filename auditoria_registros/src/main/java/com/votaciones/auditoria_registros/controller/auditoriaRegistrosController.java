@@ -1,47 +1,87 @@
 package com.votaciones.auditoria_registros.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.votaciones.auditoria_registros.exception.ResourceNotFoundException;
 import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
-
+import com.votaciones.auditoria_registros.model.AuditoriaRegistro;
+import com.votaciones.auditoria_registros.service.AuditoriaRegistroService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
-@RequestMapping("/auditoriaRegistros")
-
+@RequestMapping("/api/auditoria")
+@Tag(name = "Auditoría", description = "Microservicio de auditoría y registros")
 public class AuditoriaRegistrosController {
-    
-    private static final Logger logger = LoggerFactory.getLogger(AuditoriaRegistrosController.class);
 
-    @Operation(
-        summary = "${api.auditoriaRegistros.get-auditoriaRegistro.description}",
-        description = "${api.auditoriaRegistros.get-auditoriaRegistro.notes}"
-    )
+    @Autowired
+    private final AuditoriaRegistroService auditoriaService;
+
+    public AuditoriaRegistrosController(AuditoriaRegistroService auditoriaService) {
+        this.auditoriaService = auditoriaService;
+    }
+
+    @Operation(summary = "Crear un nuevo registro de auditoría")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "${api.responseCodes.ok.description}"),
-        @ApiResponse(responseCode = "404", description = "${api.responseCodes.notFound.description}")
+        @ApiResponse(responseCode = "200", description = "Registro creado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Solicitud inválida"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping(value = "/{id}", produces = "application/json")
-    public AuditoriaRegistrosDto getAuditoriaRegistroById(@PathVariable("id") int id) {
-        logger.info("Request para auditoria registros con id: {}", id);
-        if (id <= 0) {
-            throw new ResourceNotFoundException("Registro con id " + id + " no encontrado");
-        }
+    @PostMapping
+    public ResponseEntity<AuditoriaRegistro> crearRegistro(@Valid @RequestBody AuditoriaRegistrosDto dto) {
+        return ResponseEntity.ok(auditoriaService.crearRegistro(dto));
+    }
 
-        AuditoriaRegistrosDto registro = new AuditoriaRegistrosDto();
-        registro.setId(String.valueOf(id));
-        registro.setAction("Acción de ejemplo");
-        registro.setTimestamp("2023-10-01T12:00:00Z");
+    @Operation(summary = "Obtener todos los registros de auditoría")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Registros obtenidos exitosamente"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/eventos")
+    public ResponseEntity<List<AuditoriaRegistro>> obtenerRegistros() {
+        return ResponseEntity.ok(auditoriaService.obtenerRegistros());
+    }
 
-        logger.info("Devolver información servicio auditoria registros: {}", registro);
-        return registro;
+    @Operation(summary = "Obtener un registro de auditoría por ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Registro obtenido exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Registro no encontrado"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<AuditoriaRegistro> obtenerPorId(
+        @Parameter(description = "ID del registro de auditoría", required = true)
+        @PathVariable Long id) {
+        return ResponseEntity.ok(auditoriaService.obtenerRegistroPorId(id));
+    }
+
+    @Operation(summary = "Eliminar un registro de auditoría por ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Registro eliminado exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Registro no encontrado"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> eliminarRegistro(@PathVariable Long id) {
+        auditoriaService.eliminarRegistro(id);
+        return ResponseEntity.ok("Registro eliminado correctamente");
+    }
+
+    @Operation(summary = "Limpiar registros antiguos")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Registros antiguos eliminados exitosamente"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @DeleteMapping("/limpiar")
+    public ResponseEntity<String> limpiarRegistros(@RequestParam("limite") LocalDateTime limite) {
+        int eliminados = auditoriaService.limpiarRegistrosAntiguos(limite);
+        return ResponseEntity.ok(eliminados + " registros eliminados");
     }
 }

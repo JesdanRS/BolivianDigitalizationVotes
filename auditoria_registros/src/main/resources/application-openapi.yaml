@@ -3,6 +3,7 @@ springdoc:
   api-docs.path: /openapi/v3/api-docs
   packagesToScan: com.votaciones.auditoria_registros.controller
   pathsToMatch: /**
+  override-with-generic-response: false
 
 api:
   common:
@@ -35,4 +36,23 @@ api:
         # Respuestas con error
         1. Si el ID es inválido o no existe, se devuelve un error **404 - Not Found**.
       parameters:
-        id: ID del registro de auditoría a consultar.
+        id: ID del registro de auditoría a consultar
+    create-auditoriaRegistro:
+      description: Crea un nuevo registro de auditoría.
+      notes: |
+        # Respuesta exitosa
+        Retorna el registro de auditoría creado.
+
+        # Respuestas con error
+        1. Si los datos enviados son inválidos se devuelve un error **400 - Bad Request**
+    delete-auditoriaRegistro:
+      description: Elimina un registro de auditoría según el ID proporcionado.
+      notes: |
+        # Respuesta exitosa
+        Si el ID del registro de auditoría existe, se elimina el registro.
+
+        # Respuestas con error
+        1. Si el ID no existe se devuelve un error **404 - Not Found**
+        2. Si el ID enviado es inválido se devuelve un error **400 - Bad Request**
+      parameters:
+        id: ID del registro de auditoría a eliminar
