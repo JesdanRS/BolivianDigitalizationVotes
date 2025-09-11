@@ -1,6 +1,7 @@
 package com.votaciones.auditoria_registros.util;
 
 import com.votaciones.auditoria_registros.exception.ResourceNotFoundException;
+import com.votaciones.auditoria_registros.exception.UnprocessableEntityException;
 import com.votaciones.auditoria_registros.exception.DuplicateResourceException;
 import com.votaciones.auditoria_registros.exception.InvalidArgumentException;
 
@@ -29,6 +30,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<HttpErrorInfo> handleDuplicate(DuplicateResourceException ex, HttpServletRequest request) {
         HttpErrorInfo errorInfo = new HttpErrorInfo(HttpStatus.CONFLICT, request.getRequestURI(), ex.getMessage());
         return new ResponseEntity<>(errorInfo, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(UnprocessableEntityException.class)
+    public ResponseEntity<HttpErrorInfo> handleUnprocessable(UnprocessableEntityException ex, HttpServletRequest request) {
+        HttpErrorInfo errorInfo = new HttpErrorInfo(HttpStatus.UNPROCESSABLE_ENTITY, request.getRequestURI(), ex.getMessage());
+        return new ResponseEntity<>(errorInfo, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     @ExceptionHandler(Exception.class)
