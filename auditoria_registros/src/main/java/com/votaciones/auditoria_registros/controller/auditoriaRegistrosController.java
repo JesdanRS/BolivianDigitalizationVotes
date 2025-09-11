@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -72,16 +71,5 @@ public class AuditoriaRegistrosController {
     public ResponseEntity<String> eliminarRegistro(@PathVariable Long id) {
         auditoriaService.eliminarRegistro(id);
         return ResponseEntity.ok("Registro eliminado correctamente");
-    }
-
-    @Operation(summary = "Limpiar registros antiguos")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Registros antiguos eliminados exitosamente"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    @DeleteMapping("/limpiar")
-    public ResponseEntity<String> limpiarRegistros(@RequestParam("limite") LocalDateTime limite) {
-        int eliminados = auditoriaService.limpiarRegistrosAntiguos(limite);
-        return ResponseEntity.ok(eliminados + " registros eliminados");
     }
 }
