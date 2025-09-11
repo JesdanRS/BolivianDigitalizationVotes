@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
 import com.votaciones.auditoria_registros.exception.EventoDuplicadoException;
-import com.votaciones.auditoria_registros.model.AuditoriaRegistro;
+import com.votaciones.auditoria.lib.model.AuditoriaRegistro;
 import com.votaciones.auditoria_registros.service.AuditoriaRegistroService;
 import com.votaciones.auditoria_registros.service.implementation.AuditoriaRegistroServiceImpl;
 

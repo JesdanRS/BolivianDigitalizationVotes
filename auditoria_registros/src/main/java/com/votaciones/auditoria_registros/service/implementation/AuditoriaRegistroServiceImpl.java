@@ -5,7 +5,7 @@ import com.votaciones.auditoria.lib.AuditoriaExport;
 
 import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
 import com.votaciones.auditoria_registros.exception.*;
-import com.votaciones.auditoria_registros.model.AuditoriaRegistro;
+import com.votaciones.auditoria.lib.model.AuditoriaRegistro;
 import com.votaciones.auditoria_registros.service.AuditoriaRegistroService;
 import org.springframework.stereotype.Service;
 

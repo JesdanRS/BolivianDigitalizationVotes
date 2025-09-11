@@ -60,8 +60,18 @@
 		<dependency>
 			<groupId>com.votaciones.auditoria</groupId>
 			<artifactId>auditoria_utilidades</artifactId>
-			<version>1.0</version>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/libs/auditoria_utilidades-1.0-SNAPSHOT.jar</systemPath>
 		</dependency>
+
+		<dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+			<version>6.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>

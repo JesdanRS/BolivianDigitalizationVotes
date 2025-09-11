@@ -1,7 +1,7 @@
 package com.votaciones.auditoria_registros.controller;
 
 import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
-import com.votaciones.auditoria_registros.model.AuditoriaRegistro;
+import com.votaciones.auditoria.lib.model.AuditoriaRegistro;
 import com.votaciones.auditoria_registros.service.AuditoriaRegistroService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

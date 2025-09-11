@@ -3,7 +3,6 @@ package com.votaciones.auditoria_registros.util;
 import com.votaciones.auditoria_registros.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,19 +14,25 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    //Validaciones de DTO
+    // Manejo de validaciones @Valid
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<HttpErrorInfo> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
-        Map<String, String> errores = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            String campo = ((FieldError) error).getField();
-            String mensaje = error.getDefaultMessage();
-            errores.put(campo, mensaje);
-        });
-        return new ResponseEntity<>(
-                new HttpErrorInfo(HttpStatus.BAD_REQUEST, request.getDescription(false), errores.toString()),
-                HttpStatus.BAD_REQUEST
+    public ResponseEntity<HttpErrorInfo> handleValidationExceptions(
+            MethodArgumentNotValidException ex,
+            WebRequest request) {
+
+        Map<String, String> validationErrors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                validationErrors.put(error.getField(), error.getDefaultMessage())
         );
+
+        HttpErrorInfo errorInfo = new HttpErrorInfo(
+                HttpStatus.BAD_REQUEST,
+                request.getDescription(false).replace("uri=", ""),
+                "Error de validación en los campos enviados",
+                validationErrors
+        );
+
+        return ResponseEntity.badRequest().body(errorInfo);
     }
 
     //Reglas de negocio
@@ -54,7 +59,13 @@ public class GlobalExceptionHandler {
     //Excepción general
     @ExceptionHandler(Exception.class)
     public ResponseEntity<HttpErrorInfo> handleGeneral(Exception ex, WebRequest request) {
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, request.getDescription(false), "Error interno del servidor");
+        HttpErrorInfo errorInfo = new HttpErrorInfo(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                request.getDescription(false).replace("uri=", ""),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorInfo);
     }
 
     //Método privado para construir HttpErrorInfo
