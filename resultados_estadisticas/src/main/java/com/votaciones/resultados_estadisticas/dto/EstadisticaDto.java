@@ -1,20 +1,35 @@
 package com.votaciones.resultados_estadisticas.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "EstadisticaDto", description = "Resumen estadístico por departamento")
 public class EstadisticaDto {
 
+	@Schema(example = "La Paz")
 	private String departamento;
+	@Schema(example = "300")
 	private long totalVotantes;
+	@Schema(example = "200")
 	private long votosValidos;
+	@Schema(example = "10")
 	private long votosNulos;
+	@Schema(example = "5")
 	private long votosBlancos;
+	@Schema(example = "71.67")
 	private double participacionPorcentaje;
 
 	// Opcionales por canal (pueden quedar en cero si no se solicitan)
+	@Schema(example = "200")
 	private long votosValidosPresencial;
+	@Schema(example = "10")
 	private long votosNulosPresencial;
+	@Schema(example = "5")
 	private long votosBlancosPresencial;
+	@Schema(example = "0")
 	private long votosValidosWeb;
+	@Schema(example = "0")
 	private long votosNulosWeb;
+	@Schema(example = "0")
 	private long votosBlancosWeb;
 
 	public EstadisticaDto() {}

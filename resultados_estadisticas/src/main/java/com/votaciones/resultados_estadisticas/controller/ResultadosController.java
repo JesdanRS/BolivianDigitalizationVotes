@@ -7,6 +7,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,19 +31,19 @@ public class ResultadosController {
 	private ResultadosService resultadosService;
 
 	@Operation(summary = "Listar resultados", description = "Obtiene todos los resultados por mesa")
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Lista de resultados")
-	})
 	@GetMapping
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Lista de resultados",
+			content = @Content(mediaType = "application/json",
+				array = @ArraySchema(schema = @Schema(implementation = ResultadoMesa.class)),
+				examples = @ExampleObject(name = "EjemploResultados",
+					value = "[{\n  \"id\": 1, \"departamento\": \"La Paz\", \"municipio\": \"La Paz\", \"recinto\": \"Colegio Bolívar\", \"mesa\": \"Mesa 1\", \"inscritos\": 300, \"votosValidosPresencial\": 200, \"votosNulosPresencial\": 10, \"votosBlancosPresencial\": 5, \"votosValidosWeb\": 0, \"votosNulosWeb\": 0, \"votosBlancosWeb\": 0, \"registradoEn\": \"2025-09-11T13:00:00Z\", \"actualizadoEn\": \"2025-09-11T13:10:00Z\"\n}]")))
+	})
 	public ResponseEntity<List<ResultadoMesa>> listarResultados() {
 		return ResponseEntity.ok(resultadosService.listarResultados());
 	}
 
 	@Operation(summary = "Obtener resultado por ID", description = "Obtiene un resultado específico por su ID")
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Resultado encontrado"),
-		@ApiResponse(responseCode = "404", description = "Resultado no encontrado")
-	})
 	@GetMapping("/{id}")
 	public ResponseEntity<ResultadoMesa> obtenerResultado(
 			@Parameter(description = "ID del resultado", example = "1", required = true)
@@ -48,9 +52,6 @@ public class ResultadosController {
 	}
 
 	@Operation(summary = "Resultados por departamento", description = "Obtiene resultados filtrados por departamento")
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Lista de resultados del departamento")
-	})
 	@GetMapping("/departamento/{departamento}")
 	public ResponseEntity<List<ResultadoMesa>> resultadosPorDepartamento(
 			@Parameter(description = "Nombre del departamento", example = "La Paz", required = true)
@@ -59,10 +60,14 @@ public class ResultadosController {
 	}
 
 	@Operation(summary = "Estadísticas por departamento", description = "Resumen de estadísticas por departamento (agregado total o por canal)")
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Lista de estadísticas por departamento")
-	})
 	@GetMapping("/estadisticas")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Lista de estadísticas por departamento",
+			content = @Content(mediaType = "application/json",
+				array = @ArraySchema(schema = @Schema(implementation = EstadisticaDto.class)),
+				examples = @ExampleObject(name = "EjemploEstadisticas",
+					value = "[{\n  \"departamento\": \"La Paz\", \"totalVotantes\": 300, \"votosValidos\": 200, \"votosNulos\": 10, \"votosBlancos\": 5, \"participacionPorcentaje\": 71.67\n}]")))
+	})
 	public ResponseEntity<List<EstadisticaDto>> estadisticasPorDepartamento(
 			@Parameter(description = "Canal opcional: presencial o web")
 			@RequestParam(name = "canal", required = false) String canal) {
@@ -73,10 +78,14 @@ public class ResultadosController {
 	}
 
 	@Operation(summary = "Estadística de un departamento", description = "Resumen de un departamento específico (agregado total o por canal)")
-	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Estadística del departamento")
-	})
 	@GetMapping("/estadisticas/{departamento}")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Estadística del departamento",
+			content = @Content(mediaType = "application/json",
+				schema = @Schema(implementation = EstadisticaDto.class),
+				examples = @ExampleObject(name = "EjemploEstadistica",
+					value = "{\n  \"departamento\": \"La Paz\", \"totalVotantes\": 300, \"votosValidos\": 200, \"votosNulos\": 10, \"votosBlancos\": 5, \"participacionPorcentaje\": 71.67\n}")))
+	})
 	public ResponseEntity<EstadisticaDto> estadisticaDeDepartamento(
 			@Parameter(description = "Nombre del departamento", example = "La Paz", required = true)
 			@PathVariable String departamento,

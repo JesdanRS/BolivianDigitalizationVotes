@@ -51,7 +51,7 @@ public class ResultadosService {
 	public EstadisticaDto estadisticaDe(String departamento) {
 		List<ResultadoMesa> lista = listarPorDepartamento(departamento);
 		if (lista.isEmpty()) {
-			return new EstadisticaDto(departamento, 0, 0, 0, 0, 0.0);
+			throw new RecursoNoEncontradoException("Departamento", departamento);
 		}
 		return calcularEstadistica(departamento, lista);
 	}
@@ -70,7 +70,7 @@ public class ResultadosService {
 		String canalNormalizado = normalizarCanal(canal);
 		List<ResultadoMesa> lista = listarPorDepartamento(departamento);
 		if (lista.isEmpty()) {
-			return new EstadisticaDto(departamento, 0, 0, 0, 0, 0.0);
+			throw new RecursoNoEncontradoException("Departamento", departamento);
 		}
 		return calcularEstadistica(departamento, lista, canalNormalizado);
 	}
