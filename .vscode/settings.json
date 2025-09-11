@@ -1,4 +1,7 @@
 {
+<<<<<<< HEAD
+=======
     "java.configuration.updateBuildConfiguration": "interactive",
+>>>>>>> origin/usuarios
     "java.compile.nullAnalysis.mode": "automatic"
 }
