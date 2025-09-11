@@ -1,5 +1,8 @@
 package com.votaciones.auditoria_registros.service.implementation;
 
+import com.votaciones.auditoria.lib.AuditoriaStats;
+import com.votaciones.auditoria.lib.AuditoriaExport;
+
 import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
 import com.votaciones.auditoria_registros.exception.*;
 import com.votaciones.auditoria_registros.model.AuditoriaRegistro;
@@ -118,5 +121,35 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
     public Map<String, Long> contarEventosPorTipo() {
         return registros.stream()
                 .collect(Collectors.groupingBy(AuditoriaRegistro::getTipoEvento, Collectors.counting()));
+    }
+
+    public Map<String, Long> obtenerEstadisticasPorTipo() {
+        List<com.votaciones.auditoria.lib.model.AuditoriaRegistro> libRegistros =
+            registros.stream()
+                    .map(r -> new com.votaciones.auditoria.lib.model.AuditoriaRegistro(
+                        r.getId(),
+                        r.getTipoEvento(),
+                        r.getDescripcion(),
+                        r.getUsuario(),
+                        r.getFechaHora()
+                    ))
+                    .collect(Collectors.toList());
+
+        return AuditoriaStats.contarPorTipo(libRegistros);
+    }
+
+    public List<String> exportarRegistrosCSV() {
+        List<com.votaciones.auditoria.lib.model.AuditoriaRegistro> libRegistros =
+            registros.stream()
+                    .map(r -> new com.votaciones.auditoria.lib.model.AuditoriaRegistro(
+                        r.getId(),
+                        r.getTipoEvento(),
+                        r.getDescripcion(),
+                        r.getUsuario(),
+                        r.getFechaHora()
+                    ))
+                    .collect(Collectors.toList());
+
+        return AuditoriaExport.toCSV(libRegistros);
     }
 }

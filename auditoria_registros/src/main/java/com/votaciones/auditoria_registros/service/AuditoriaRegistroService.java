@@ -20,4 +20,6 @@ public interface AuditoriaRegistroService {
     int limpiarRegistrosAntiguos(LocalDateTime limite);
 
     Map<String, Long> contarEventosPorTipo();
+    Map<String, Long> obtenerEstadisticasPorTipo();
+    List<String> exportarRegistrosCSV();
 }

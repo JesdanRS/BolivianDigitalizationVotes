@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auditoria")
@@ -68,8 +69,30 @@ public class AuditoriaRegistrosController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> eliminarRegistro(@PathVariable Long id) {
+    public ResponseEntity<String> eliminarRegistro(
+        @Parameter(description = "ID del registro de auditoría", required = true)
+        @PathVariable Long id) {
         auditoriaService.eliminarRegistro(id);
         return ResponseEntity.ok("Registro eliminado correctamente");
+    }
+
+    @Operation(summary = "Obtener estadísticas de registros por tipo de evento")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Estadísticas obtenidas exitosamente"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/contarPorTipo")
+    public ResponseEntity<Map<String, Long>> estadisticas() {
+        return ResponseEntity.ok(auditoriaService.obtenerEstadisticasPorTipo());
+    }
+
+    @Operation(summary = "Exportar registros de auditoría a CSV")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Registros exportados exitosamente"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/exportarCsv")
+    public ResponseEntity<List<String>> exportar() {
+        return ResponseEntity.ok(auditoriaService.exportarRegistrosCSV());
     }
 }
