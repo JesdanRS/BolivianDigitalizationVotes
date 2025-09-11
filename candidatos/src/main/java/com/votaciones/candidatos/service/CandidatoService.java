@@ -11,6 +11,8 @@ import com.votaciones.candidatos.dto.CandidatoCreacionDto;
 import com.votaciones.candidatos.dto.candidatosDto;
 import com.votaciones.candidatos.model.Candidato;
 import com.votaciones.candidatos.exception.RecursoNoEncontradoException;
+import com.votaciones.candidatos.exception.PartidoDuplicadoException;
+import com.votaciones.candidatos.exception.NombreDuplicadoException;
 
 @Service
 public class CandidatoService {
@@ -23,6 +25,25 @@ public class CandidatoService {
 	}
 
 	public candidatosDto crearCandidato(CandidatoCreacionDto dto) {
+		// Validación: presidente y vicepresidente no pueden ser iguales
+		if (dto.getNombreCompletoPresidente() != null && dto.getNombreCompletoVicepresidente() != null) {
+			String p = dto.getNombreCompletoPresidente().trim();
+			String v = dto.getNombreCompletoVicepresidente().trim();
+			if (!p.isEmpty() && p.equalsIgnoreCase(v)) {
+				throw new NombreDuplicadoException(dto.getNombreCompletoPresidente(), dto.getNombreCompletoVicepresidente());
+			}
+		}
+
+		// Validación: partido no duplicado
+		if (dto.getPartido() != null) {
+			String partido = dto.getPartido().trim();
+			boolean existePartido = candidatos.stream()
+				.anyMatch(cand -> cand.getPartido().equalsIgnoreCase(partido));
+			if (existePartido) {
+				throw new PartidoDuplicadoException(dto.getPartido());
+			}
+		}
+
 		Candidato c = new Candidato(
 			dto.getPartido(),
 			dto.getNombreCompletoPresidente(),

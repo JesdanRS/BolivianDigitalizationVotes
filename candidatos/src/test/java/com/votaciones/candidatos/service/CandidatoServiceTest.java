@@ -9,6 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.votaciones.candidatos.dto.CandidatoCreacionDto;
 import com.votaciones.candidatos.dto.candidatosDto;
 import com.votaciones.candidatos.exception.RecursoNoEncontradoException;
+import com.votaciones.candidatos.exception.PartidoDuplicadoException;
+import com.votaciones.candidatos.exception.NombreDuplicadoException;
 
 @SpringBootTest
 public class CandidatoServiceTest {
@@ -32,6 +34,29 @@ public class CandidatoServiceTest {
 		assertNotNull(creado);
 		assertNotNull(creado.getIdCandidato());
 		assertEquals("MAS", creado.getPartido());
+	}
+
+	@Test
+	void testCrearCandidatoConPartidoDuplicado() {
+		// Tomar un partido existente de datos de ejemplo
+		CandidatoCreacionDto dto = new CandidatoCreacionDto();
+		dto.setPartido("Movimiento al Socialismo (MAS)");
+		dto.setNombreCompletoPresidente("Nuevo Presidente");
+		dto.setNombreCompletoVicepresidente("Nuevo Vice");
+		dto.setDescripcion("Desc");
+
+		assertThrows(PartidoDuplicadoException.class, () -> candidatoService.crearCandidato(dto));
+	}
+
+	@Test
+	void testCrearCandidatoConMismosNombres() {
+		CandidatoCreacionDto dto = new CandidatoCreacionDto();
+		dto.setPartido("Nuevo Partido");
+		dto.setNombreCompletoPresidente("Persona Igual");
+		dto.setNombreCompletoVicepresidente("Persona Igual");
+		dto.setDescripcion("Desc");
+
+		assertThrows(NombreDuplicadoException.class, () -> candidatoService.crearCandidato(dto));
 	}
 
 	@Test

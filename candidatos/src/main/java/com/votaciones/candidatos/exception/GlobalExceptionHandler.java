@@ -43,6 +43,17 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
 	}
 
+	@ExceptionHandler({PartidoDuplicadoException.class, NombreDuplicadoException.class, IdDuplicadoException.class})
+	public ResponseEntity<Map<String, Object>> manejarDuplicados(RuntimeException ex, ServerWebExchange exchange) {
+		Map<String, Object> error = new HashMap<>();
+		error.put("timestamp", Instant.now());
+		error.put("status", HttpStatus.CONFLICT.value());
+		error.put("error", "Conflicto de datos");
+		error.put("message", ex.getMessage());
+		error.put("path", exchange.getRequest().getPath().value());
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Map<String, Object>> manejarExcepcionesGenerales(
 			Exception ex, ServerWebExchange exchange) {
