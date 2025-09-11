@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,8 +37,14 @@ public class AuditoriaRegistrosController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<AuditoriaRegistro> crearRegistro(@Valid @RequestBody AuditoriaRegistrosDto dto) {
-        return ResponseEntity.ok(auditoriaService.crearRegistro(dto));
+    public Mono<ResponseEntity<AuditoriaRegistro>> crearRegistro(
+            @Valid @RequestBody Mono<AuditoriaRegistrosDto> dtoMono) {
+        return dtoMono
+                .flatMap(dto -> {
+                    // Aquí ya podemos validar manualmente si queremos
+                    return Mono.just(auditoriaService.crearRegistro(dto));
+                })
+                .map(ResponseEntity::ok);
     }
 
     @Operation(summary = "Obtener todos los registros de auditoría")

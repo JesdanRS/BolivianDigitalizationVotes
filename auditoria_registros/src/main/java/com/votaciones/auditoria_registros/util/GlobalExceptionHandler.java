@@ -3,76 +3,85 @@ package com.votaciones.auditoria_registros.util;
 import com.votaciones.auditoria_registros.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.server.ServerWebExchange;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Manejo de validaciones @Valid
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<HttpErrorInfo> handleValidationExceptions(
-            MethodArgumentNotValidException ex,
-            WebRequest request) {
+    // Validaciones @Valid
+    @ExceptionHandler(WebExchangeBindException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationException(
+            WebExchangeBindException ex, ServerWebExchange exchange) {
 
-        Map<String, String> validationErrors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                validationErrors.put(error.getField(), error.getDefaultMessage())
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", Instant.now());
+        error.put("status", HttpStatus.BAD_REQUEST.value());
+        error.put("error", "Datos de entrada inválidos");
+        error.put("message", "Error de validación en los campos enviados");
+        error.put("path", exchange.getRequest().getPath().value());
+
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(f ->
+                fieldErrors.put(f.getField(), f.getDefaultMessage())
         );
+        error.put("fieldErrors", fieldErrors);
 
-        HttpErrorInfo errorInfo = new HttpErrorInfo(
-                HttpStatus.BAD_REQUEST,
-                request.getDescription(false).replace("uri=", ""),
-                "Error de validación en los campos enviados",
-                validationErrors
-        );
-
-        return ResponseEntity.badRequest().body(errorInfo);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    //Reglas de negocio
+    // InvalidArgumentException -> 400
     @ExceptionHandler(InvalidArgumentException.class)
-    public ResponseEntity<HttpErrorInfo> handleInvalidArgument(InvalidArgumentException ex, WebRequest request) {
-        return buildError(HttpStatus.BAD_REQUEST, request.getDescription(false), ex.getMessage());
+    public ResponseEntity<Map<String, Object>> handleInvalidArgument(
+            InvalidArgumentException ex, ServerWebExchange exchange) {
+        return buildError(HttpStatus.BAD_REQUEST, "Solicitud inválida", ex.getMessage(), exchange);
     }
 
-    @ExceptionHandler(UnprocessableEntityException.class)
-    public ResponseEntity<HttpErrorInfo> handleUnprocessableEntity(UnprocessableEntityException ex, WebRequest request) {
-        return buildError(HttpStatus.UNPROCESSABLE_ENTITY, request.getDescription(false), ex.getMessage());
-    }
-
+    // EventoDuplicadoException -> 409
     @ExceptionHandler(EventoDuplicadoException.class)
-    public ResponseEntity<HttpErrorInfo> handleEventoDuplicado(EventoDuplicadoException ex, WebRequest request) {
-        return buildError(HttpStatus.CONFLICT, request.getDescription(false), ex.getMessage());
+    public ResponseEntity<Map<String, Object>> handleEventoDuplicado(
+            EventoDuplicadoException ex, ServerWebExchange exchange) {
+        return buildError(HttpStatus.CONFLICT, "Conflicto de datos", ex.getMessage(), exchange);
     }
 
+    // RegistroNoEncontradoException -> 404
     @ExceptionHandler(RegistroNoEncontradoException.class)
-    public ResponseEntity<HttpErrorInfo> handleRegistroNoEncontrado(RegistroNoEncontradoException ex, WebRequest request) {
-        return buildError(HttpStatus.NOT_FOUND, request.getDescription(false), ex.getMessage());
+    public ResponseEntity<Map<String, Object>> handleRegistroNoEncontrado(
+            RegistroNoEncontradoException ex, ServerWebExchange exchange) {
+        return buildError(HttpStatus.NOT_FOUND, "Recurso no encontrado", ex.getMessage(), exchange);
     }
 
-    //Excepción general
+    // UnprocessableEntityException -> 422
+    @ExceptionHandler(UnprocessableEntityException.class)
+    public ResponseEntity<Map<String, Object>> handleUnprocessableEntity(
+            UnprocessableEntityException ex, ServerWebExchange exchange) {
+        return buildError(HttpStatus.UNPROCESSABLE_ENTITY, "Entidad no procesable", ex.getMessage(), exchange);
+    }
+
+    // Excepción general -> 500
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<HttpErrorInfo> handleGeneral(Exception ex, WebRequest request) {
-        HttpErrorInfo errorInfo = new HttpErrorInfo(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                request.getDescription(false).replace("uri=", ""),
-                ex.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorInfo);
+    public ResponseEntity<Map<String, Object>> handleGeneral(
+            Exception ex, ServerWebExchange exchange) {
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor",
+                "Ocurrió un error inesperado en el servidor", exchange);
     }
 
-    //Método privado para construir HttpErrorInfo
-    private ResponseEntity<HttpErrorInfo> buildError(HttpStatus status, String path, String mensaje) {
-        return new ResponseEntity<>(
-                new HttpErrorInfo(status, path, mensaje),
-                status
-        );
+    // Método privado para construir la respuesta
+    private ResponseEntity<Map<String, Object>> buildError(HttpStatus status, String errorType,
+                                                           String message, ServerWebExchange exchange) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", Instant.now());
+        error.put("status", status.value());
+        error.put("error", errorType);
+        error.put("message", message);
+        error.put("path", exchange.getRequest().getPath().value());
+
+        return ResponseEntity.status(status).body(error);
     }
 }

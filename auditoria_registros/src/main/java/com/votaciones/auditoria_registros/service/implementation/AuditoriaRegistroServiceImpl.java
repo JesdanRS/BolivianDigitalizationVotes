@@ -25,17 +25,14 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
     @Override
     public AuditoriaRegistro crearRegistro(AuditoriaRegistrosDto dto) {
         if (!tiposPermitidos.contains(dto.getTipoEvento().toUpperCase())) {
-            throw new InvalidArgumentException("Tipo de evento no permitido: " + dto.getTipoEvento());
-        }
-        if (!dto.getUsuario().matches("\\d{7,8}")) {
-            throw new InvalidArgumentException("Cédula de identidad inválida. Debe tener 7 a 8 dígitos numéricos");
+            throw new InvalidArgumentException("Tipo de evento no permitido");
         }
 
         boolean existe = registros.stream().anyMatch(r ->
                 r.getUsuario().equalsIgnoreCase(dto.getUsuario()) &&
                 r.getTipoEvento().equalsIgnoreCase(dto.getTipoEvento()) &&
-                r.getDescripcion().equalsIgnoreCase(dto.getDescripcion()) &&
-                r.getFechaHora().withNano(0).equals(LocalDateTime.now().withNano(0))
+                r.getDescripcion().equalsIgnoreCase(dto.getDescripcion()) //&&
+                //r.getFechaHora().withNano(0).equals(LocalDateTime.now().withNano(0))
         );
 
         if (existe) {
