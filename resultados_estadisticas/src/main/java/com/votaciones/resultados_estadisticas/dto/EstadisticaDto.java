@@ -9,6 +9,14 @@ public class EstadisticaDto {
 	private long votosBlancos;
 	private double participacionPorcentaje;
 
+	// Opcionales por canal (pueden quedar en cero si no se solicitan)
+	private long votosValidosPresencial;
+	private long votosNulosPresencial;
+	private long votosBlancosPresencial;
+	private long votosValidosWeb;
+	private long votosNulosWeb;
+	private long votosBlancosWeb;
+
 	public EstadisticaDto() {}
 
 	public EstadisticaDto(String departamento, long totalVotantes, long votosValidos, long votosNulos, long votosBlancos, double participacionPorcentaje) {
@@ -67,6 +75,19 @@ public class EstadisticaDto {
 	public void setParticipacionPorcentaje(double participacionPorcentaje) {
 		this.participacionPorcentaje = participacionPorcentaje;
 	}
+
+	public long getVotosValidosPresencial() { return votosValidosPresencial; }
+	public void setVotosValidosPresencial(long votosValidosPresencial) { this.votosValidosPresencial = votosValidosPresencial; }
+	public long getVotosNulosPresencial() { return votosNulosPresencial; }
+	public void setVotosNulosPresencial(long votosNulosPresencial) { this.votosNulosPresencial = votosNulosPresencial; }
+	public long getVotosBlancosPresencial() { return votosBlancosPresencial; }
+	public void setVotosBlancosPresencial(long votosBlancosPresencial) { this.votosBlancosPresencial = votosBlancosPresencial; }
+	public long getVotosValidosWeb() { return votosValidosWeb; }
+	public void setVotosValidosWeb(long votosValidosWeb) { this.votosValidosWeb = votosValidosWeb; }
+	public long getVotosNulosWeb() { return votosNulosWeb; }
+	public void setVotosNulosWeb(long votosNulosWeb) { this.votosNulosWeb = votosNulosWeb; }
+	public long getVotosBlancosWeb() { return votosBlancosWeb; }
+	public void setVotosBlancosWeb(long votosBlancosWeb) { this.votosBlancosWeb = votosBlancosWeb; }
 }
 
 

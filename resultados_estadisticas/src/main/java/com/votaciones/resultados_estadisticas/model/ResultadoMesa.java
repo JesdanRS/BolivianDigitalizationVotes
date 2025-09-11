@@ -10,23 +10,34 @@ public class ResultadoMesa {
 	private String recinto;
 	private String mesa;
 	private long inscritos;
-	private long votosValidos;
-	private long votosNulos;
-	private long votosBlancos;
+
+	// Desglose por canal
+	private long votosValidosPresencial;
+	private long votosNulosPresencial;
+	private long votosBlancosPresencial;
+
+	private long votosValidosWeb;
+	private long votosNulosWeb;
+	private long votosBlancosWeb;
 	private Instant registradoEn;
 	private Instant actualizadoEn;
 
 	public ResultadoMesa() {}
 
-	public ResultadoMesa(String departamento, String municipio, String recinto, String mesa, long inscritos, long votosValidos, long votosNulos, long votosBlancos) {
+	public ResultadoMesa(String departamento, String municipio, String recinto, String mesa, long inscritos,
+			long votosValidosPresencial, long votosNulosPresencial, long votosBlancosPresencial,
+			long votosValidosWeb, long votosNulosWeb, long votosBlancosWeb) {
 		this.departamento = departamento;
 		this.municipio = municipio;
 		this.recinto = recinto;
 		this.mesa = mesa;
 		this.inscritos = inscritos;
-		this.votosValidos = votosValidos;
-		this.votosNulos = votosNulos;
-		this.votosBlancos = votosBlancos;
+		this.votosValidosPresencial = votosValidosPresencial;
+		this.votosNulosPresencial = votosNulosPresencial;
+		this.votosBlancosPresencial = votosBlancosPresencial;
+		this.votosValidosWeb = votosValidosWeb;
+		this.votosNulosWeb = votosNulosWeb;
+		this.votosBlancosWeb = votosBlancosWeb;
 	}
 
 	public void prePersist() {
@@ -51,12 +62,24 @@ public class ResultadoMesa {
 	public void setMesa(String mesa) { this.mesa = mesa; }
 	public long getInscritos() { return inscritos; }
 	public void setInscritos(long inscritos) { this.inscritos = inscritos; }
-	public long getVotosValidos() { return votosValidos; }
-	public void setVotosValidos(long votosValidos) { this.votosValidos = votosValidos; }
-	public long getVotosNulos() { return votosNulos; }
-	public void setVotosNulos(long votosNulos) { this.votosNulos = votosNulos; }
-	public long getVotosBlancos() { return votosBlancos; }
-	public void setVotosBlancos(long votosBlancos) { this.votosBlancos = votosBlancos; }
+	// Totales calculados
+	public long getVotosValidos() { return votosValidosPresencial + votosValidosWeb; }
+	public long getVotosNulos() { return votosNulosPresencial + votosNulosWeb; }
+	public long getVotosBlancos() { return votosBlancosPresencial + votosBlancosWeb; }
+
+	// Desglose getters/setters
+	public long getVotosValidosPresencial() { return votosValidosPresencial; }
+	public void setVotosValidosPresencial(long votosValidosPresencial) { this.votosValidosPresencial = votosValidosPresencial; }
+	public long getVotosNulosPresencial() { return votosNulosPresencial; }
+	public void setVotosNulosPresencial(long votosNulosPresencial) { this.votosNulosPresencial = votosNulosPresencial; }
+	public long getVotosBlancosPresencial() { return votosBlancosPresencial; }
+	public void setVotosBlancosPresencial(long votosBlancosPresencial) { this.votosBlancosPresencial = votosBlancosPresencial; }
+	public long getVotosValidosWeb() { return votosValidosWeb; }
+	public void setVotosValidosWeb(long votosValidosWeb) { this.votosValidosWeb = votosValidosWeb; }
+	public long getVotosNulosWeb() { return votosNulosWeb; }
+	public void setVotosNulosWeb(long votosNulosWeb) { this.votosNulosWeb = votosNulosWeb; }
+	public long getVotosBlancosWeb() { return votosBlancosWeb; }
+	public void setVotosBlancosWeb(long votosBlancosWeb) { this.votosBlancosWeb = votosBlancosWeb; }
 	public Instant getRegistradoEn() { return registradoEn; }
 	public void setRegistradoEn(Instant registradoEn) { this.registradoEn = registradoEn; }
 	public Instant getActualizadoEn() { return actualizadoEn; }
