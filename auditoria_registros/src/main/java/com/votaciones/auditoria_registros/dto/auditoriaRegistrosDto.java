@@ -1,51 +1,47 @@
 package com.votaciones.auditoria_registros.dto;
 
-import com.votaciones.auditoria_registros.exception.InvalidArgumentException;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
-public class auditoriaRegistrosDto {
-    private String id;
-    private String action;
-    private String timestamp;
+public class AuditoriaRegistrosDto {
 
-    public auditoriaRegistrosDto() {
+    @NotBlank(message = "El tipo de evento es obligatorio")
+    @Schema(description = "Tipo de evento", example = "LOGIN, VOTO EMITIDO, ERROR")
+    private String tipoEvento;
+
+    @NotBlank(message = "La descripción no puede estar vacía")
+    @Size(min = 5, max = 255, message = "La descripción debe tener entre 5 y 255 caracteres")
+    @Schema(description = "Descripción del evento", example = "Usuario X realizó una acción Y")
+    private String descripcion;
+
+    @Pattern(regexp = "\\d{7,8}", message = "El usuario debe ser una cédula de identidad válida (7 a 8 dígitos)")
+    @NotBlank(message = "El usuario es obligatorio")
+    @Schema(description = "Cédula de identidad del usuario que realizó el evento", example = "12345678")
+    private String usuario;
+
+    public String getTipoEvento() {
+        return tipoEvento;
     }
 
-    public auditoriaRegistrosDto(String id, String action, String timestamp) {
-        setId(id);
-        setAction(action);
-        setTimestamp(timestamp);
+    public void setTipoEvento(String tipoEvento) {
+        this.tipoEvento = tipoEvento;
     }
 
-    public String getId() {
-        return id;
+    public String getDescripcion() {
+        return descripcion;
     }
 
-    public void setId(String id) {
-        if (id == null || id.isEmpty()) {
-            throw new InvalidArgumentException("El id no puede ser nulo o vacío");
-        }
-        this.id = id;
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
-    public String getAction() {
-        return action;
+    public String getUsuario() {
+        return usuario;
     }
 
-    public void setAction(String action) {
-        if (action == null || action.isEmpty()) {
-            throw new InvalidArgumentException("La acción no puede ser nula o vacía");
-        }
-        this.action = action;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        if (timestamp == null || timestamp.isEmpty()) {
-            throw new InvalidArgumentException("El timestamp no puede ser nulo o vacío");
-        }
-        this.timestamp = timestamp;
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
     }
 }
