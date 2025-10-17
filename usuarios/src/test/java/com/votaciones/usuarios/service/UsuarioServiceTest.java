@@ -1,7 +1,7 @@
 package com.votaciones.usuarios.service;
 
-import com.votaciones.usuarios.dto.UsuarioCreacionDto;
-import com.votaciones.usuarios.dto.UsuarioDto;
+import com.votaciones.UsuarioCreacionDto;
+import com.votaciones.UsuarioDto;
 import com.votaciones.usuarios.exception.CarnetDuplicadoException;
 import com.votaciones.usuarios.exception.EmailDuplicadoException;
 import com.votaciones.usuarios.exception.RecursoNoEncontradoException;
