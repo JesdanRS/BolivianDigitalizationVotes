@@ -1,5 +1,5 @@
 // Ubicación: dto-usuarios/src/main/java/com/votaciones/usuarios/dto/SolicitudCodigoDto.java
-package com.votaciones;
+package com.votaciones.usuarios.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
