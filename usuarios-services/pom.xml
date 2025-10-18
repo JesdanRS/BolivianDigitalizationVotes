@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.6</version> <!-- Usando una versión estable y probada -->
+        <version>3.2.5</version> <!-- Usando una versión estable y probada -->
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.votaciones</groupId>
@@ -23,28 +23,39 @@
     <dependencies>
         <!-- ============== DEPENDENCIAS AÑADIDAS / CORREGIDAS ============== -->
 
+        <!-- 1. AÑADIDO: Para crear la API REST (¡CRÍTICO!) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- 2. CORREGIDO: Usar Eureka CLIENT en lugar de SERVER -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <dependency>
+        <!-- 3. AÑADIDO: Dependencia a nuestro módulo de DTOs -->
+       <dependency>
             <groupId>com.votaciones</groupId>
             <artifactId>dto-usuarios</artifactId>
             <version>1.0.0</version>
         </dependency>
 
+        <!-- 4. AÑADIDO: Para la librería de mapeo MapStruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version> <!-- Versión compatible con Spring Boot 3.2.x -->
+        </dependency>
+
+        <!-- ============== DEPENDENCIAS QUE YA TENÍAS (CORRECTAS) ============== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -90,6 +101,7 @@
 
     <build>
         <plugins>
+            <!-- CORREGIDO: Plugin de compilación con la configuración COMPLETA -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -104,6 +116,7 @@
                             <artifactId>lombok</artifactId>
                             <version>${lombok.version}</version>
                         </path>
+                        <!-- Procesador para MapStruct (¡IMPORTANTE!) -->
                         <path>
                             <groupId>org.mapstruct</groupId>
                             <artifactId>mapstruct-processor</artifactId>

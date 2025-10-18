@@ -1,4 +1,4 @@
-package main.java.com.votaciones.usuarios.mapper;
+package com.votaciones.usuarios.mapper;
 
 import com.votaciones.usuarios.dto.UsuarioCargaDto;
 import com.votaciones.usuarios.dto.UsuarioDto;
@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring") // Le dice a MapStruct que genere un Spring Bean
 public interface UsuarioMapper {
-
+    
     // Mapea de Entidad Usuario -> UsuarioDto (para respuestas de la API)
     UsuarioDto toDto(Usuario usuario);
 
