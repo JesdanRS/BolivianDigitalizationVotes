@@ -23,7 +23,6 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 20)
     private String carnet;
 
-    
     @Column(nullable = false)
     private LocalDate fechaNacimiento;
 
@@ -38,4 +37,9 @@ public class Usuario {
 
     @CreationTimestamp // Hibernate asigna la fecha de creación automáticamente
     private Instant creadoEn;
+
+    @Column(length = 6) // El código tendrá 6 dígitos
+    private String codigoVerificacion;
+
+    private Instant codigoExpiracion;
 }
