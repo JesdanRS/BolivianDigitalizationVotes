@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring") // Le dice a MapStruct que genere un Spring Bean
 public interface UsuarioMapper {
-    
+
     // Mapea de Entidad Usuario -> UsuarioDto (para respuestas de la API)
     UsuarioDto toDto(Usuario usuario);
 
