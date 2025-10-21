@@ -4,6 +4,8 @@ import EmailVerificationModal from '../components/common/EmailVerificationModal'
 import { authenticateAdmin, saveUserData } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import { sendVerificationEmail, verifyCode } from '../services/verificationService';
+// 👇 FALTA EL IMPORT — sin esto no se guarda el evento
+import { logEvent } from '../services/auditoriaService';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -21,6 +23,14 @@ const AdminLogin = () => {
     // Validar que los campos no estén vacíos
     if (!carnet || !fechaNacimiento || !password) {
       setError('Por favor complete todos los campos');
+      // RF06: intento con campos incompletos
+      logEvent({
+        tipo: 'LOGIN',
+        modulo: 'usuarios',
+        severidad: 'WARN',
+        usuario: carnet || 'desconocido',
+        detalle: 'Intento admin/jurado sin completar campos'
+      });
       return;
     }
 
@@ -48,6 +58,14 @@ const AdminLogin = () => {
       }
     } else {
       setError('Credenciales inválidas');
+      // RF06: login fallido
+      logEvent({
+        tipo: 'LOGIN',
+        modulo: 'usuarios',
+        severidad: 'WARN',
+        usuario: carnet,
+        detalle: 'Credenciales admin/jurado inválidas'
+      });
     }
   };
   
