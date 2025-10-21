@@ -7,6 +7,7 @@ import Resultados from './pages/Resultados';
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
 import MiVoto from './pages/MiVoto';
+import GestionCandidatos from './pages/GestionCandidatos';
 import './App.css';
 
 function App() {
@@ -18,6 +19,8 @@ function App() {
       <Link style={{color:'#fff'}} to="/resultados">Resultados</Link>
       <span>•</span>
       <Link style={{color:'#fff'}} to="/auditoria">Auditoría</Link>
+      <span>•</span>
+      <Link style={{color:'#fff'}} to="/gestionar-candidatos">Gestionar Candidatos</Link>
     </div>
   );
 
@@ -34,6 +37,7 @@ function App() {
         <Route path="/resultados" element={<Resultados />} />
         <Route path="/ayuda" element={<Resultados />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/gestionar-candidatos" element={<GestionCandidatos />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       {miniBar}
