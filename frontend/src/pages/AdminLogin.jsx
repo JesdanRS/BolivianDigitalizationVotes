@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import EmailVerificationModal from '../components/common/EmailVerificationModal';
 import { authenticateAdmin, saveUserData } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { sendVerificationEmail, verifyCode } from '../services/verificationService';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -14,12 +15,18 @@ const AdminLogin = () => {
   const [error, setError] = useState('');
   const { login } = useAuth();
   
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     
     // Validar que los campos no estén vacíos
     if (!carnet || !fechaNacimiento || !password) {
       setError('Por favor complete todos los campos');
+      return;
+    }
+
+    // Validar que el correo electrónico esté presente
+    if (!email) {
+      setError('Por favor ingrese su correo electrónico');
       return;
     }
     
@@ -31,38 +38,60 @@ const AdminLogin = () => {
       saveUserData(result.user);
       login(result.user);
       
-      // Abrir modal de verificación (solo para simulación, no se valida realmente)
-      setIsVerificationModalOpen(true);
+      // Enviar código de verificación al correo electrónico
+      try {
+        await sendVerificationEmail(email);
+        // Abrir modal de verificación
+        setIsVerificationModalOpen(true);
+      } catch (error) {
+        setError('Error al enviar el código de verificación');
+      }
     } else {
       setError('Credenciales inválidas');
     }
   };
   
   const handleVerifyCode = (code) => {
-    console.log('Código verificado:', code);
-    // Aquí se enviaría el código al backend para su verificación
-    setIsVerificationModalOpen(false);
+    // Verificar si el código es válido
+    const isValid = verifyCode(email, code);
     
-    // Obtenemos los datos del usuario
-    const userData = JSON.parse(localStorage.getItem('user'));
-    
-    if (userData?.role === 'auditor') {
-      // Redirigir al usuario a la página de auditoria
-      navigate('/auditoria');
-    } else if (userData?.role === 'admin') {
-      // Redirigir al administrador a la página de gestión de candidatos
-      navigate('/gestionar-candidatos');
-    } else if (userData?.role === 'jurado') {
-      // Redirigir al jurado a la página de espera
-      navigate('/jurado-espera');
+    if (isValid) {
+      console.log('Código verificado correctamente');
+      setIsVerificationModalOpen(false);
+      
+      // Obtenemos los datos del usuario
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
+      if (userData?.role === 'auditor') {
+        // Redirigir al usuario a la página de auditoria
+        navigate('/auditoria');
+      } else if (userData?.role === 'admin') {
+        // Redirigir al administrador a la página de gestión de candidatos
+        navigate('/gestionar-candidatos');
+      } else if (userData?.role === 'jurado') {
+        // Redirigir al jurado a la página de espera
+        navigate('/jurado-espera');
+      } else {
+        navigate('/login');
+      }
     } else {
-      navigate('/login');
+      alert('Código incorrecto. Por favor intente nuevamente.');
     }
   };
   
-  const handleResendCode = () => {
-    console.log('Reenviar código');
-    // Aquí se solicitaría al backend un nuevo envío del código
+  const handleResendCode = async () => {
+    if (!email) {
+      alert('No se ha proporcionado un correo electrónico válido');
+      return;
+    }
+    
+    try {
+      // Enviar un nuevo código de verificación
+      await sendVerificationEmail(email);
+      alert('Se ha enviado un nuevo código de verificación');
+    } catch (error) {
+      alert('Error al reenviar el código de verificación');
+    }
   };
   
   return (

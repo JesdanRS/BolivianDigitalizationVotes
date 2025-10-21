@@ -4,6 +4,7 @@ import Navbar from '../components/common/Navbar';
 import EmailVerificationModal from '../components/common/EmailVerificationModal';
 import { authenticateUser, saveUserData } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { sendVerificationEmail, verifyCode } from '../services/verificationService';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,12 +15,18 @@ const Login = () => {
   const [error, setError] = useState('');
   const { login } = useAuth();
   
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     
     // Validar que los campos no estén vacíos
     if (!carnet || !fechaNacimiento) {
       setError('Por favor complete todos los campos');
+      return;
+    }
+
+    // Validar que el correo electrónico esté presente
+    if (!email) {
+      setError('Por favor ingrese su correo electrónico');
       return;
     }
     
@@ -31,24 +38,46 @@ const Login = () => {
       saveUserData(result.user);
       login(result.user);
       
-      // Abrir modal de verificación (solo para simulación, no se valida realmente)
-      setIsVerificationModalOpen(true);
+      // Enviar código de verificación al correo electrónico
+      try {
+        await sendVerificationEmail(email);
+        // Abrir modal de verificación
+        setIsVerificationModalOpen(true);
+      } catch (error) {
+        setError('Error al enviar el código de verificación');
+      }
     } else {
       setError('Credenciales inválidas');
     }
   };
   
   const handleVerifyCode = (code) => {
-    console.log('Código verificado:', code);
-    // Aquí se enviaría el código al backend para su verificación
-    setIsVerificationModalOpen(false);
-    // Redirigir al usuario a la página de votación después de verificar el código
-    navigate('/votacion');
+    // Verificar si el código es válido
+    const isValid = verifyCode(email, code);
+    
+    if (isValid) {
+      console.log('Código verificado correctamente');
+      setIsVerificationModalOpen(false);
+      // Redirigir al usuario a la página de votación después de verificar el código
+      navigate('/votacion');
+    } else {
+      alert('Código incorrecto. Por favor intente nuevamente.');
+    }
   };
   
-  const handleResendCode = () => {
-    console.log('Reenviar código');
-    // Aquí se solicitaría al backend un nuevo envío del código
+  const handleResendCode = async () => {
+    if (!email) {
+      alert('No se ha proporcionado un correo electrónico válido');
+      return;
+    }
+    
+    try {
+      // Enviar un nuevo código de verificación
+      await sendVerificationEmail(email);
+      alert('Se ha enviado un nuevo código de verificación');
+    } catch (error) {
+      alert('Error al reenviar el código de verificación');
+    }
   };
   
   return (
