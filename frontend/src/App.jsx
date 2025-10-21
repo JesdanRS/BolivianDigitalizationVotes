@@ -4,6 +4,7 @@ import AuditoriaDashboard from './pages/auditoria/Dashboard';
 import AuditoriaRegistros from './pages/auditoria/Registros';
 import ResultadosAuditor from './pages/auditoria/ResultadosAuditor';
 import Resultados from './pages/Resultados';
+import GestionCandidatos from './pages/GestionCandidatos';
 import './App.css';
 
 function App() {
@@ -15,6 +16,8 @@ function App() {
       <Link style={{color:'#fff'}} to="/resultados">Resultados</Link>
       <span>•</span>
       <Link style={{color:'#fff'}} to="/auditoria">Auditoría</Link>
+      <span>•</span>
+      <Link style={{color:'#fff'}} to="/gestionar-candidatos">Gestionar Candidatos</Link>
     </div>
   );
 
@@ -26,6 +29,7 @@ function App() {
         <Route path="/auditoria/registros" element={<AuditoriaRegistros />} />
         <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />
         <Route path="/resultados" element={<Resultados />} />
+        <Route path="/gestionar-candidatos" element={<GestionCandidatos />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {miniBar}
