@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import EmailVerificationModal from '../components/common/EmailVerificationModal';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   
@@ -16,7 +18,8 @@ const Login = () => {
     console.log('Código verificado:', code);
     // Aquí se enviaría el código al backend para su verificación
     setIsVerificationModalOpen(false);
-    // Después de verificar, podríamos redirigir al usuario
+    // Redirigir al usuario a la página de votación después de verificar el código
+    navigate('/votacion');
   };
   
   const handleResendCode = () => {
@@ -42,9 +45,7 @@ const Login = () => {
       right: 0,
       bottom: 0
     }}>
-      {/* Navbar */}
-      <Navbar />
-
+      
       {/* Contenido principal */}
       <div style={{
         padding: '40px',

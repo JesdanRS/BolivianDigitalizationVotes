@@ -1,6 +1,9 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
+  const location = useLocation();
+  
   return (
     <nav style={{ 
       display: 'flex', 
@@ -20,14 +23,38 @@ const Navbar = () => {
         Elecciones Bolivia
       </div>
       <div style={{ display: 'flex', gap: '20px' }}>
-        <a href="#" style={{ color: '#666', textDecoration: 'none' }}>Información</a>
-        <a href="#" style={{ color: '#666', textDecoration: 'none' }}>Candidatos</a>
-        <a href="/resultados" style={{ color: '#666', textDecoration: 'none' }}>Resultados</a>
-        <a href="#" style={{ color: '#666', textDecoration: 'none' }}>Ayuda</a>
+      <Link to="#" style={{ 
+          color: location.pathname === '#' ? '#dc2626' : '#666', 
+          textDecoration: 'none',
+          fontWeight: location.pathname === '#' ? 'bold' : 'normal'
+        }}>
+          Informacion
+        </Link>
+        <Link to="/votacion" style={{ 
+          color: location.pathname === '/votacion' ? '#dc2626' : '#666', 
+          textDecoration: 'none',
+          fontWeight: location.pathname === '/votacion' ? 'bold' : 'normal'
+        }}>
+          Candidatos
+        </Link>
+        <Link to="/resultados" style={{ 
+          color: location.pathname === '/resultados' ? '#dc2626' : '#666', 
+          textDecoration: 'none',
+          fontWeight: location.pathname === '/resultados' ? 'bold' : 'normal'
+        }}>
+          Resultados
+        </Link>
+        <Link to="/ayuda" style={{ 
+          color: location.pathname === '/ayuda' ? '#dc2626' : '#666', 
+          textDecoration: 'none',
+          fontWeight: location.pathname === '/ayuda' ? 'bold' : 'normal'
+        }}>
+          Ayuda
+        </Link>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginRight: '30px' }}>
         <span>ES</span>
-        <a href="/login" style={{ 
+        <Link to="/login" style={{ 
           backgroundColor: '#dc2626',
           color: 'white',
           padding: '8px 15px',
@@ -37,7 +64,7 @@ const Navbar = () => {
           fontWeight: 'bold'
         }}>
           Iniciar Sesión
-        </a>
+        </Link>
       </div>
     </nav>
   );

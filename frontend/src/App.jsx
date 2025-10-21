@@ -11,7 +11,7 @@ function App() {
   const miniBar = (
     <div style={{position:'fixed',right:12,bottom:12,background:'#000',color:'#fff',
       padding:'8px 12px',borderRadius:8,opacity:.75,display:'flex',gap:10,zIndex:999}}>
-      <Link style={{color:'#fff'}} to="/">Votación</Link>
+      <Link style={{color:'#fff'}} to="/votacion">Votación</Link>
       <span>•</span>
       <Link style={{color:'#fff'}} to="/resultados">Resultados</Link>
       <span>•</span>
@@ -22,13 +22,15 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Votacion />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/votacion" element={<Votacion />} />
         <Route path="/auditoria" element={<AuditoriaDashboard />} />
         <Route path="/auditoria/registros" element={<AuditoriaRegistros />} />
         <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />
         <Route path="/resultados" element={<Resultados />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/ayuda" element={<Resultados />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       {miniBar}
     </BrowserRouter>
