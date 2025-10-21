@@ -4,9 +4,12 @@ import React, { useState } from 'react';
 import CandidatoCard from '../components/voting/CandidatoCard';
 import Navbar from '../components/common/Navbar';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import SecurityModal from '../components/common/SecurityModal';
 import '../App.css'; // Asumiendo estilos globales si es necesario
 import candidatoA from '../assets/images/paz.png';
 import candidatoB from '../assets/images/tuto.png';
+import * as tf from '@tensorflow/tfjs';
+import * as blazeface from '@tensorflow-models/blazeface';
 
 const candidatos = [
   {
@@ -27,8 +30,93 @@ const Votacion = () => {
   const [votoSeleccionado, setVotoSeleccionado] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [candidatoSeleccionado, setCandidatoSeleccionado] = useState(null);
+  const [securityBlocked, setSecurityBlocked] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [errorCamara, setErrorCamara] = useState(null);
+  const videoRef = React.useRef(null);
+
+  React.useEffect(() => {
+    let stream;
+    let model;
+    let intervalId;
+    let cancelled = false;
+    let detectionHistory = [];
+    const DETECTION_INTERVAL = 500; // Detectar cada 500ms en lugar de cada frame
+    const HISTORY_SIZE = 6; // Mantener últimas 6 detecciones (3 segundos)
+    const CONFIDENCE_THRESHOLD = 0.7; // 70% de las detecciones deben coincidir
+
+    async function startCameraAndDetection() {
+      try {
+        // Solicitar cámara
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+        setCameraActive(true);
+        setErrorCamara(null);
+
+        // Cargar modelo y empezar detección
+        model = await blazeface.load();
+        
+        const detect = async () => {
+          if (cancelled) return;
+          if (videoRef.current && model) {
+            try {
+              const predictions = await model.estimateFaces(videoRef.current, false);
+              const faceCount = predictions?.length || 0;
+              
+              // Añadir a historial
+              detectionHistory.push(faceCount > 1);
+              if (detectionHistory.length > HISTORY_SIZE) {
+                detectionHistory.shift();
+              }
+              
+              // Solo cambiar estado si tenemos suficiente historial y confianza
+              if (detectionHistory.length >= 3) {
+                const multipleFacesCount = detectionHistory.filter(Boolean).length;
+                const confidence = multipleFacesCount / detectionHistory.length;
+                
+                if (confidence >= CONFIDENCE_THRESHOLD) {
+                  setSecurityBlocked(true);
+                } else if (confidence <= (1 - CONFIDENCE_THRESHOLD)) {
+                  setSecurityBlocked(false);
+                }
+              }
+            } catch (detectionError) {
+              console.warn('Error en detección:', detectionError);
+            }
+          }
+        };
+        
+        // Usar setInterval en lugar de requestAnimationFrame para mejor control
+        intervalId = setInterval(detect, DETECTION_INTERVAL);
+      } catch (err) {
+        console.error('Error al activar cámara/detección:', err);
+        setErrorCamara('No se pudo activar la cámara.');
+        setCameraActive(false);
+        setSecurityBlocked(true); // Bloquear si no hay cámara por seguridad
+      }
+    }
+
+    startCameraAndDetection();
+
+    return () => {
+      cancelled = true;
+      if (intervalId) clearInterval(intervalId);
+      if (stream) stream.getTracks().forEach(t => t.stop());
+    };
+  }, []);
+
+  const handleRetryDetection = () => {
+    // Fuerza re-evaluación; el loop ya corre, pero limpiamos error
+    setErrorCamara(null);
+  };
 
   const handleVotar = (candidato) => {
+    if (securityBlocked) {
+      return; // Bloqueado por seguridad
+    }
     setCandidatoSeleccionado(candidato);
     setModalOpen(true);
   };
@@ -92,12 +180,23 @@ const Votacion = () => {
           ))}
         </div>
       </div>
-      
+
+      {/* Video oculto para detección */}
+      <video ref={videoRef} autoPlay playsInline muted style={{ position: 'fixed', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }} />
+
+      {/* Modal de seguridad */}
+      <SecurityModal 
+        isOpen={securityBlocked || !cameraActive}
+        cameraActive={cameraActive}
+        multipleFacesDetected={securityBlocked}
+        onRetry={handleRetryDetection}
+      />
+
       {/* Modal de confirmación */}
       <ConfirmationModal 
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onConfirm={confirmarVoto}
+        onConfirm={() => { setVotoSeleccionado(candidatoSeleccionado.id); setModalOpen(false); alert(`Has votado por el candidato: ${candidatoSeleccionado.nombre}`); }}
         candidato={candidatoSeleccionado}
       />
     </div>
