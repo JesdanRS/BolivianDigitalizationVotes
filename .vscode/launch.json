@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-AuditoriaRegistrosApplication<auditoria_registros>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.votaciones.auditoria_registros.AuditoriaRegistrosApplication",
+            "projectName": "auditoria_registros",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

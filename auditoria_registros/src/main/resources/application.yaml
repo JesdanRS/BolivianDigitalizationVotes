@@ -1,5 +1,7 @@
 spring:
   application:
     name: auditoria_registros
+  config:
+    import: "classpath:application-openapi.yaml"
 server:
   port: 7005

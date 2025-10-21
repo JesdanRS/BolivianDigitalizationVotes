@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Globales sin @apply para evitar el error de Tailwind */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;                /* evita el “marco” */
+  background: #f9fafb;      /* gris claro */
+  color: #111827;           /* gray-900 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* estilos mínimos útiles */
+a { color: #2563eb; text-decoration: none; }
+a:hover { text-decoration: underline; }
