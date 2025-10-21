@@ -1,8 +1,18 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { logout } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout: authLogout } = useAuth();
+  
+  const handleLogout = () => {
+    logout();
+    authLogout();
+    navigate('/login');
+  };
   
   return (
     <nav style={{ 
@@ -54,17 +64,22 @@ const Navbar = () => {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginRight: '30px' }}>
         <span>ES</span>
-        <Link to="/login" style={{ 
-          backgroundColor: '#dc2626',
-          color: 'white',
-          padding: '8px 15px',
-          borderRadius: '4px',
-          textDecoration: 'none',
-          fontSize: '14px',
-          fontWeight: 'bold'
-        }}>
+        <button 
+          onClick={handleLogout}
+          style={{ 
+            backgroundColor: '#dc2626',
+            color: 'white',
+            padding: '8px 15px',
+            borderRadius: '4px',
+            border: 'none',
+            textDecoration: 'none',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
           Cerrar Sesión
-        </Link>
+        </button>
       </div>
     </nav>
   );

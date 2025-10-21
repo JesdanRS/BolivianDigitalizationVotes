@@ -1,15 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/common/Navbar';
+import { useAuth } from '../context/AuthContext';
+import { getUserDisplayData } from '../services/authService';
 
 const MiVoto = () => {
-  // Datos del votante (en producción vendrían del backend)
-  const [votanteData, setVotanteData] = useState({
-    nombreCompleto: 'Sofía Ramírez',
-    cedulaIdentidad: '123456789',
-    lugarVotacion: 'Colegio Nacional Sucre',
-    mesaSufragio: '123',
-    fechaEmision: '23/10/2024',
-  });
+  const { user } = useAuth();
+  const [votanteData, setVotanteData] = useState(null);
+
+  useEffect(() => {
+    if (user && user.role === 'usuario') {
+      // Obtener datos del usuario para mostrar en el carnet
+      const userData = getUserDisplayData(user.carnet);
+      if (userData) {
+        setVotanteData(userData);
+      }
+    }
+  }, [user]);
+
+  // Renderizar un mensaje de carga si no hay datos de usuario aún
+  if (!votanteData) {
+    return (
+      <div style={{
+        fontFamily: 'Arial, sans-serif',
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        margin: 0,
+        padding: 0,
+        overflow: 'hidden',
+        backgroundColor: '#fff',
+        color: '#000',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0
+      }}>
+        <Navbar />
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100%',
+          padding: '20px'
+        }}>
+          <p>Cargando datos de su voto...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -258,7 +298,7 @@ const MiVoto = () => {
                     fontSize: '0.9rem',
                     fontWeight: 'bold'
                   }}>
-                    {votanteData.nombreCompleto}
+                    {votanteData?.nombreCompleto || '-'}
                   </p>
                 </div>
                 <div>
@@ -273,7 +313,7 @@ const MiVoto = () => {
                     fontSize: '0.9rem',
                     fontWeight: 'bold'
                   }}>
-                    {votanteData.cedulaIdentidad}
+                    {votanteData?.cedulaIdentidad || '-'}
                   </p>
                 </div>
               </div>
@@ -292,7 +332,7 @@ const MiVoto = () => {
                   fontSize: '0.9rem',
                   fontWeight: 'bold'
                 }}>
-                  {votanteData.lugarVotacion}
+                  {votanteData?.lugarVotacion || '-'}
                 </p>
               </div>
               
@@ -314,7 +354,7 @@ const MiVoto = () => {
                     fontSize: '0.9rem',
                     fontWeight: 'bold'
                   }}>
-                    {votanteData.mesaSufragio}
+                    {votanteData?.mesaSufragio || '-'}
                   </p>
                 </div>
                 <div>
@@ -329,7 +369,7 @@ const MiVoto = () => {
                     fontSize: '0.9rem',
                     fontWeight: 'bold'
                   }}>
-                    {votanteData.fechaEmision}
+                    {votanteData?.fechaEmision || '-'}
                   </p>
                 </div>
               </div>

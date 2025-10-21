@@ -1,24 +1,63 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import EmailVerificationModal from '../components/common/EmailVerificationModal';
+import { authenticateAdmin, saveUserData } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [email, setEmail] = useState('');
+  const [carnet, setCarnet] = useState('');
+  const [fechaNacimiento, setFechaNacimiento] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const { login } = useAuth();
   
   const handleLogin = (e) => {
     e.preventDefault();
-    // Simulamos el envío del formulario y abrimos el modal de verificación
-    setIsVerificationModalOpen(true);
+    
+    // Validar que los campos no estén vacíos
+    if (!carnet || !fechaNacimiento || !password) {
+      setError('Por favor complete todos los campos');
+      return;
+    }
+    
+    // Autenticar usuario con los datos predefinidos
+    const result = authenticateAdmin(carnet, fechaNacimiento, password);
+    
+    if (result.success) {
+      // Guardar datos del usuario y actualizar contexto
+      saveUserData(result.user);
+      login(result.user);
+      
+      // Abrir modal de verificación (solo para simulación, no se valida realmente)
+      setIsVerificationModalOpen(true);
+    } else {
+      setError('Credenciales inválidas');
+    }
   };
   
   const handleVerifyCode = (code) => {
     console.log('Código verificado:', code);
     // Aquí se enviaría el código al backend para su verificación
     setIsVerificationModalOpen(false);
-    // Redirigir al usuario a la página de auditoria después de verificar el código (administrador)
-    navigate('/auditoria');
+    
+    // Obtenemos los datos del usuario
+    const userData = JSON.parse(localStorage.getItem('user'));
+    
+    if (userData?.role === 'auditor') {
+      // Redirigir al usuario a la página de auditoria
+      navigate('/auditoria');
+    } else if (userData?.role === 'admin') {
+      // Redirigir al administrador a la página de gestión de candidatos
+      navigate('/gestionar-candidatos');
+    } else if (userData?.role === 'jurado') {
+      // Redirigir al jurado a la página de espera
+      navigate('/jurado-espera');
+    } else {
+      navigate('/login');
+    }
   };
   
   const handleResendCode = () => {
@@ -81,6 +120,8 @@ const AdminLogin = () => {
             <input
               type="text"
               placeholder="Carnet de Identidad"
+              value={carnet}
+              onChange={(e) => setCarnet(e.target.value)}
               style={{
                 padding: '12px',
                 borderRadius: '4px',
@@ -92,6 +133,8 @@ const AdminLogin = () => {
             <input
               type="text"
               placeholder="Fecha de Nacimiento (DD/MM/AAAA)"
+              value={fechaNacimiento}
+              onChange={(e) => setFechaNacimiento(e.target.value)}
               style={{
                 padding: '12px',
                 borderRadius: '4px',
@@ -116,6 +159,8 @@ const AdminLogin = () => {
             <input
               type="password"
               placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               style={{
                 padding: '12px',
                 borderRadius: '4px',
@@ -123,6 +168,12 @@ const AdminLogin = () => {
                 fontSize: '16px'
               }}
             />
+            
+            {error && (
+              <p style={{ color: 'red', fontSize: '14px', textAlign: 'left' }}>
+                {error}
+              </p>
+            )}
             
             <button
               type="submit"

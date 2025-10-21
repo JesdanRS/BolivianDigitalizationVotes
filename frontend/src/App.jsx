@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import Votacion from './pages/votacion';
 import AuditoriaDashboard from './pages/auditoria/Dashboard';
 import AuditoriaRegistros from './pages/auditoria/Registros';
@@ -8,6 +10,7 @@ import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
 import MiVoto from './pages/MiVoto';
 import GestionCandidatos from './pages/GestionCandidatos';
+import JuradoEspera from './pages/JuradoEspera';
 import './App.css';
 
 function App() {
@@ -25,23 +28,62 @@ function App() {
   );
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/votacion" element={<Votacion />} />
-        <Route path="/mi-voto" element={<MiVoto />} />
-        <Route path="/auditoria" element={<AuditoriaDashboard />} />
-        <Route path="/auditoria/registros" element={<AuditoriaRegistros />} />
-        <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />
-        <Route path="/resultados" element={<Resultados />} />
-        <Route path="/ayuda" element={<Resultados />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/gestionar-candidatos" element={<GestionCandidatos />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-      {miniBar}
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/votacion" element={
+            <ProtectedRoute requiredRole="usuario">
+              <Votacion />
+            </ProtectedRoute>
+          } />
+          <Route path="/mi-voto" element={
+            <ProtectedRoute requiredRole="usuario">
+              <MiVoto />
+            </ProtectedRoute>
+          } />
+          <Route path="/auditoria" element={
+            <ProtectedRoute allowedRoles={['auditor', 'admin']}>
+              <AuditoriaDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/auditoria/registros" element={
+            <ProtectedRoute allowedRoles={['auditor', 'admin']}>
+              <AuditoriaRegistros />
+            </ProtectedRoute>
+          } />
+          <Route path="/auditoria/resultados" element={
+            <ProtectedRoute allowedRoles={['auditor', 'admin']}>
+              <ResultadosAuditor />
+            </ProtectedRoute>
+          } />
+          <Route path="/resultados" element={
+            <ProtectedRoute>
+              <Resultados />
+            </ProtectedRoute>
+          } />
+          <Route path="/ayuda" element={
+            <ProtectedRoute>
+              <Resultados />
+            </ProtectedRoute>
+          } />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/gestionar-candidatos" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <GestionCandidatos />
+            </ProtectedRoute>
+          } />
+          <Route path="/jurado-espera" element={
+            <ProtectedRoute allowedRoles={['jurado']}>
+              <JuradoEspera />
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+        {miniBar}
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 export default App;

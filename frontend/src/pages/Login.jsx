@@ -2,16 +2,40 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import EmailVerificationModal from '../components/common/EmailVerificationModal';
+import { authenticateUser, saveUserData } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [email, setEmail] = useState('');
+  const [carnet, setCarnet] = useState('');
+  const [fechaNacimiento, setFechaNacimiento] = useState('');
+  const [error, setError] = useState('');
+  const { login } = useAuth();
   
   const handleLogin = (e) => {
     e.preventDefault();
-    // Simulamos el envío del formulario y abrimos el modal de verificación
-    setIsVerificationModalOpen(true);
+    
+    // Validar que los campos no estén vacíos
+    if (!carnet || !fechaNacimiento) {
+      setError('Por favor complete todos los campos');
+      return;
+    }
+    
+    // Autenticar usuario con los datos predefinidos
+    const result = authenticateUser(carnet, fechaNacimiento);
+    
+    if (result.success) {
+      // Guardar datos del usuario y actualizar contexto
+      saveUserData(result.user);
+      login(result.user);
+      
+      // Abrir modal de verificación (solo para simulación, no se valida realmente)
+      setIsVerificationModalOpen(true);
+    } else {
+      setError('Credenciales inválidas');
+    }
   };
   
   const handleVerifyCode = (code) => {
@@ -82,6 +106,8 @@ const Login = () => {
             <input
               type="text"
               placeholder="Carnet de Identidad"
+              value={carnet}
+              onChange={(e) => setCarnet(e.target.value)}
               style={{
                 padding: '12px',
                 borderRadius: '4px',
@@ -93,6 +119,8 @@ const Login = () => {
             <input
               type="text"
               placeholder="Fecha de Nacimiento (DD/MM/AAAA)"
+              value={fechaNacimiento}
+              onChange={(e) => setFechaNacimiento(e.target.value)}
               style={{
                 padding: '12px',
                 borderRadius: '4px',
@@ -120,6 +148,11 @@ const Login = () => {
               alignItems: 'center',
               marginTop: '5px'
             }}>
+              {error && (
+                <p style={{ color: 'red', fontSize: '14px', marginBottom: 0 }}>
+                  {error}
+                </p>
+              )}
             </div>
             
             <button
