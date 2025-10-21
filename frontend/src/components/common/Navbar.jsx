@@ -15,7 +15,7 @@ const Navbar = () => {
       <div style={{ display: 'flex', gap: '20px' }}>
         <a href="#" style={{ color: '#666', textDecoration: 'none' }}>Información</a>
         <a href="#" style={{ color: '#666', textDecoration: 'none' }}>Candidatos</a>
-        <a href="#" style={{ color: '#666', textDecoration: 'none' }}>Resultados</a>
+        <a href="/resultados" style={{ color: '#666', textDecoration: 'none' }}>Resultados</a>
         <a href="#" style={{ color: '#666', textDecoration: 'none' }}>Ayuda</a>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginRight: '30px' }}>

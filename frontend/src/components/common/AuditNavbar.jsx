@@ -31,6 +31,7 @@ const AuditNavbar = () => {
 
       <div style={{display:'flex',gap:6}}>
         <Item to="/auditoria" label="Dashboard" />
+        <Item to="/auditoria/resultados" label="Resultados" />
         <Item to="/auditoria/registros" label="Registros" />
       </div>
 
