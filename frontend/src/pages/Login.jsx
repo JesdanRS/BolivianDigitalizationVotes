@@ -1,7 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/common/Navbar';
+import EmailVerificationModal from '../components/common/EmailVerificationModal';
 
 const Login = () => {
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Simulamos el envío del formulario y abrimos el modal de verificación
+    setIsVerificationModalOpen(true);
+  };
+  
+  const handleVerifyCode = (code) => {
+    console.log('Código verificado:', code);
+    // Aquí se enviaría el código al backend para su verificación
+    setIsVerificationModalOpen(false);
+    // Después de verificar, podríamos redirigir al usuario
+  };
+  
+  const handleResendCode = () => {
+    console.log('Reenviar código');
+    // Aquí se solicitaría al backend un nuevo envío del código
+  };
+  
   return (
     <div style={{
       fontFamily: 'Arial, sans-serif',
@@ -49,11 +71,13 @@ const Login = () => {
             Accede para ejercer tu derecho al voto.
           </p>
           
-          <form style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '15px',
-          }}>
+          <form 
+            onSubmit={handleLogin}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px',
+            }}>
             <input
               type="text"
               placeholder="Carnet de Identidad"
@@ -79,6 +103,8 @@ const Login = () => {
             <input
               type="email"
               placeholder="Correo Electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               style={{
                 padding: '12px',
                 borderRadius: '4px',
@@ -136,6 +162,14 @@ const Login = () => {
           </p>
         </div>
       </div>
+      {/* Modal de verificación de correo */}
+      <EmailVerificationModal
+        isOpen={isVerificationModalOpen}
+        onClose={() => setIsVerificationModalOpen(false)}
+        onVerify={handleVerifyCode}
+        onResend={handleResendCode}
+        email={email}
+      />
     </div>
   );
 };
