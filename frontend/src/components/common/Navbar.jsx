@@ -11,7 +11,14 @@ const Navbar = () => {
       borderBottom: '1px solid #e0e0e0',
       width: '100%'
     }}>
-      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#000000' }}>VotoSeguro</div>
+      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#000000', display: 'flex', alignItems: 'center' }}>
+        <img 
+          src="/src/assets/images/example.png" 
+          alt="Elecciones Bolivia" 
+          style={{ height: '24px', marginRight: '8px' }}
+        />
+        Elecciones Bolivia
+      </div>
       <div style={{ display: 'flex', gap: '20px' }}>
         <a href="#" style={{ color: '#666', textDecoration: 'none' }}>Información</a>
         <a href="#" style={{ color: '#666', textDecoration: 'none' }}>Candidatos</a>
@@ -20,19 +27,17 @@ const Navbar = () => {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginRight: '30px' }}>
         <span>ES</span>
-        <div style={{ 
-          width: '30px', 
-          height: '30px', 
-          backgroundColor: '#ccc', 
-          borderRadius: '50%', 
-          overflow: 'hidden',
-          marginLeft: '5px',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
+        <a href="/login" style={{ 
+          backgroundColor: '#dc2626',
+          color: 'white',
+          padding: '8px 15px',
+          borderRadius: '4px',
+          textDecoration: 'none',
+          fontSize: '14px',
+          fontWeight: 'bold'
         }}>
-          {/* Placeholder para imagen de perfil */}
-        </div>
+          Iniciar Sesión
+        </a>
       </div>
     </nav>
   );
