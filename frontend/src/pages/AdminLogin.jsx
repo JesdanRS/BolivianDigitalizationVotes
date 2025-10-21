@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Navbar from '../components/common/Navbar';
 import EmailVerificationModal from '../components/common/EmailVerificationModal';
 
-const Login = () => {
+const AdminLogin = () => {
   const navigate = useNavigate();
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -18,8 +17,8 @@ const Login = () => {
     console.log('Código verificado:', code);
     // Aquí se enviaría el código al backend para su verificación
     setIsVerificationModalOpen(false);
-    // Redirigir al usuario a la página de votación después de verificar el código
-    navigate('/votacion');
+    // Redirigir al usuario a la página de auditoria después de verificar el código (administrador)
+    navigate('/auditoria');
   };
   
   const handleResendCode = () => {
@@ -67,9 +66,9 @@ const Login = () => {
           boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
           textAlign: 'center'
         }}>
-          <h1 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>Iniciar Sesión</h1>
+          <h1 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>Acceso Administrativo</h1>
           <p style={{ color: '#666666', marginBottom: '25px' }}>
-            Accede para ejercer tu derecho al voto.
+            Ingresa tus credenciales de administrador o jurado.
           </p>
           
           <form 
@@ -113,14 +112,17 @@ const Login = () => {
                 fontSize: '16px'
               }}
             />
-            
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '5px'
-            }}>
-            </div>
+
+            <input
+              type="password"
+              placeholder="Contraseña"
+              style={{
+                padding: '12px',
+                borderRadius: '4px',
+                border: '1px solid #e0e0e0',
+                fontSize: '16px'
+              }}
+            />
             
             <button
               type="submit"
@@ -145,14 +147,13 @@ const Login = () => {
             fontSize: '14px',
             color: '#666666'
           }}>
-            ¿Eres administrador o jurado? <Link to="/admin-login" style={{ color: '#dc2626', textDecoration: 'none' }}>Inicia sesión aquí</Link>
+            ¿No eres administrador? <Link to="/login" style={{ color: '#dc2626', textDecoration: 'none' }}>Inicia sesión aquí</Link>
           </p>
         </div>
       </div>
       {/* Modal de verificación de correo */}
       <EmailVerificationModal
         isOpen={isVerificationModalOpen}
-        onClose={() => setIsVerificationModalOpen(false)}
         onVerify={handleVerifyCode}
         onResend={handleResendCode}
         email={email}
@@ -161,4 +162,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;

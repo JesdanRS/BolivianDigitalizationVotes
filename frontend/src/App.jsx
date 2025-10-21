@@ -5,6 +5,8 @@ import AuditoriaRegistros from './pages/auditoria/Registros';
 import ResultadosAuditor from './pages/auditoria/ResultadosAuditor';
 import Resultados from './pages/Resultados';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
+import MiVoto from './pages/MiVoto';
 import './App.css';
 
 function App() {
@@ -23,7 +25,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/votacion" element={<Votacion />} />
+        <Route path="/mi-voto" element={<MiVoto />} />
         <Route path="/auditoria" element={<AuditoriaDashboard />} />
         <Route path="/auditoria/registros" element={<AuditoriaRegistros />} />
         <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />

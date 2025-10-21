@@ -23,19 +23,19 @@ const Navbar = () => {
         Elecciones Bolivia
       </div>
       <div style={{ display: 'flex', gap: '20px' }}>
-      <Link to="#" style={{ 
-          color: location.pathname === '#' ? '#dc2626' : '#666', 
-          textDecoration: 'none',
-          fontWeight: location.pathname === '#' ? 'bold' : 'normal'
-        }}>
-          Informacion
-        </Link>
         <Link to="/votacion" style={{ 
           color: location.pathname === '/votacion' ? '#dc2626' : '#666', 
           textDecoration: 'none',
           fontWeight: location.pathname === '/votacion' ? 'bold' : 'normal'
         }}>
           Candidatos
+        </Link>
+        <Link to="/mi-voto" style={{ 
+          color: location.pathname === '/mi-voto' ? '#dc2626' : '#666', 
+          textDecoration: 'none',
+          fontWeight: location.pathname === '/mi-voto' ? 'bold' : 'normal'
+        }}>
+          Mi Voto
         </Link>
         <Link to="/resultados" style={{ 
           color: location.pathname === '/resultados' ? '#dc2626' : '#666', 
@@ -63,7 +63,7 @@ const Navbar = () => {
           fontSize: '14px',
           fontWeight: 'bold'
         }}>
-          Iniciar Sesión
+          Cerrar Sesión
         </Link>
       </div>
     </nav>

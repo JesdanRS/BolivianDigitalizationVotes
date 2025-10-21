@@ -38,6 +38,18 @@ const AuditNavbar = () => {
       <div style={{display:'flex',alignItems:'center',gap:10}}>
         <span style={{fontSize:12,color:'#6b7280'}}>Auditor</span>
         <div style={{width:32,height:32,borderRadius:'50%',background:'#c7d2fe'}} />
+        <Link to="/login" style={{
+          backgroundColor: '#dc2626',
+          color: 'white',
+          padding: '5px 10px',
+          borderRadius: '4px',
+          textDecoration: 'none',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          marginLeft: '10px'
+        }}>
+          Cerrar Sesión
+        </Link>
       </div>
     </nav>
   );
