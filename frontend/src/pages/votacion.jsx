@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import CandidatoCard from '../components/voting/CandidatoCard';
 import Navbar from '../components/common/Navbar';
 import ConfirmationModal from '../components/common/ConfirmationModal';
-import '../App.css'; // Asumiendo estilos globales si es necesario
 import candidatoA from '../assets/images/paz.png';
 import candidatoB from '../assets/images/tuto.png';
 
