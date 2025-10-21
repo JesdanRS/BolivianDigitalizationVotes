@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import EmailVerificationModal from '../components/common/EmailVerificationModal';
 import { authenticateAdmin, saveUserData } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+// 👇 FALTA EL IMPORT — sin esto no se guarda el evento
+import { logEvent } from '../services/auditoriaService';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -20,6 +22,14 @@ const AdminLogin = () => {
     // Validar que los campos no estén vacíos
     if (!carnet || !fechaNacimiento || !password) {
       setError('Por favor complete todos los campos');
+      // RF06: intento con campos incompletos
+      logEvent({
+        tipo: 'LOGIN',
+        modulo: 'usuarios',
+        severidad: 'WARN',
+        usuario: carnet || 'desconocido',
+        detalle: 'Intento admin/jurado sin completar campos'
+      });
       return;
     }
     
@@ -31,29 +41,51 @@ const AdminLogin = () => {
       saveUserData(result.user);
       login(result.user);
       
-      // Abrir modal de verificación (solo para simulación, no se valida realmente)
+      // RF06: login exitoso (primer factor)
+      logEvent({
+        tipo: 'LOGIN',
+        modulo: 'usuarios',
+        severidad: 'INFO',
+        usuario: result.user?.username || carnet,
+        detalle: 'Acceso administrativo/jurado satisfactorio (1er factor)'
+      });
+
+      // Abrir modal de verificación (simulado)
       setIsVerificationModalOpen(true);
     } else {
       setError('Credenciales inválidas');
+      // RF06: login fallido
+      logEvent({
+        tipo: 'LOGIN',
+        modulo: 'usuarios',
+        severidad: 'WARN',
+        usuario: carnet,
+        detalle: 'Credenciales admin/jurado inválidas'
+      });
     }
   };
   
   const handleVerifyCode = (code) => {
     console.log('Código verificado:', code);
-    // Aquí se enviaría el código al backend para su verificación
+    // Cerrar modal 2FA
     setIsVerificationModalOpen(false);
-    
-    // Obtenemos los datos del usuario
-    const userData = JSON.parse(localStorage.getItem('user'));
-    
+
+    // RF06: segundo factor verificado
+    const userData = JSON.parse(localStorage.getItem('user')) || {};
+    logEvent({
+      tipo: 'LOGIN',
+      modulo: 'usuarios',
+      severidad: 'INFO',
+      usuario: userData?.username || carnet || 'desconocido',
+      detalle: 'Segundo factor verificado'
+    });
+
+    // Redirecciones según rol
     if (userData?.role === 'auditor') {
-      // Redirigir al usuario a la página de auditoria
-      navigate('/auditoria');
+      navigate('/auditoria');            // ← aquí verás el evento en la lista
     } else if (userData?.role === 'admin') {
-      // Redirigir al administrador a la página de gestión de candidatos
       navigate('/gestionar-candidatos');
     } else if (userData?.role === 'jurado') {
-      // Redirigir al jurado a la página de espera
       navigate('/jurado-espera');
     } else {
       navigate('/login');
@@ -62,7 +94,7 @@ const AdminLogin = () => {
   
   const handleResendCode = () => {
     console.log('Reenviar código');
-    // Aquí se solicitaría al backend un nuevo envío del código
+    // Aquí se solicitaría al backend un nuevo envío del código (simulado)
   };
   
   return (

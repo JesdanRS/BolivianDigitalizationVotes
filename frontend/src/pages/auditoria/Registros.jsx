@@ -22,8 +22,10 @@ const Registros = () => {
   const [open,setOpen]=useState(false);
   const [selected,setSelected]=useState(null);
 
-  const load=()=> fetchLogs({page, q, tipo, severidad:sev, modulo:mod}).then(setData);
+  const load = () => fetchLogs({page, q, tipo, severidad:sev, modulo:mod}).then(setData);
+
   useEffect(()=>{ load(); /* eslint-disable-next-line */ },[page]);
+
   const onSearch=(e)=>{ e.preventDefault(); setPage(1); load(); };
 
   const handleView = async (item) => {

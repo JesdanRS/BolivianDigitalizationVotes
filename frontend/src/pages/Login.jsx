@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Navbar from '../components/common/Navbar';
 import EmailVerificationModal from '../components/common/EmailVerificationModal';
 import { authenticateUser, saveUserData } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { logEvent } from '../services/auditoriaService';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -20,6 +20,14 @@ const Login = () => {
     // Validar que los campos no estén vacíos
     if (!carnet || !fechaNacimiento) {
       setError('Por favor complete todos los campos');
+      // RF06: intento con campos incompletos
+      logEvent({
+        tipo: 'LOGIN',
+        modulo: 'usuarios',
+        severidad: 'WARN',
+        usuario: carnet || 'desconocido',
+        detalle: 'Intento de inicio sin completar campos.'
+      });
       return;
     }
     
@@ -30,19 +38,47 @@ const Login = () => {
       // Guardar datos del usuario y actualizar contexto
       saveUserData(result.user);
       login(result.user);
+
+      // RF06: login exitoso (primer factor)
+      logEvent({
+        tipo: 'LOGIN',
+        modulo: 'usuarios',
+        severidad: 'INFO',
+        usuario: result.user?.username || carnet,
+        detalle: 'Inicio de sesión satisfactorio (1er factor)'
+      });
       
-      // Abrir modal de verificación (solo para simulación, no se valida realmente)
+      // Abrir modal de verificación (solo simulación)
       setIsVerificationModalOpen(true);
     } else {
       setError('Credenciales inválidas');
+      // RF06: login fallido
+      logEvent({
+        tipo: 'LOGIN',
+        modulo: 'usuarios',
+        severidad: 'WARN',
+        usuario: carnet,
+        detalle: 'Credenciales inválidas'
+      });
     }
   };
   
   const handleVerifyCode = (code) => {
     console.log('Código verificado:', code);
-    // Aquí se enviaría el código al backend para su verificación
+    // Cerrar modal 2FA simulado
     setIsVerificationModalOpen(false);
-    // Redirigir al usuario a la página de votación después de verificar el código
+
+    // RF06: segundo factor verificado
+    const userData = JSON.parse(localStorage.getItem('user')) || {};
+    logEvent({
+      tipo: 'LOGIN',
+      modulo: 'usuarios',
+      severidad: 'INFO',
+      usuario: userData?.username || carnet || 'votante',
+      detalle: 'Segundo factor verificado'
+    });
+
+    // Redirigir al usuario a la página de votación
     navigate('/votacion');
   };
   

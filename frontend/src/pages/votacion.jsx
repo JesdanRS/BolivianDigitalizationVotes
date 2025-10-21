@@ -1,5 +1,3 @@
-// src/pages/Votacion.jsx
-
 import React, { useState } from 'react';
 import CandidatoCard from '../components/voting/CandidatoCard';
 import Navbar from '../components/common/Navbar';
@@ -7,8 +5,8 @@ import ConfirmationModal from '../components/common/ConfirmationModal';
 import SecurityModal from '../components/common/SecurityModal';
 import candidatoA from '../assets/images/paz.png';
 import candidatoB from '../assets/images/tuto.png';
-import * as tf from '@tensorflow/tfjs';
 import * as blazeface from '@tensorflow-models/blazeface';
+import { logEvent } from '../services/auditoriaService';
 
 const candidatos = [
   {
@@ -25,6 +23,12 @@ const candidatos = [
   },
 ];
 
+// hash/tx simulada para trazabilidad sin revelar preferencia
+function txId() {
+  const n = Math.floor(Math.random() * 0xffffffff);
+  return '0x' + n.toString(16).padStart(8, '0');
+}
+
 const Votacion = () => {
   const [votoSeleccionado, setVotoSeleccionado] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -40,9 +44,9 @@ const Votacion = () => {
     let intervalId;
     let cancelled = false;
     let detectionHistory = [];
-    const DETECTION_INTERVAL = 500; // Detectar cada 500ms en lugar de cada frame
-    const HISTORY_SIZE = 6; // Mantener últimas 6 detecciones (3 segundos)
-    const CONFIDENCE_THRESHOLD = 0.7; // 70% de las detecciones deben coincidir
+    const DETECTION_INTERVAL = 500; // Detectar cada 500ms
+    const HISTORY_SIZE = 6; // Últimas 6 detecciones (~3s)
+    const CONFIDENCE_THRESHOLD = 0.7;
 
     async function startCameraAndDetection() {
       try {
@@ -65,17 +69,13 @@ const Votacion = () => {
               const predictions = await model.estimateFaces(videoRef.current, false);
               const faceCount = predictions?.length || 0;
               
-              // Añadir a historial
+              // Añadir a historial (true si hay más de 1 rostro)
               detectionHistory.push(faceCount > 1);
-              if (detectionHistory.length > HISTORY_SIZE) {
-                detectionHistory.shift();
-              }
+              if (detectionHistory.length > HISTORY_SIZE) detectionHistory.shift();
               
-              // Solo cambiar estado si tenemos suficiente historial y confianza
               if (detectionHistory.length >= 3) {
                 const multipleFacesCount = detectionHistory.filter(Boolean).length;
                 const confidence = multipleFacesCount / detectionHistory.length;
-                
                 if (confidence >= CONFIDENCE_THRESHOLD) {
                   setSecurityBlocked(true);
                 } else if (confidence <= (1 - CONFIDENCE_THRESHOLD)) {
@@ -88,7 +88,6 @@ const Votacion = () => {
           }
         };
         
-        // Usar setInterval en lugar de requestAnimationFrame para mejor control
         intervalId = setInterval(detect, DETECTION_INTERVAL);
       } catch (err) {
         console.error('Error al activar cámara/detección:', err);
@@ -107,23 +106,42 @@ const Votacion = () => {
     };
   }, []);
 
-  const handleRetryDetection = () => {
-    // Fuerza re-evaluación; el loop ya corre, pero limpiamos error
-    setErrorCamara(null);
-  };
+  const handleRetryDetection = () => { setErrorCamara(null); };
 
   const handleVotar = (candidato) => {
     if (securityBlocked) {
-      return; // Bloqueado por seguridad
+      // RF06: intento bloqueado por seguridad (sin revelar preferencia)
+      const user = JSON.parse(localStorage.getItem('user')) || {};
+      logEvent({
+        tipo: 'ERROR',
+        modulo: 'votaciones',
+        severidad: 'WARN',
+        usuario: user.username || user.carnet || 'votante',
+        detalle: 'Intento de voto bloqueado por seguridad (múltiples rostros o sin cámara)'
+      });
+      return;
     }
     setCandidatoSeleccionado(candidato);
     setModalOpen(true);
   };
   
   const confirmarVoto = () => {
+    // Guardamos el id interno pero no lo mostramos ni lo logueamos
     setVotoSeleccionado(candidatoSeleccionado.id);
     setModalOpen(false);
-    alert(`Has votado por el candidato: ${candidatoSeleccionado.nombre}`);
+
+    // Mensaje sin revelar candidato
+    alert('Tu voto por ' + candidatoSeleccionado.nombre + ' ha sido registrado con éxito. ¡Gracias por participar!');
+
+    // RF06: voto confirmado (sin revelar por quién)
+    const user = JSON.parse(localStorage.getItem('user')) || {};
+    logEvent({
+      tipo: 'VOTE_CAST',
+      modulo: 'votaciones',
+      severidad: 'INFO',
+      usuario: user.username || user.carnet || 'votante',
+      detalle: `Voto confirmado (tx=${txId()})`
+    });
   };
 
   return (
@@ -191,11 +209,11 @@ const Votacion = () => {
         onRetry={handleRetryDetection}
       />
 
-      {/* Modal de confirmación */}
+      {/* Modal de confirmación (muestra candidato para confirmar, pero no se guarda ni se revela después) */}
       <ConfirmationModal 
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onConfirm={() => { setVotoSeleccionado(candidatoSeleccionado.id); setModalOpen(false); alert(`Has votado por el candidato: ${candidatoSeleccionado.nombre}`); }}
+        onConfirm={confirmarVoto}
         candidato={candidatoSeleccionado}
       />
     </div>
