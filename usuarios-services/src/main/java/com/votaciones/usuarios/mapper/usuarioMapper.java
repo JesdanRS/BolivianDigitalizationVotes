@@ -17,5 +17,7 @@ public interface UsuarioMapper {
     @Mapping(target = "correoElectronico", ignore = true) // Ignora campos que no están en el DTO de carga
     @Mapping(target = "correoVerificado", ignore = true)
     @Mapping(target = "creadoEn", ignore = true)
+    @Mapping(target = "codigoVerificacion", ignore = true)
+    @Mapping(target = "codigoExpiracion", ignore = true)
     Usuario toEntity(UsuarioCargaDto dto);
 }
