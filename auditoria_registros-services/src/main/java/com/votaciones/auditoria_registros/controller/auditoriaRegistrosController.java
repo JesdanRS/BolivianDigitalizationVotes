@@ -1,19 +1,20 @@
 package com.votaciones.auditoria_registros.controller;
 
-import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
-import com.votaciones.auditoria.lib.model.AuditoriaRegistro;
+import com.votaciones.auditoria_registros.dto.AuditoriaCreacionDto;
+import com.votaciones.auditoria_registros.dto.AuditoriaDto;
 import com.votaciones.auditoria_registros.service.AuditoriaRegistroService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import reactor.core.publisher.Mono;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
@@ -30,20 +31,17 @@ public class AuditoriaRegistrosController {
         this.auditoriaService = auditoriaService;
     }
 
-    @Operation(summary = "Crear un nuevo registro de auditoría")
+    @Operation(summary = "Registrar un nuevo evento de auditoría")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Registro creado exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Solicitud inválida"),
+        @ApiResponse(responseCode = "200", description = "Evento registrado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Solicitud inválida o datos incompletos"),
+        @ApiResponse(responseCode = "409", description = "Evento duplicado detectado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public Mono<ResponseEntity<AuditoriaRegistro>> crearRegistro(
-            @Valid @RequestBody Mono<AuditoriaRegistrosDto> dtoMono) {
+    public Mono<ResponseEntity<AuditoriaDto>> crearRegistro(@Valid @RequestBody Mono<AuditoriaCreacionDto> dtoMono) {
         return dtoMono
-                .flatMap(dto -> {
-                    // Aquí ya podemos validar manualmente si queremos
-                    return Mono.just(auditoriaService.crearRegistro(dto));
-                })
+                .map(auditoriaService::crearRegistro)
                 .map(ResponseEntity::ok);
     }
 
@@ -53,7 +51,7 @@ public class AuditoriaRegistrosController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/eventos")
-    public ResponseEntity<List<AuditoriaRegistro>> obtenerRegistros() {
+    public ResponseEntity<List<AuditoriaDto>> obtenerRegistros() {
         return ResponseEntity.ok(auditoriaService.obtenerRegistros());
     }
 
@@ -64,10 +62,30 @@ public class AuditoriaRegistrosController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<AuditoriaRegistro> obtenerPorId(
-        @Parameter(description = "ID del registro de auditoría", required = true)
-        @PathVariable Long id) {
+    public ResponseEntity<AuditoriaDto> obtenerPorId(
+            @Parameter(description = "ID del registro", example = "1") @PathVariable Long id) {
         return ResponseEntity.ok(auditoriaService.obtenerRegistroPorId(id));
+    }
+
+    @Operation(summary = "Filtrar registros por usuario")
+    @GetMapping("/usuario/{usuario}")
+    public ResponseEntity<List<AuditoriaDto>> obtenerPorUsuario(
+            @Parameter(description = "Cédula del usuario", example = "12345678") @PathVariable String usuario) {
+        return ResponseEntity.ok(auditoriaService.obtenerRegistrosPorUsuario(usuario));
+    }
+
+    @Operation(summary = "Filtrar registros por tipo de evento")
+    @GetMapping("/tipo/{tipo}")
+    public ResponseEntity<List<AuditoriaDto>> obtenerPorTipo(
+            @Parameter(description = "Tipo de evento", example = "LOGIN") @PathVariable String tipo) {
+        return ResponseEntity.ok(auditoriaService.obtenerRegistrosPorTipo(tipo));
+    }
+
+    @Operation(summary = "Filtrar registros por módulo")
+    @GetMapping("/modulo/{modulo}")
+    public ResponseEntity<List<AuditoriaDto>> obtenerPorModulo(
+            @Parameter(description = "Nombre del módulo", example = "Usuarios") @PathVariable String modulo) {
+        return ResponseEntity.ok(auditoriaService.obtenerRegistrosPorModulo(modulo));
     }
 
     @Operation(summary = "Eliminar un registro de auditoría por ID")
@@ -84,14 +102,28 @@ public class AuditoriaRegistrosController {
         return ResponseEntity.ok("Registro eliminado correctamente");
     }
 
-    @Operation(summary = "Obtener estadísticas de registros por tipo de evento")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Estadísticas obtenidas exitosamente"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
+    @Operation(summary = "Obtener cantidad de eventos agrupados por tipo")
     @GetMapping("/contarPorTipo")
-    public ResponseEntity<Map<String, Long>> estadisticas() {
-        return ResponseEntity.ok(auditoriaService.obtenerEstadisticasPorTipo());
+    public ResponseEntity<Map<String, Long>> contarPorTipo() {
+        return ResponseEntity.ok(auditoriaService.contarEventosPorTipo());
+    }
+
+    @Operation(summary = "Obtener cantidad de eventos agrupados por severidad")
+    @GetMapping("/contarPorSeveridad")
+    public ResponseEntity<Map<String, Long>> contarPorSeveridad() {
+        return ResponseEntity.ok(auditoriaService.contarEventosPorSeveridad());
+    }
+
+    @Operation(summary = "Obtener cantidad de eventos agrupados por módulo")
+    @GetMapping("/contarPorModulo")
+    public ResponseEntity<Map<String, Long>> contarPorModulo() {
+        return ResponseEntity.ok(auditoriaService.contarEventosPorModulo());
+    }
+
+    @Operation(summary = "Obtener resumen general de KPIs (total, por tipo, severidad y módulo)")
+    @GetMapping("/kpis")
+    public ResponseEntity<Map<String, Object>> obtenerResumen() {
+        return ResponseEntity.ok(auditoriaService.obtenerResumenEstadistico());
     }
 
     @Operation(summary = "Exportar registros de auditoría a CSV")

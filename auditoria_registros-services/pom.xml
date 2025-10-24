@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.votaciones</groupId>
-	<artifactId>auditoria_registros</artifactId>
+	<artifactId>auditoria_registros-services</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>auditoria_registros</name>
+	<name>auditoria_registros-services</name>
 	<description>Servicio Auditoría y Registro de Eventos</description>
 	<url/>
 	<licenses>

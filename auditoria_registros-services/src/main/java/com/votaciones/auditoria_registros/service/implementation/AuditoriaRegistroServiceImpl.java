@@ -1,11 +1,9 @@
 package com.votaciones.auditoria_registros.service.implementation;
 
-import com.votaciones.auditoria.lib.AuditoriaStats;
-import com.votaciones.auditoria.lib.AuditoriaExport;
-
-import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
+import com.votaciones.auditoria_registros.dto.AuditoriaCreacionDto;
+import com.votaciones.auditoria_registros.dto.AuditoriaDto;
 import com.votaciones.auditoria_registros.exception.*;
-import com.votaciones.auditoria.lib.model.AuditoriaRegistro;
+import com.votaciones.auditoria_registros.model.AuditoriaRegistro;
 import com.votaciones.auditoria_registros.service.AuditoriaRegistroService;
 import org.springframework.stereotype.Service;
 
@@ -20,133 +18,173 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
     private final List<AuditoriaRegistro> registros = new ArrayList<>();
     private final AtomicLong contador = new AtomicLong(1);
 
-    private final Set<String> tiposPermitidos = Set.of("LOGIN", "VOTO EMITIDO", "ERROR");
+    private final Set<String> tiposPermitidos = Set.of("LOGIN", "VOTO EMITIDO", "ERROR", "ACTUALIZACIÓN", "CONSULTA");
+    private final Set<String> severidadesPermitidas = Set.of("INFO", "WARN", "ERROR", "CRITICAL");
 
     @Override
-    public AuditoriaRegistro crearRegistro(AuditoriaRegistrosDto dto) {
-        if (!tiposPermitidos.contains(dto.getTipoEvento().toUpperCase())) {
-            throw new InvalidArgumentException("Tipo de evento no permitido");
-        }
+    public AuditoriaDto crearRegistro(AuditoriaCreacionDto dto) {
+        if (!tiposPermitidos.contains(dto.getTipo().toUpperCase()))
+            throw new InvalidArgumentException("Tipo de evento no permitido: " + dto.getTipo());
 
-        boolean existe = registros.stream().anyMatch(r ->
+        if (!severidadesPermitidas.contains(dto.getSeveridad().toUpperCase()))
+            throw new InvalidArgumentException("Severidad no válida: " + dto.getSeveridad());
+
+        boolean duplicado = registros.stream().anyMatch(r ->
                 r.getUsuario().equalsIgnoreCase(dto.getUsuario()) &&
-                r.getTipoEvento().equalsIgnoreCase(dto.getTipoEvento()) &&
-                r.getDescripcion().equalsIgnoreCase(dto.getDescripcion()) //&&
-                //r.getFechaHora().withNano(0).equals(LocalDateTime.now().withNano(0))
+                r.getTipo().equalsIgnoreCase(dto.getTipo()) &&
+                r.getModulo().equalsIgnoreCase(dto.getModulo()) &&
+                r.getDetalle().equalsIgnoreCase(dto.getDetalle()) &&
+                r.getCorrelacion().equalsIgnoreCase(dto.getCorrelacion())
         );
 
-        if (existe) {
-            throw new EventoDuplicadoException();
-        }
+        if (duplicado)
+            throw new EventoDuplicadoException("Evento duplicado detectado");
 
-        AuditoriaRegistro registro = new AuditoriaRegistro(
+        AuditoriaRegistro nuevo = new AuditoriaRegistro(
                 contador.getAndIncrement(),
-                dto.getTipoEvento(),
-                dto.getDescripcion(),
+                LocalDateTime.now(),
+                dto.getTipo(),
+                dto.getSeveridad(),
+                dto.getModulo(),
                 dto.getUsuario(),
-                LocalDateTime.now()
+                dto.getIp(),
+                dto.getCorrelacion(),
+                dto.getDetalle()
         );
 
-        registros.add(registro);
-        return registro;
+        registros.add(nuevo);
+        return convertirADto(nuevo);
     }
 
     @Override
-    public List<AuditoriaRegistro> obtenerRegistros() {
-        return new ArrayList<>(registros);
+    public List<AuditoriaDto> obtenerRegistros() {
+        return registros.stream().<AuditoriaDto>map(this::convertirADto).collect(Collectors.toList());
     }
 
     @Override
-    public AuditoriaRegistro obtenerRegistroPorId(Long id) {
+    public AuditoriaDto obtenerRegistroPorId(Long id) {
         return registros.stream()
                 .filter(r -> r.getId().equals(id))
                 .findFirst()
+                .<AuditoriaDto>map(this::convertirADto)
                 .orElseThrow(() -> new RegistroNoEncontradoException(id));
     }
 
     @Override
-    public List<AuditoriaRegistro> obtenerRegistrosPorUsuario(String usuario) {
-        if (usuario == null || usuario.isBlank()) {
-            throw new InvalidArgumentException("El usuario es obligatorio para la búsqueda");
-        }
+    public List<AuditoriaDto> obtenerRegistrosPorUsuario(String usuario) {
         return registros.stream()
                 .filter(r -> r.getUsuario().equalsIgnoreCase(usuario))
+                .<AuditoriaDto>map(this::convertirADto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<AuditoriaRegistro> obtenerRegistrosPorTipo(String tipoEvento) {
-        if (tipoEvento == null || tipoEvento.isBlank()) {
-            throw new InvalidArgumentException("El tipo de evento es obligatorio para la búsqueda");
-        }
+    public List<AuditoriaDto> obtenerRegistrosPorTipo(String tipo) {
         return registros.stream()
-                .filter(r -> r.getTipoEvento().equalsIgnoreCase(tipoEvento))
+                .filter(r -> r.getTipo().equalsIgnoreCase(tipo))
+                .<AuditoriaDto>map(this::convertirADto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<AuditoriaRegistro> obtenerRegistrosPorRangoFecha(LocalDateTime inicio, LocalDateTime fin) {
-        if (inicio == null || fin == null) {
+    public List<AuditoriaDto> obtenerRegistrosPorModulo(String modulo) {
+        return registros.stream()
+                .filter(r -> r.getModulo().equalsIgnoreCase(modulo))
+                .<AuditoriaDto>map(this::convertirADto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AuditoriaDto> obtenerRegistrosPorRangoFecha(LocalDateTime inicio, LocalDateTime fin) {
+        if (inicio == null || fin == null)
             throw new InvalidArgumentException("Ambas fechas son obligatorias");
-        }
-        if (inicio.isAfter(fin)) {
-            throw new UnprocessableEntityException("El rango de fechas es inválido: inicio es posterior a fin");
-        }
+        if (inicio.isAfter(fin))
+            throw new UnprocessableEntityException("El rango de fechas es inválido");
+
         return registros.stream()
-                .filter(r -> !r.getFechaHora().isBefore(inicio) && !r.getFechaHora().isAfter(fin))
+                .filter(r -> !r.getFecha().isBefore(inicio) && !r.getFecha().isAfter(fin))
+                .<AuditoriaDto>map(this::convertirADto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public boolean eliminarRegistro(Long id) {
         boolean eliminado = registros.removeIf(r -> r.getId().equals(id));
-        if (!eliminado) throw new RegistroNoEncontradoException(id);
+        if (!eliminado)
+            throw new RegistroNoEncontradoException(id);
         return true;
     }
 
     @Override
     public int limpiarRegistrosAntiguos(LocalDateTime limite) {
-        if (limite.isAfter(LocalDateTime.now())) {
+        if (limite.isAfter(LocalDateTime.now()))
             throw new InvalidArgumentException("La fecha límite no puede ser futura");
-        }
+
         int antes = registros.size();
-        registros.removeIf(r -> r.getFechaHora().isBefore(limite));
+        registros.removeIf(r -> r.getFecha().isBefore(limite));
         return antes - registros.size();
     }
+
+    // === KPIs ===
 
     @Override
     public Map<String, Long> contarEventosPorTipo() {
         return registros.stream()
-                .collect(Collectors.groupingBy(AuditoriaRegistro::getTipoEvento, Collectors.counting()));
+                .collect(Collectors.groupingBy(AuditoriaRegistro::getTipo, Collectors.counting()));
     }
 
-    public Map<String, Long> obtenerEstadisticasPorTipo() {
-        List<com.votaciones.auditoria.lib.model.AuditoriaRegistro> libRegistros =
-            registros.stream()
-                    .map(r -> new com.votaciones.auditoria.lib.model.AuditoriaRegistro(
-                        r.getId(),
-                        r.getTipoEvento(),
-                        r.getDescripcion(),
-                        r.getUsuario(),
-                        r.getFechaHora()
-                    ))
-                    .collect(Collectors.toList());
-
-        return AuditoriaStats.contarPorTipo(libRegistros);
+    @Override
+    public Map<String, Long> contarEventosPorSeveridad() {
+        return registros.stream()
+                .collect(Collectors.groupingBy(AuditoriaRegistro::getSeveridad, Collectors.counting()));
     }
 
+    @Override
+    public Map<String, Long> contarEventosPorModulo() {
+        return registros.stream()
+                .collect(Collectors.groupingBy(AuditoriaRegistro::getModulo, Collectors.counting()));
+    }
+
+    @Override
+    public Map<String, Object> obtenerResumenEstadistico() {
+        Map<String, Object> resumen = new LinkedHashMap<>();
+        resumen.put("totalEventos", (long) registros.size());
+        resumen.put("porTipo", contarEventosPorTipo());
+        resumen.put("porSeveridad", contarEventosPorSeveridad());
+        resumen.put("porModulo", contarEventosPorModulo());
+        resumen.put("ultimoEvento", registros.isEmpty() ? null : convertirADto(registros.get(registros.size() - 1)));
+        return resumen;
+    }
+
+    @Override
     public List<String> exportarRegistrosCSV() {
-        List<com.votaciones.auditoria.lib.model.AuditoriaRegistro> libRegistros =
-            registros.stream()
-                    .map(r -> new com.votaciones.auditoria.lib.model.AuditoriaRegistro(
-                        r.getId(),
-                        r.getTipoEvento(),
-                        r.getDescripcion(),
-                        r.getUsuario(),
-                        r.getFechaHora()
-                    ))
-                    .collect(Collectors.toList());
+        List<String> csv = new ArrayList<>();
+        csv.add("ID,Fecha,Tipo,Severidad,Modulo,Usuario,IP,Correlacion,Detalle");
+        registros.forEach(r -> csv.add(String.join(",",
+                String.valueOf(r.getId()),
+                r.getFecha().toString(),
+                r.getTipo(),
+                r.getSeveridad(),
+                r.getModulo(),
+                r.getUsuario(),
+                r.getIp(),
+                r.getCorrelacion(),
+                r.getDetalle().replace(",", ";"))));
+        return csv;
+    }
 
-        return AuditoriaExport.toCSV(libRegistros);
+    // === Conversión a DTO ===
+    private AuditoriaDto convertirADto(AuditoriaRegistro r) {
+        return new AuditoriaDto(
+                r.getId(),
+                r.getFecha(),
+                r.getTipo(),
+                r.getSeveridad(),
+                r.getModulo(),
+                r.getUsuario(),
+                r.getIp(),
+                r.getCorrelacion(),
+                r.getDetalle()
+        );
     }
 }
