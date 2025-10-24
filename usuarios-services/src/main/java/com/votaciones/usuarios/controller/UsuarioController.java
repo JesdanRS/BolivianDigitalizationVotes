@@ -1,17 +1,16 @@
 package com.votaciones.usuarios.controller;
 
-import com.votaciones.usuarios.dto.LoginRequestDto;
+import com.votaciones.usuarios.dto.*;
 import com.votaciones.usuarios.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/usuarios") // Ruta base para todos los endpoints de este controlador
+@RequestMapping("/api/usuarios") // Ruta base para todos los endpoints
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -21,11 +20,63 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
+    /**
+     * Endpoint para autenticar a un usuario.
+     * HTTP Method: POST
+     * URL: /api/usuarios/login
+     */
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
-        usuarioService.autenticarUsuario(loginRequestDto);
-        // TODO: Aquí devolveríamos el token JWT en la respuesta. Por ahora, un 200 OK.
+    public ResponseEntity<UsuarioDto> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
+        UsuarioDto usuarioDto = usuarioService.autenticarUsuario(loginRequestDto);
+        // En el futuro, aquí se generaría un token JWT y se devolvería en la respuesta.
+        return ResponseEntity.ok(usuarioDto);
+    }
+
+    /**
+     * Endpoint para solicitar un código de verificación por correo.
+     * Asumimos que el usuario ya está autenticado.
+     * HTTP Method: POST
+     * URL: /api/usuarios/{carnet}/solicitar-codigo
+     */
+    @PostMapping("/{carnet}/solicitar-codigo")
+    public ResponseEntity<Void> solicitarCodigo(@PathVariable String carnet, @Valid @RequestBody SolicitudCodigoDto solicitudDto) {
+        // NOTA: En una aplicación real, el 'carnet' se obtendría del token de seguridad del usuario autenticado,
+        // no de la URL, para evitar que un usuario pida códigos para otro. Por ahora, esto es funcional.
+        usuarioService.solicitarCodigoVerificacion(carnet, solicitudDto.getCorreoElectronico());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Endpoint para verificar el código enviado al correo.
+     * HTTP Method: POST
+     * URL: /api/usuarios/{carnet}/verificar-codigo
+     */
+    @PostMapping("/{carnet}/verificar-codigo")
+    public ResponseEntity<Void> verificarCodigo(@PathVariable String carnet, @Valid @RequestBody VerificacionCodigoDto verificacionDto) {
+        usuarioService.verificarCodigo(carnet, verificacionDto.getCodigo());
         return ResponseEntity.ok().build();
     }
     
+    /**
+     * Endpoint para obtener el perfil de un usuario por su ID.
+     * HTTP Method: GET
+     * URL: /api/usuarios/perfil/{id}
+     */
+    @GetMapping("/perfil/{id}")
+    public ResponseEntity<UsuarioDto> obtenerPerfil(@PathVariable Long id) {
+        UsuarioDto usuarioDto = usuarioService.obtenerPerfilUsuario(id);
+        return ResponseEntity.ok(usuarioDto);
+    }
+
+    /**
+     * Endpoint para la carga masiva de usuarios.
+     * ¡¡¡IMPORTANTE!!! Este endpoint debe estar protegido y solo ser accesible por administradores.
+     * HTTP Method: POST
+     * URL: /api/usuarios/carga-masiva
+     */
+    @PostMapping("/carga-masiva")
+    public ResponseEntity<String> cargaMasiva(@RequestBody List<UsuarioCargaDto> usuarios) {
+        int numeroCargados = usuarioService.cargarUsuariosMasivamente(usuarios);
+        return ResponseEntity.ok("Carga masiva completada. Se insertaron " + numeroCargados + " usuarios nuevos.");
+    }
 }
