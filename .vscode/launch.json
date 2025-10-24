@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ApiGatewayApplication",
+            "request": "launch",
+            "mainClass": "com.votaciones.api_gateway.ApiGatewayApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
             "name": "EurekaServerApplication",
             "request": "launch",
             "mainClass": "com.votaciones.eureka_server.EurekaServerApplication",

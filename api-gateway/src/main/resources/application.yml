@@ -1,0 +1,31 @@
+server:
+  # El puerto estándar para los gateways. Tu app externa llamará a este puerto.
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  
+  # =======================================================
+  # CONFIGURACIÓN DE LAS RUTAS DEL GATEWAY
+  # =======================================================
+  cloud:
+    gateway:
+      routes:
+        # Aquí defines una regla de enrutamiento para el servicio de usuarios
+        - id: usuarios_service_route # Un nombre único para la regla
+          
+          # El destino. 'lb' significa 'Load Balancer'. 
+          # Le dice al Gateway que busque en Eureka un servicio llamado 'USUARIOS-SERVICE'.
+          uri: lb://USUARIOS-SERVICE
+          
+          # La condición (o "predicado") para que esta regla se active.
+          predicates:
+            # Si el path de la petición entrante coincide con este patrón...
+            - Path=/api/usuarios/**
+
+# El Gateway también es un cliente de Eureka, necesita registrarse y descubrir otros.
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
