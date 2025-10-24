@@ -63,6 +63,9 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
 
     @Override
     public AuditoriaDto obtenerRegistroPorId(Long id) {
+        if (id == null || id <= 0)
+            throw new InvalidArgumentException("ID inválido");
+
         return registros.stream()
                 .filter(r -> r.getId().equals(id))
                 .findFirst()
