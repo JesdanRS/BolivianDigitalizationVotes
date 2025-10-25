@@ -29,6 +29,9 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
         if (!severidadesPermitidas.contains(dto.getSeveridad().toUpperCase()))
             throw new InvalidArgumentException("Severidad no válida: " + dto.getSeveridad());
 
+        if (dto.getUsuario() == null || !dto.getUsuario().matches("\\d{7,10}"))
+            throw new InvalidArgumentException("Usuario inválido. Debe ser un número de cédula válido.");
+
         boolean duplicado = registros.stream().anyMatch(r ->
                 r.getUsuario().equalsIgnoreCase(dto.getUsuario()) &&
                 r.getTipo().equalsIgnoreCase(dto.getTipo()) &&
@@ -38,7 +41,7 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
         );
 
         if (duplicado)
-            throw new EventoDuplicadoException("Evento duplicado detectado");
+            throw new EventoDuplicadoException("Ya existe un registro idéntico.");
 
         AuditoriaRegistro nuevo = new AuditoriaRegistro(
                 contador.getAndIncrement(),
