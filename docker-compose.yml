@@ -1,0 +1,36 @@
+# Versión del formato de Docker Compose
+version: '3.8'
+
+# Aquí definimos la lista de servicios (contenedores) que queremos levantar
+services:
+
+  # Le damos un nombre a nuestro servicio de base de datos
+  postgres-db-usuarios:
+    # Le decimos a Docker qué imagen usar. En este caso, PostgreSQL versión 16.
+    image: postgres:16-alpine
+
+    # Le damos un nombre fácil de recordar al contenedor
+    container_name: bd-usuarios
+
+    # Configuración del entorno del contenedor (variables de entorno)
+    environment:
+      # Define el nombre de usuario para la base de datos
+      - POSTGRES_USER=postgres
+      # Define la contraseña para ese usuario
+      - POSTGRES_PASSWORD=password
+      # Le dice a PostgreSQL que cree esta base de datos al iniciar
+      - POSTGRES_DB=usuarios_db
+
+    # Mapeo de puertos: Conecta el puerto del contenedor con un puerto de tu máquina
+    # formato: "PUERTO_EN_TU_MAQUINA:PUERTO_DENTRO_DEL_CONTENEDOR"
+    ports:
+      - "5432:5432"
+
+    # Volúmenes: Esto es para que los datos no se borren si apagas el contenedor
+    # Le decimos a Docker que guarde los datos de la base de datos en un volumen llamado 'db-data-usuarios'
+    volumes:
+      - db-data-usuarios:/var/lib/postgresql/data
+
+# Aquí definimos los volúmenes que vamos a usar
+volumes:
+  db-data-usuarios:
