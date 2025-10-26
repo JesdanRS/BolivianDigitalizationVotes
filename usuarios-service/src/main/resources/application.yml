@@ -1,16 +1,21 @@
 server:
   port: 8081
 
+# =======================================================
+# UNA ÚNICA CLAVE 'spring:' PARA TODA LA CONFIGURACIÓN
+# =======================================================
 spring:
   application:
     name: usuarios-service
 
+  # Sección de la Base de Datos
   datasource:
     url: jdbc:postgresql://localhost:5432/usuarios_db
-    username: postgres # <- Tu usuario
-    password: password # <- Tu contraseña
+    username: postgres
+    password: password
     driver-class-name: org.postgresql.Driver
 
+  # Sección de JPA/Hibernate
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,6 +24,17 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  # Sección de Spring Cloud Stream (Kafka)
+  cloud:
+    stream:
+      function:
+        definition: enviarNotificacion
+      bindings:
+        enviarNotificacion-out-0:
+          destination: topic-notificaciones
+      kafka:
+        binder:
+          brokers: localhost:9092
 eureka:
   client:
     service-url:

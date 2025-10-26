@@ -2,6 +2,7 @@
 package com.votaciones.usuarios.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
 import lombok.Data;
 import java.time.LocalDate;
 
@@ -20,6 +21,10 @@ public class UsuarioCargaDto {
 
     @Schema(description = "Departamento de registro del ciudadano", requiredMode = Schema.RequiredMode.REQUIRED)
     private String departamento;
+
+    @Schema(description = "(Opcional) Correo electrónico para asociar al usuario durante la carga.", example = "juan.perez@email.com")
+    @Email(message = "El formato del correo electrónico no es válido") // Añadimos validación
+    private String correoElectronico;
     
     // Otros campos que puedan venir del padrón...
     // private String direccion;

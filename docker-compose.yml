@@ -1,5 +1,5 @@
 services:
-  # Base de datos 
+  # Base de datos (Sin cambios)
   postgres-db-usuarios:
     image: postgres:16-alpine
     container_name: bd-usuarios
@@ -17,16 +17,42 @@ services:
     volumes:
       - db-data-usuarios:/var/lib/postgresql/data
 
-  # Eureka Server 
+  # =======================================================
+  # NUEVA INFRAESTRUCTURA: ZOOKEEPER (Requerido por Kafka)
+  # =======================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  # =======================================================
+  # NUEVA INFRAESTRUCTURA: KAFKA (El sistema de mensajería)
+  # =======================================================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # Eureka Server (Sin cambios)
   eureka-server:
     build:
-      context: ./eureka-server 
-      dockerfile: Dockerfile   
+      context: ./eureka-server
+      dockerfile: Dockerfile
     container_name: eureka-server
     ports:
       - "8761:8761"
 
-  # Usuarios Service
+  # Usuarios Service (Sin cambios, por ahora)
   usuarios-service:
     build:
       context: .
@@ -37,17 +63,20 @@ services:
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-usuarios:5432/usuarios_db
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
     depends_on:
       postgres-db-usuarios:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      kafka:
+        condition: service_started
 
-  # API Gateway 
+  # API Gateway (Sin cambios)
   api-gateway:
     build:
-      context: ./api-gateway  
-      dockerfile: Dockerfile  
+      context: ./api-gateway
+      dockerfile: Dockerfile
     container_name: api-gateway
     ports:
       - "8080:8080"
@@ -55,6 +84,22 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
     depends_on:
       - eureka-server
+      
+  # =======================================================
+  # NUEVO SERVICIO: NOTIFICACIONES
+  # =======================================================
+  notificaciones-service:
+    build:
+      context: . # Usa el contexto raíz para ver a dto-notificaciones
+      dockerfile: notificaciones-service/Dockerfile
+    container_name: ms-notificaciones
+    depends_on:
+      - eureka-server
+      - kafka # Depende de que Eureka y Kafka estén iniciados
+    environment:
+      # Le decimos dónde encontrar Eureka y Kafka usando sus nombres de servicio
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
 
 volumes:
   db-data-usuarios:

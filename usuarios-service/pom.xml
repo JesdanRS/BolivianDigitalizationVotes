@@ -42,6 +42,12 @@
             <version>1.0.0</version>
         </dependency>
 
+         <dependency>
+            <groupId>com.votaciones</groupId>
+            <artifactId>dto-notificaciones</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- 4. AÑADIDO: Para la librería de mapeo MapStruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -53,6 +59,16 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.5.0</version> <!-- Versión compatible con Spring Boot 3.2.x -->
+        </dependency>
+
+        <!-- AÑADIDO: Para poder hablar con Kafka a través de Spring Cloud Stream -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-binder-kafka</artifactId>
         </dependency>
 
         <!-- ============== DEPENDENCIAS QUE YA TENÍAS (CORRECTAS) ============== -->
