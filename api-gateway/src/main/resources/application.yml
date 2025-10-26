@@ -29,3 +29,11 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Le decimos que exponga los endpoints de salud e información.
+        # Para desarrollo, a veces es útil poner "*" para exponer todos.
+        include: health,info

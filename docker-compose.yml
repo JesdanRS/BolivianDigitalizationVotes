@@ -1,33 +1,19 @@
-# Versión del formato de Docker Compose
-version: '3.8'
-
-# Aquí definimos la lista de servicios (contenedores) que queremos levantar
 services:
-
-  # Le damos un nombre a nuestro servicio de base de datos
+  # Base de datos 
   postgres-db-usuarios:
-    # Le decimos a Docker qué imagen usar. En este caso, PostgreSQL versión 16.
     image: postgres:16-alpine
-
-    # Le damos un nombre fácil de recordar al contenedor
     container_name: bd-usuarios
-
-    # Configuración del entorno del contenedor (variables de entorno)
-    environment:
-      # Define el nombre de usuario para la base de datos
-      - POSTGRES_USER=postgres
-      # Define la contraseña para ese usuario
-      - POSTGRES_PASSWORD=password
-      # Le dice a PostgreSQL que cree esta base de datos al iniciar
-      - POSTGRES_DB=usuarios_db
-
-    # Mapeo de puertos: Conecta el puerto del contenedor con un puerto de tu máquina
-    # formato: "PUERTO_EN_TU_MAQUINA:PUERTO_DENTRO_DEL_CONTENEDOR"
     ports:
       - "5432:5432"
-
-    # Volúmenes: Esto es para que los datos no se borren si apagas el contenedor
-    # Le decimos a Docker que guarde los datos de la base de datos en un volumen llamado 'db-data-usuarios'
+    environment:
+      - POSTGRES_DB=usuarios_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d usuarios_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     volumes:
       - db-data-usuarios:/var/lib/postgresql/data
     
@@ -46,7 +32,45 @@ services:
     networks:
       - votaciones-net
 
-# Aquí definimos los volúmenes que vamos a usar
+  # Eureka Server 
+  eureka-server:
+    build:
+      context: ./eureka-server 
+      dockerfile: Dockerfile   
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+
+  # Usuarios Service
+  usuarios-service:
+    build:
+      context: .
+      dockerfile: usuarios-service/Dockerfile
+    container_name: ms-usuarios
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-usuarios:5432/usuarios_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      postgres-db-usuarios:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  # API Gateway 
+  api-gateway:
+    build:
+      context: ./api-gateway  
+      dockerfile: Dockerfile  
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+
 volumes:
   db-data-usuarios:
   db-data-auditoria:
