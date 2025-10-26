@@ -12,10 +12,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -124,6 +126,18 @@ public class AuditoriaRegistrosController {
     @GetMapping("/kpis")
     public ResponseEntity<Map<String, Object>> obtenerResumen() {
         return ResponseEntity.ok(auditoriaService.obtenerResumenEstadistico());
+    }
+
+    @GetMapping("/filtros")
+    public ResponseEntity<List<AuditoriaDto>> filtrar(
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String severidad,
+            @RequestParam(required = false) String modulo,
+            @RequestParam(required = false) String usuario,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fin
+    ) {
+        return ResponseEntity.ok(auditoriaService.buscarConFiltros(tipo, severidad, modulo, usuario, inicio, fin));
     }
 
     @Operation(summary = "Exportar registros de auditoría a CSV")

@@ -35,5 +35,8 @@ public interface AuditoriaRegistroService {
 
     Map<String, Object> obtenerResumenEstadistico();
 
+    List<AuditoriaDto> buscarConFiltros(String tipo, String severidad, String modulo,
+                                    String usuario, LocalDateTime inicio, LocalDateTime fin);
+
     List<String> exportarRegistrosCSV();
 }

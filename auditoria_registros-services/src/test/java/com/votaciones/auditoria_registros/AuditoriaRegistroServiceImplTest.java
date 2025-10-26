@@ -5,22 +5,32 @@ import com.votaciones.auditoria_registros.dto.AuditoriaDto;
 import com.votaciones.auditoria_registros.exception.EventoDuplicadoException;
 import com.votaciones.auditoria_registros.exception.InvalidArgumentException;
 import com.votaciones.auditoria_registros.exception.RegistroNoEncontradoException;
+import com.votaciones.auditoria_registros.repository.AuditoriaRegistroRepository;
 import com.votaciones.auditoria_registros.service.implementation.AuditoriaRegistroServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Map;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AuditoriaRegistroServiceImplTest {
+@SpringBootTest
+@ActiveProfiles("test") // usa application-test.yml con H2
+class AuditoriaRegistroServiceImplTest {
 
+    @Autowired
     private AuditoriaRegistroServiceImpl service;
 
+    @Autowired
+    private AuditoriaRegistroRepository repository;
+
     @BeforeEach
-    void setUp() {
-        service = new AuditoriaRegistroServiceImpl();
+    void limpiarBD() {
+        repository.deleteAll(); // limpia la BD antes de cada test
     }
 
     private AuditoriaCreacionDto crearDtoValido() {
@@ -61,7 +71,6 @@ public class AuditoriaRegistroServiceImplTest {
     @Test
     void crearRegistro_duplicado_lanzaEventoDuplicadoException() {
         AuditoriaCreacionDto dto = crearDtoValido();
-
         service.crearRegistro(dto);
 
         EventoDuplicadoException ex = assertThrows(
@@ -117,13 +126,13 @@ public class AuditoriaRegistroServiceImplTest {
 
     @Test
     void contarEventosPorTipo_devuelveMapaConTotales() {
-        AuditoriaCreacionDto dto1 = crearDtoValido(); // LOGIN
+        AuditoriaCreacionDto dto1 = crearDtoValido();
         service.crearRegistro(dto1);
 
         AuditoriaCreacionDto dto2 = crearDtoValido();
         dto2.setTipo("ERROR");
         dto2.setDetalle("Fallo de autenticación");
-        dto2.setUsuario("7654321"); // para que no choque con duplicado
+        dto2.setUsuario("7654321");
         service.crearRegistro(dto2);
 
         Map<String, Long> conteo = service.contarEventosPorTipo();

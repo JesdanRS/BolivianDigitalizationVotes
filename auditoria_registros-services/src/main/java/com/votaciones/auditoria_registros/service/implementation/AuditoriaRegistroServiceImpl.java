@@ -4,52 +4,49 @@ import com.votaciones.auditoria_registros.dto.AuditoriaCreacionDto;
 import com.votaciones.auditoria_registros.dto.AuditoriaDto;
 import com.votaciones.auditoria_registros.exception.*;
 import com.votaciones.auditoria_registros.model.AuditoriaRegistro;
+import com.votaciones.auditoria_registros.repository.AuditoriaRegistroRepository;
 import com.votaciones.auditoria_registros.service.AuditoriaRegistroService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
 public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
 
-    private final List<AuditoriaRegistro> registros = new ArrayList<>();
-    private final AtomicLong contador = new AtomicLong(1);
+    private final AuditoriaRegistroRepository repository;
 
-    private static final Set<String> TIPOS_PERMITIDOS = Set.of(
-            "LOGIN", "VOTO EMITIDO", "ERROR", "ACTUALIZACIÓN", "CONSULTA", "USUARIO CREADO"
-    );
-    private static final Set<String> SEVERIDADES_PERMITIDAS = Set.of(
-            "INFO", "WARN", "ERROR", "CRITICAL"
-    );
+    public AuditoriaRegistroServiceImpl(AuditoriaRegistroRepository repository) {
+        this.repository = repository;
+    }
+
+    private final Set<String> tiposPermitidos =
+            Set.of("LOGIN", "VOTO EMITIDO", "ERROR", "ACTUALIZACION", "CONSULTA", "ELIMINACION");
+    private final Set<String> severidadesPermitidas =
+            Set.of("INFO", "WARN", "ERROR", "CRITICAL");
 
     @Override
     public AuditoriaDto crearRegistro(AuditoriaCreacionDto dto) {
 
-        if (dto.getTipo() == null || !TIPOS_PERMITIDOS.contains(dto.getTipo().toUpperCase())) {
+        if (!tiposPermitidos.contains(dto.getTipo().toUpperCase())) {
             throw new InvalidArgumentException("Tipo de evento no permitido: " + dto.getTipo());
         }
 
-        if (dto.getSeveridad() == null || !SEVERIDADES_PERMITIDAS.contains(dto.getSeveridad().toUpperCase())) {
+        if (!severidadesPermitidas.contains(dto.getSeveridad().toUpperCase())) {
             throw new InvalidArgumentException("Severidad no válida: " + dto.getSeveridad());
         }
 
         if (dto.getUsuario() == null || !dto.getUsuario().matches("\\d{7,10}")) {
-            throw new InvalidArgumentException("Usuario inválido. Debe ser un número de cédula válido.");
+            throw new InvalidArgumentException("Usuario inválido. Debe ser una cédula válida.");
         }
 
-        String correlacion = (dto.getCorrelacion() == null || dto.getCorrelacion().isBlank())
-                ? "CORR-" + UUID.randomUUID()
-                : dto.getCorrelacion();
-
-        boolean duplicado = registros.stream().anyMatch(r ->
-                r.getUsuario().equalsIgnoreCase(dto.getUsuario()) &&
+        List<AuditoriaRegistro> posibles = repository.findByUsuarioIgnoreCase(dto.getUsuario());
+        boolean duplicado = posibles.stream().anyMatch(r ->
                 r.getTipo().equalsIgnoreCase(dto.getTipo()) &&
                 r.getModulo().equalsIgnoreCase(dto.getModulo()) &&
                 r.getDetalle().equalsIgnoreCase(dto.getDetalle()) &&
-                r.getCorrelacion().equalsIgnoreCase(correlacion)
+                Objects.equals(r.getCorrelacion(), dto.getCorrelacion())
         );
 
         if (duplicado) {
@@ -57,24 +54,24 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
         }
 
         AuditoriaRegistro nuevo = new AuditoriaRegistro(
-                contador.getAndIncrement(),
                 LocalDateTime.now(),
-                dto.getTipo().toUpperCase(),
-                dto.getSeveridad().toUpperCase(),
+                dto.getTipo(),
+                dto.getSeveridad(),
                 dto.getModulo(),
                 dto.getUsuario(),
                 dto.getIp(),
-                correlacion,
+                dto.getCorrelacion(),
                 dto.getDetalle()
         );
 
-        registros.add(nuevo);
-        return convertirADto(nuevo);
+        AuditoriaRegistro guardado = repository.save(nuevo);
+        return convertirADto(guardado);
     }
 
     @Override
     public List<AuditoriaDto> obtenerRegistros() {
-        return registros.stream()
+        return repository.findAll()
+                .stream()
                 .map(this::convertirADto)
                 .collect(Collectors.toList());
     }
@@ -85,45 +82,32 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
             throw new InvalidArgumentException("ID inválido");
         }
 
-        return registros.stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .map(this::convertirADto)
+        AuditoriaRegistro r = repository.findById(id)
                 .orElseThrow(() -> new RegistroNoEncontradoException(id));
+
+        return convertirADto(r);
     }
 
     @Override
     public List<AuditoriaDto> obtenerRegistrosPorUsuario(String usuario) {
-        if (usuario == null || usuario.isBlank()) {
-            throw new InvalidArgumentException("Usuario no puede estar vacío");
-        }
-
-        return registros.stream()
-                .filter(r -> r.getUsuario().equalsIgnoreCase(usuario))
+        return repository.findByUsuarioIgnoreCase(usuario)
+                .stream()
                 .map(this::convertirADto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<AuditoriaDto> obtenerRegistrosPorTipo(String tipo) {
-        if (tipo == null || tipo.isBlank()) {
-            throw new InvalidArgumentException("El tipo de evento es obligatorio");
-        }
-
-        return registros.stream()
-                .filter(r -> r.getTipo().equalsIgnoreCase(tipo))
+        return repository.findByTipoIgnoreCase(tipo)
+                .stream()
                 .map(this::convertirADto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<AuditoriaDto> obtenerRegistrosPorModulo(String modulo) {
-        if (modulo == null || modulo.isBlank()) {
-            throw new InvalidArgumentException("El módulo es obligatorio");
-        }
-
-        return registros.stream()
-                .filter(r -> r.getModulo().equalsIgnoreCase(modulo))
+        return repository.findByModuloIgnoreCase(modulo)
+                .stream()
                 .map(this::convertirADto)
                 .collect(Collectors.toList());
     }
@@ -134,82 +118,102 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
             throw new InvalidArgumentException("Ambas fechas son obligatorias");
         }
         if (inicio.isAfter(fin)) {
-            throw new UnprocessableEntityException("El rango de fechas es inválido: inicio posterior al fin");
+            throw new UnprocessableEntityException("El rango de fechas es inválido");
         }
 
-        return registros.stream()
-                .filter(r -> !r.getFecha().isBefore(inicio) && !r.getFecha().isAfter(fin))
+        return repository.findByFechaBetween(inicio, fin)
+                .stream()
                 .map(this::convertirADto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public boolean eliminarRegistro(Long id) {
-        boolean eliminado = registros.removeIf(r -> r.getId().equals(id));
-        if (!eliminado) {
+        if (!repository.existsById(id)) {
             throw new RegistroNoEncontradoException(id);
         }
+        repository.deleteById(id);
         return true;
     }
 
     @Override
     public int limpiarRegistrosAntiguos(LocalDateTime limite) {
-        if (limite == null) {
-            throw new InvalidArgumentException("La fecha límite no puede ser nula");
-        }
-        if (limite.isAfter(LocalDateTime.now())) {
-            throw new InvalidArgumentException("La fecha límite no puede ser futura");
-        }
+        // versión simple: cargamos todos y borramos en memoria,
+        // en el parcial alcanza. Luego podemos optimizar con query custom.
+        List<AuditoriaRegistro> todos = repository.findAll();
+        List<AuditoriaRegistro> aBorrar = todos.stream()
+                .filter(r -> r.getFecha().isBefore(limite))
+                .toList();
 
-        int antes = registros.size();
-        registros.removeIf(r -> r.getFecha().isBefore(limite));
-        return antes - registros.size();
+        repository.deleteAll(aBorrar);
+        return aBorrar.size();
     }
 
     @Override
     public Map<String, Long> contarEventosPorTipo() {
-        return registros.stream()
+        return repository.findAll().stream()
                 .collect(Collectors.groupingBy(AuditoriaRegistro::getTipo, Collectors.counting()));
     }
 
     @Override
     public Map<String, Long> contarEventosPorSeveridad() {
-        return registros.stream()
+        return repository.findAll().stream()
                 .collect(Collectors.groupingBy(AuditoriaRegistro::getSeveridad, Collectors.counting()));
     }
 
     @Override
     public Map<String, Long> contarEventosPorModulo() {
-        return registros.stream()
+        return repository.findAll().stream()
                 .collect(Collectors.groupingBy(AuditoriaRegistro::getModulo, Collectors.counting()));
     }
 
     @Override
     public Map<String, Object> obtenerResumenEstadistico() {
+        List<AuditoriaRegistro> todos = repository.findAll();
+
         Map<String, Object> resumen = new LinkedHashMap<>();
-        resumen.put("totalEventos", (long) registros.size());
-        resumen.put("porTipo", contarEventosPorTipo());
-        resumen.put("porSeveridad", contarEventosPorSeveridad());
-        resumen.put("porModulo", contarEventosPorModulo());
+        resumen.put("totalEventos", (long) todos.size());
+        resumen.put("porTipo",
+                todos.stream().collect(Collectors.groupingBy(AuditoriaRegistro::getTipo, Collectors.counting())));
+        resumen.put("porSeveridad",
+                todos.stream().collect(Collectors.groupingBy(AuditoriaRegistro::getSeveridad, Collectors.counting())));
+        resumen.put("porModulo",
+                todos.stream().collect(Collectors.groupingBy(AuditoriaRegistro::getModulo, Collectors.counting())));
+
         resumen.put("ultimoEvento",
-                registros.isEmpty() ? null : convertirADto(registros.get(registros.size() - 1)));
+                todos.isEmpty() ? null : convertirADto(todos.get(todos.size() - 1)));
+
         return resumen;
+    }
+    
+    @Override
+    public List<AuditoriaDto> buscarConFiltros(String tipo, String severidad, String modulo,
+                                            String usuario, LocalDateTime inicio, LocalDateTime fin) {
+        return repository.buscarConFiltros(tipo, severidad, modulo, usuario, inicio, fin)
+                        .stream()
+                        .map(this::convertirADto)
+                        .toList();
     }
 
     @Override
     public List<String> exportarRegistrosCSV() {
+        List<AuditoriaRegistro> todos = repository.findAll();
+
         List<String> csv = new ArrayList<>();
         csv.add("ID,Fecha,Tipo,Severidad,Modulo,Usuario,IP,Correlacion,Detalle");
-        registros.forEach(r -> csv.add(String.join(",",
+
+        todos.forEach(r -> csv.add(String.join(",",
                 String.valueOf(r.getId()),
                 r.getFecha().toString(),
                 r.getTipo(),
                 r.getSeveridad(),
                 r.getModulo(),
                 r.getUsuario(),
-                r.getIp(),
-                r.getCorrelacion(),
-                r.getDetalle().replace(",", ";"))));
+                r.getIp() != null ? r.getIp() : "",
+                r.getCorrelacion() != null ? r.getCorrelacion() : "",
+                r.getDetalle().replace(",", ";")
+        )));
+
         return csv;
     }
 

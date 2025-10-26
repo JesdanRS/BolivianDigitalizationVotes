@@ -30,7 +30,28 @@ services:
     # Le decimos a Docker que guarde los datos de la base de datos en un volumen llamado 'db-data-usuarios'
     volumes:
       - db-data-usuarios:/var/lib/postgresql/data
+    
+  # AUDITORÍA
+  postgres-db-auditoria:
+    image: postgres:16-alpine
+    container_name: bd-auditoria
+    environment:
+      - POSTGRES_USER=auditoria_user
+      - POSTGRES_PASSWORD=auditoria_pass
+      - POSTGRES_DB=auditoria_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - db-data-auditoria:/var/lib/postgresql/data
+    networks:
+      - votaciones-net
 
 # Aquí definimos los volúmenes que vamos a usar
 volumes:
   db-data-usuarios:
+  db-data-auditoria:
+
+networks:
+  votaciones-net:
+    driver: bridge
+  
