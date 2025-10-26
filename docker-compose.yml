@@ -1,5 +1,5 @@
 services:
-  # Base de datos 
+  # Base de datos de usuarios
   postgres-db-usuarios:
     image: postgres:16-alpine
     container_name: bd-usuarios
@@ -16,6 +16,24 @@ services:
       retries: 5
     volumes:
       - db-data-usuarios:/var/lib/postgresql/data
+
+  # Base de datos de votaciones
+  postgres-db-votaciones:
+    image: postgres:16-alpine
+    container_name: bd-votaciones
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=votaciones_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d votaciones_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - db-data-votaciones:/var/lib/postgresql/data
 
   # Eureka Server 
   eureka-server:
@@ -43,6 +61,23 @@ services:
       eureka-server:
         condition: service_started
 
+  # Votaciones Service
+  votaciones-service:
+    build:
+      context: .
+      dockerfile: votaciones-service/Dockerfile
+    container_name: ms-votaciones
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-votaciones:5432/votaciones_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      postgres-db-votaciones:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
   # API Gateway 
   api-gateway:
     build:
@@ -58,3 +93,4 @@ services:
 
 volumes:
   db-data-usuarios:
+  db-data-votaciones:
