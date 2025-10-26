@@ -13,3 +13,9 @@ eureka:
     register-with-eureka: false
     # No necesita obtener el registro de otros servidores (porque él es la fuente de verdad).
     fetch-registry: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
