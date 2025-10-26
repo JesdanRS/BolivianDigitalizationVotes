@@ -23,6 +23,8 @@ spring:
           predicates:
             # Si el path de la petición entrante coincide con este patrón...
             - Path=/api/usuarios/**
+          filters:
+            - StripPrefix=2 # Quita los primeros 2 segmentos del path antes de reenviar
 
 # El Gateway también es un cliente de Eureka, necesita registrarse y descubrir otros.
 eureka:
