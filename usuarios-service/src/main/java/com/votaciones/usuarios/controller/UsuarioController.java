@@ -39,12 +39,12 @@ public class UsuarioController {
      * URL: /api/usuarios/{carnet}/solicitar-codigo
      */
     @PostMapping("/{carnet}/solicitar-codigo")
-    public ResponseEntity<Void> solicitarCodigo(@PathVariable String carnet, @Valid @RequestBody SolicitudCodigoDto solicitudDto) {
-        // NOTA: En una aplicación real, el 'carnet' se obtendría del token de seguridad del usuario autenticado,
-        // no de la URL, para evitar que un usuario pida códigos para otro. Por ahora, esto es funcional.
-        usuarioService.solicitarCodigoVerificacion(carnet, solicitudDto.getCorreoElectronico());
-        return ResponseEntity.ok().build();
-    }
+// ¡CAMBIO! Hemos eliminado @Valid @RequestBody SolicitudCodigoDto solicitudDto
+    public ResponseEntity<Void> solicitarCodigo(@PathVariable String carnet) { 
+        // ¡CAMBIO! Ahora solo pasamos el carnet al servicio
+        usuarioService.solicitarCodigoVerificacion(carnet); 
+    return ResponseEntity.ok().build();
+}
 
     /**
      * Endpoint para verificar el código enviado al correo.

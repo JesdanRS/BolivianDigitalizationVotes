@@ -11,6 +11,7 @@ import com.votaciones.usuarios.model.Usuario;
 import com.votaciones.usuarios.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +26,14 @@ import java.util.concurrent.ThreadLocalRandom;
 public class UsuarioService {
     
     private final UsuarioRepository usuarioRepository;
-    private final UsuarioMapper usuarioMapper; // <-- Inyecta el mapper
+    private final UsuarioMapper usuarioMapper;
+    private final StreamBridge streamBridge;
 
     @Autowired
-    public UsuarioService(UsuarioRepository usuarioRepository, UsuarioMapper usuarioMapper) {
+    public UsuarioService(UsuarioRepository usuarioRepository, UsuarioMapper usuarioMapper, StreamBridge streamBridge) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioMapper = usuarioMapper;
+        this.streamBridge = streamBridge; 
     }
 
     /**
@@ -64,26 +67,39 @@ public class UsuarioService {
      * @param correo El correo a verificar y donde se enviará el código.
      */
 
-    @Transactional // Transacción de escritura, ya que modificamos el usuario.
-    public void solicitarCodigoVerificacion(String carnet, String correo) {
-        log.info("Solicitud de codigo de verificacion para el carnet: {} y correo {}", carnet, correo);
-        Usuario usuario = usuarioRepository.findByCarnet(carnet)
-            .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado."));
-            
-        // Genera un código de 6 dígitos (ej. "051234")
-        String codigo = String.format("%06d", ThreadLocalRandom.current().nextInt(1000000));
-
-        usuario.setCorreoElectronico(correo);
-        usuario.setCodigoVerificacion(codigo);
-        usuario.setCodigoExpiracion(Instant.now().plus(10, ChronoUnit.MINUTES)); // Código válido por 10 minutos
-        usuario.setCorreoVerificado(false); // Se marca como no verificado hasta que se confirme el código
-
-        usuarioRepository.save(usuario); // Guarda los cambios
-        // TODO: Aquí es donde te comunicarías con el 'notificaciones-service'.
-        // Publicarías un evento en Kafka/RabbitMQ con (usuarioId, correo, codigo)
-        // para que el otro microservicio se encargue de enviar el email.
-        log.info("Código de verificación generado para el usuario {}. Desencadenando notificación.", usuario.getId());
+    @Transactional
+// ¡CAMBIO! El método ya no acepta un 'correo' como parámetro
+public void solicitarCodigoVerificacion(String carnet) {
+    log.info("Solicitud de codigo de verificacion para el carnet: {}", carnet);
+    Usuario usuario = usuarioRepository.findByCarnet(carnet)
+        .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado."));
+    
+    // ¡NUEVA VALIDACIÓN!
+    // Verificamos si el usuario tiene un correo registrado antes de continuar.
+    if (usuario.getCorreoElectronico() == null || usuario.getCorreoElectronico().isBlank()) {
+        throw new OperacionInvalidaException("El usuario no tiene un correo electrónico registrado para enviar el código.");
     }
+        
+    String codigo = String.format("%06d", ThreadLocalRandom.current().nextInt(1000000));
+
+    // Ya no hacemos usuario.setCorreoElectronico(), porque ya lo tiene.
+    usuario.setCodigoVerificacion(codigo);
+    usuario.setCodigoExpiracion(Instant.now().plus(10, ChronoUnit.MINUTES));
+    usuario.setCorreoVerificado(false);
+
+    usuarioRepository.save(usuario);
+    
+    var notificacion = new com.votaciones.notificaciones.dto.NotificacionDto(
+        usuario.getCorreoElectronico(), // Usamos el correo de la BD
+        "Tu Código de Verificación para las Votaciones",
+        "Hola " + usuario.getNombreCompleto() + ",\n\nTu código de verificación es: " + codigo
+    );
+
+    streamBridge.send("enviarNotificacion-out-0", notificacion);
+    
+    log.info("Mensaje de notificación para el usuario {} enviado a Kafka.", usuario.getId());
+}
+
 
      /**
      * Verifica el código proporcionado por el usuario.
