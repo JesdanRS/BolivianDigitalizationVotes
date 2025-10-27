@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,10 +40,9 @@ public class AuditoriaRegistrosController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public Mono<ResponseEntity<AuditoriaDto>> crearRegistro(@Valid @RequestBody Mono<AuditoriaCreacionDto> dtoMono) {
-        return dtoMono
-                .map(auditoriaService::crearRegistro)
-                .map(ResponseEntity::ok);
+    public ResponseEntity<AuditoriaDto> crearRegistro(@Valid @RequestBody AuditoriaCreacionDto dto) {
+        AuditoriaDto resultado = auditoriaService.crearRegistro(dto);
+        return ResponseEntity.ok(resultado);
     }
 
     @Operation(summary = "Obtener todos los registros de auditoría")

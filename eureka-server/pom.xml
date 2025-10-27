@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version> <!-- Usamos la misma versión de Spring Boot que en tu otro microservicio -->
+        <version>3.4.4</version> <!-- Usamos la misma versión de Spring Boot que en tu otro microservicio -->
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.votaciones</groupId>
@@ -16,7 +16,7 @@
     <properties>
         <java.version>21</java.version>
         <!-- Esta es la versión de Spring Cloud compatible con Spring Boot 3.2.5 -->
-        <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <spring-cloud.version>2024.0.1</spring-cloud.version>
     </properties>
     <dependencies>
         <!-- La única dependencia funcional que necesitas: Eureka Server -->

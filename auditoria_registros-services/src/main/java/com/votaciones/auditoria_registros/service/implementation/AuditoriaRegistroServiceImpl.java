@@ -22,7 +22,7 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
     }
 
     private final Set<String> tiposPermitidos =
-            Set.of("LOGIN", "VOTO EMITIDO", "ERROR", "ACTUALIZACION", "CONSULTA", "ELIMINACION");
+            Set.of("LOGIN", "VOTO", "ERROR", "ACTUALIZACION", "CONSULTA", "ELIMINACION");
     private final Set<String> severidadesPermitidas =
             Set.of("INFO", "WARN", "ERROR", "CRITICAL");
 

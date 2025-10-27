@@ -1,13 +1,19 @@
+server:
+  port: 8085
+
 spring:
   application:
-    name: auditoria_registros-service
+    name: AUDITORIA-REGISTROS-SERVICE
+
   config:
     import: "classpath:application-openapi.yaml"
+
   datasource:
     url: jdbc:postgresql://localhost:5435/auditoria_db
     username: auditoria_user
     password: auditoria_pass
     driver-class-name: org.postgresql.Driver
+    
   jpa:
     hibernate:
       ddl-auto: update
@@ -18,8 +24,12 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka
   instance:
-    prefer-ip-address: true
-server:
-  port: 7005
+    hostname: localhost
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

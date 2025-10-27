@@ -16,23 +16,29 @@ services:
       retries: 5
     volumes:
       - db-data-usuarios:/var/lib/postgresql/data
-    
-  # AUDITORÍA
+    networks:
+      - votaciones-net
+
   postgres-db-auditoria:
     image: postgres:16-alpine
     container_name: bd-auditoria
-    environment:
-      - POSTGRES_USER=auditoria_user
-      - POSTGRES_PASSWORD=auditoria_pass
-      - POSTGRES_DB=auditoria_db
     ports:
       - "5435:5432"
+    environment:
+      - POSTGRES_DB=auditoria_db
+      - POSTGRES_USER=auditoria_user
+      - POSTGRES_PASSWORD=auditoria_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auditoria_user -d auditoria_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     volumes:
       - db-data-auditoria:/var/lib/postgresql/data
     networks:
       - votaciones-net
 
-  # Eureka Server 
+
   eureka-server:
     build:
       context: ./eureka-server 
@@ -40,8 +46,9 @@ services:
     container_name: eureka-server
     ports:
       - "8761:8761"
+    networks:
+      - votaciones-net
 
-  # Usuarios Service
   usuarios-service:
     build:
       context: .
@@ -57,8 +64,29 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+    networks:
+      - votaciones-net
 
-  # API Gateway 
+  auditoria-service:
+    build:
+      context: .                # raíz del proyecto
+      dockerfile: auditoria_registros-services/Dockerfile
+    container_name: ms-auditoria
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-auditoria:5432/auditoria_db
+      - SPRING_DATASOURCE_USERNAME=auditoria_user
+      - SPRING_DATASOURCE_PASSWORD=auditoria_pass
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      postgres-db-auditoria:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - votaciones-net
+
   api-gateway:
     build:
       context: ./api-gateway  
@@ -70,6 +98,8 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
     depends_on:
       - eureka-server
+    networks:
+      - votaciones-net
 
 volumes:
   db-data-usuarios:
@@ -78,4 +108,3 @@ volumes:
 networks:
   votaciones-net:
     driver: bridge
-  

@@ -8,6 +8,8 @@ RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean install -DskipTests
 
+EXPOSE 8080
+
 # FASE 2: Final
 FROM openjdk:21-slim
 WORKDIR /app

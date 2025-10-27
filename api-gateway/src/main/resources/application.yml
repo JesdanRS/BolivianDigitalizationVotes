@@ -1,30 +1,23 @@
 server:
-  # El puerto estándar para los gateways. Tu app externa llamará a este puerto.
   port: 8080
 
 spring:
   application:
     name: api-gateway
-  
-  # =======================================================
-  # CONFIGURACIÓN DE LAS RUTAS DEL GATEWAY
-  # =======================================================
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: false
       routes:
-        # Aquí defines una regla de enrutamiento para el servicio de usuarios
-        - id: usuarios_service_route # Un nombre único para la regla
-          
-          # El destino. 'lb' significa 'Load Balancer'. 
-          # Le dice al Gateway que busque en Eureka un servicio llamado 'USUARIOS-SERVICE'.
-          uri: lb://USUARIOS-SERVICE
-          
-          # La condición (o "predicado") para que esta regla se active.
+        - id: auditoria-registros
+          uri: lb://AUDITORIA-REGISTROS-SERVICE
           predicates:
-            # Si el path de la petición entrante coincide con este patrón...
-            - Path=/api/usuarios/**
+            - Path=/api/auditoria/**
+          filters:
+            - StripPrefix=0
 
-# El Gateway también es un cliente de Eureka, necesita registrarse y descubrir otros.
 eureka:
   client:
     service-url:
@@ -34,6 +27,16 @@ management:
   endpoints:
     web:
       exposure:
-        # Le decimos que exponga los endpoints de salud e información.
-        # Para desarrollo, a veces es útil poner "*" para exponer todos.
-        include: health,info
+        include: "*"
+  endpoint:
+    gateway:
+      enabled: true
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    '[org.springframework.cloud.gateway]': DEBUG
+    '[org.springframework.cloud.loadbalancer]': DEBUG
+    '[com.netflix.discovery]': DEBUG
