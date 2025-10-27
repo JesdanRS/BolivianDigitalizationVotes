@@ -1,0 +1,58 @@
+================================================================================
+  MICROSERVICIO RESULTADOS Y ESTADISTICAS - DOCUMENTACION CONSOLIDADA
+================================================================================
+
+✅ TODO ESTA LISTO Y ORGANIZADO
+
+📁 ARCHIVOS IMPORTANTES EN ESTA CARPETA:
+
+1. GUIA_EVALUACION_COMPLETA.md
+   → UNICA GUIA que necesitas para demostrar TODOS los criterios
+   → Incluye paso a paso para cada criterio
+   → Comandos exactos para la demo en vivo
+
+2. Keycloak_Resultados.postman_collection.json
+   → Coleccion de Postman con todas las peticiones pre-configuradas
+   → Importala en Postman para probar todo
+
+3. LIMPIAR_ARCHIVOS.bat
+   → Script para eliminar archivos antiguos innecesarios
+   → Ejecutalo para limpiar la carpeta
+
+================================================================================
+  PASOS RAPIDOS PARA LA EVALUACION
+================================================================================
+
+1. Ejecuta LIMPIAR_ARCHIVOS.bat (doble click)
+   → Esto eliminara todos los .md y .txt antiguos
+
+2. Abre GUIA_EVALUACION_COMPLETA.md
+   → Es la UNICA guia que necesitas
+
+3. Sigue los pasos de la guia:
+   - Inicializar sistema (docker-compose up -d)
+   - Importar coleccion en Postman
+   - Demostrar cada criterio en orden
+
+================================================================================
+  CRITERIOS CUBIERTOS
+================================================================================
+
+✅ Criterio 1: Persistencia de Datos (PostgreSQL + CRUD + Queries)
+✅ Criterio 2: Eureka Server (Registro y descubrimiento)
+✅ Criterio 3: Edge Server Gateway (Enrutamiento y filtros)
+✅ Criterio 4: Docker (Dockerfile + Docker Compose)
+✅ Criterio 5: Keycloak (JWT + Roles + Seguridad)
+
+================================================================================
+  IMPORTANTE
+================================================================================
+
+- NO necesitas leer otros archivos .md
+- TODO esta en GUIA_EVALUACION_COMPLETA.md
+- La coleccion de Postman tiene TODO pre-configurado
+- Solo sigue la guia paso a paso
+
+================================================================================
+
+¡Buena suerte en tu evaluacion! 🚀

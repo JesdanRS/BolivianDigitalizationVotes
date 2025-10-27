@@ -1,0 +1,658 @@
+{
+	"info": {
+		"_postman_id": "keycloak-resultados-2024",
+		"name": "Keycloak + Resultados Estadísticas",
+		"description": "Colección para probar autenticación con Keycloak y endpoints del microservicio resultados_estadisticas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Autenticación Keycloak",
+			"item": [
+				{
+					"name": "Obtener Token - ADMIN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Guardar el token automáticamente",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"admin_token\", jsonData.access_token);",
+									"    console.log(\"Token ADMIN guardado exitosamente\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "client_id",
+									"value": "votaciones-client",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin123",
+									"type": "text"
+								},
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8180/auth/realms/votaciones-realm/protocol/openid-connect/token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8180",
+							"path": [
+								"auth",
+								"realms",
+								"votaciones-realm",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						},
+						"description": "Obtiene un token JWT para el usuario ADMIN. El token se guarda automáticamente en la variable de entorno 'admin_token'."
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Token - USER",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Guardar el token automáticamente",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"user_token\", jsonData.access_token);",
+									"    console.log(\"Token USER guardado exitosamente\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "client_id",
+									"value": "votaciones-client",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "user",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "user123",
+									"type": "text"
+								},
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8180/auth/realms/votaciones-realm/protocol/openid-connect/token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8180",
+							"path": [
+								"auth",
+								"realms",
+								"votaciones-realm",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						},
+						"description": "Obtiene un token JWT para el usuario USER. El token se guarda automáticamente en la variable de entorno 'user_token'."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para obtener tokens JWT de Keycloak"
+		},
+		{
+			"name": "2. CRUD Resultados (con ADMIN)",
+			"item": [
+				{
+					"name": "Crear Resultado (ADMIN)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numeroMesa\": 1001,\n  \"departamento\": \"La Paz\",\n  \"provincia\": \"Murillo\",\n  \"municipio\": \"La Paz\",\n  \"recinto\": \"Colegio Nacional Don Bosco\",\n  \"inscritos\": 500,\n  \"votosValidos\": 450,\n  \"votosNulos\": 30,\n  \"votosBlancos\": 20\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados"
+							]
+						},
+						"description": "Crea un nuevo resultado. Requiere rol ADMIN. ✅ Debería retornar 201 Created"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Resultados (ADMIN)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados"
+							]
+						},
+						"description": "Lista todos los resultados desde PostgreSQL. ✅ Debería retornar 200 OK"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Resultado por ID (ADMIN)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados",
+								"1"
+							]
+						},
+						"description": "Obtiene un resultado específico por ID. ✅ Debería retornar 200 OK o 404 si no existe"
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Resultado (ADMIN)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numeroMesa\": 1001,\n  \"departamento\": \"La Paz\",\n  \"provincia\": \"Murillo\",\n  \"municipio\": \"La Paz\",\n  \"recinto\": \"Colegio Nacional Don Bosco - Actualizado\",\n  \"inscritos\": 550,\n  \"votosValidos\": 500,\n  \"votosNulos\": 30,\n  \"votosBlancos\": 20\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados",
+								"1"
+							]
+						},
+						"description": "Actualiza un resultado existente. Requiere rol ADMIN. ✅ Debería retornar 200 OK"
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Resultado (ADMIN)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados",
+								"1"
+							]
+						},
+						"description": "Elimina un resultado. Requiere rol ADMIN. ✅ Debería retornar 204 No Content"
+					},
+					"response": []
+				}
+			],
+			"description": "Operaciones CRUD que requieren rol ADMIN"
+		},
+		{
+			"name": "3. Consultas (con USER)",
+			"item": [
+				{
+					"name": "Listar Resultados (USER)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados"
+							]
+						},
+						"description": "Usuario con rol USER puede listar resultados. ✅ Debería retornar 200 OK"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar por Departamento (USER)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados/departamento/La Paz",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados",
+								"departamento",
+								"La Paz"
+							]
+						},
+						"description": "Consulta DERIVED QUERY. ✅ Debería retornar 200 OK"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar por Mínimo Inscritos (USER)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados/inscritos-minimo/300",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados",
+								"inscritos-minimo",
+								"300"
+							]
+						},
+						"description": "Consulta JPQL QUERY. ✅ Debería retornar 200 OK"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar por Votos Válidos Mínimos (USER)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados/votos-validos-minimo/200",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados",
+								"votos-validos-minimo",
+								"200"
+							]
+						},
+						"description": "Consulta NATIVE QUERY. ✅ Debería retornar 200 OK"
+					},
+					"response": []
+				},
+				{
+					"name": "Estadísticas por Departamento (USER)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados/estadisticas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados",
+								"estadisticas"
+							]
+						},
+						"description": "Obtiene estadísticas agregadas. ✅ Debería retornar 200 OK"
+					},
+					"response": []
+				}
+			],
+			"description": "Consultas que pueden hacer usuarios con rol USER o ADMIN"
+		},
+		{
+			"name": "4. Pruebas de Seguridad",
+			"item": [
+				{
+					"name": "❌ Sin Token (401)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados"
+							]
+						},
+						"description": "Petición sin token. ❌ Debería retornar 401 Unauthorized"
+					},
+					"response": []
+				},
+				{
+					"name": "❌ USER intenta Crear (403)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numeroMesa\": 9999,\n  \"departamento\": \"Test\",\n  \"provincia\": \"Test\",\n  \"municipio\": \"Test\",\n  \"recinto\": \"Test\",\n  \"inscritos\": 100,\n  \"votosValidos\": 90,\n  \"votosNulos\": 5,\n  \"votosBlancos\": 5\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados"
+							]
+						},
+						"description": "Usuario con rol USER intenta crear (requiere ADMIN). ❌ Debería retornar 403 Forbidden"
+					},
+					"response": []
+				},
+				{
+					"name": "❌ USER intenta Eliminar (403)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/api/resultados/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"api",
+								"resultados",
+								"1"
+							]
+						},
+						"description": "Usuario con rol USER intenta eliminar (requiere ADMIN). ❌ Debería retornar 403 Forbidden"
+					},
+					"response": []
+				}
+			],
+			"description": "Pruebas para demostrar que la seguridad funciona correctamente"
+		},
+		{
+			"name": "5. Swagger (Público)",
+			"item": [
+				{
+					"name": "Swagger UI",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ms-resultados/swagger-ui.html",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"ms-resultados",
+								"swagger-ui.html"
+							]
+						},
+						"description": "Acceso público a Swagger. ✅ No requiere autenticación"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
