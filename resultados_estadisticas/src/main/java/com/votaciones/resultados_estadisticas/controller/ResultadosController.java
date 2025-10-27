@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/resultados")
+@RequestMapping("/api/resultados")
 @RequiredArgsConstructor
 @Tag(name = "Resultados", description = "API REST para resultados y estadísticas de votaciones - CRUD completo con PostgreSQL")
 public class ResultadosController {

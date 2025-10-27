@@ -38,6 +38,12 @@ spring:
           predicates:
             - Path=/api/votaciones/**
         
+        # Servicio de Resultados y Estadísticas
+        - id: resultados_service_route
+          uri: lb://RESULTADOS-ESTADISTICAS
+          predicates:
+            - Path=/api/resultados/**
+        
         # ========== RUTAS PARA SWAGGER/OPENAPI ==========
         # Swagger de Usuarios Service
         - id: usuarios_swagger
@@ -69,6 +75,21 @@ spring:
           filters:
             - RewritePath=/votaciones/v3/api-docs/(?<segment>.*), /v3/api-docs/$\{segment}
         
+        # Swagger de Resultados Service
+        - id: resultados_swagger
+          uri: lb://RESULTADOS-ESTADISTICAS
+          predicates:
+            - Path=/resultados/swagger-ui/**
+          filters:
+            - RewritePath=/resultados/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
+        
+        - id: resultados_api_docs
+          uri: lb://RESULTADOS-ESTADISTICAS
+          predicates:
+            - Path=/resultados/v3/api-docs/**
+          filters:
+            - RewritePath=/resultados/v3/api-docs/(?<segment>.*), /v3/api-docs/$\{segment}
+        
         # ========== RUTAS PARA ACTUATOR ==========
         # Actuator de Usuarios Service
         - id: usuarios_actuator
@@ -85,6 +106,14 @@ spring:
             - Path=/votaciones/actuator/**
           filters:
             - RewritePath=/votaciones/actuator/(?<segment>.*), /actuator/$\{segment}
+        
+        # Actuator de Resultados Service
+        - id: resultados_actuator
+          uri: lb://RESULTADOS-ESTADISTICAS
+          predicates:
+            - Path=/resultados/actuator/**
+          filters:
+            - RewritePath=/resultados/actuator/(?<segment>.*), /actuator/$\{segment}
 
 # El Gateway también es un cliente de Eureka, necesita registrarse y descubrir otros.
 eureka:
