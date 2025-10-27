@@ -11,6 +11,13 @@ spring:
           enabled: true
           lower-case-service-id: false
       routes:
+        - id: auditoria-openapi
+          uri: lb://AUDITORIA-REGISTROS-SERVICE
+          predicates:
+            - Path=/api/auditoria/v3/api-docs
+          filters:
+            - RewritePath=/api/auditoria/v3/api-docs, /v3/api-docs
+        
         - id: auditoria-registros
           uri: lb://AUDITORIA-REGISTROS-SERVICE
           predicates:
@@ -21,7 +28,10 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
+  instance:
+    hostname: ${HOSTNAME:localhost}
+    prefer-ip-address: false
 
 management:
   endpoints:
@@ -33,6 +43,14 @@ management:
       enabled: true
     health:
       show-details: always
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: Auditoria Service
+        url: /api/auditoria/v3/api-docs
 
 logging:
   level:

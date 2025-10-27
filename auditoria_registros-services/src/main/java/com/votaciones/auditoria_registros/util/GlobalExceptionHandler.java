@@ -1,12 +1,12 @@
 package com.votaciones.auditoria_registros.util;
 
 import com.votaciones.auditoria_registros.exception.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.support.WebExchangeBindException;
-import org.springframework.web.server.ServerWebExchange;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -16,16 +16,16 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     // Validaciones @Valid
-    @ExceptionHandler(WebExchangeBindException.class)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(
-            WebExchangeBindException ex, ServerWebExchange exchange) {
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
 
         Map<String, Object> error = new HashMap<>();
         error.put("timestamp", Instant.now());
         error.put("status", HttpStatus.BAD_REQUEST.value());
         error.put("error", "Datos de entrada inválidos");
         error.put("message", "Error de validación en los campos enviados");
-        error.put("path", exchange.getRequest().getPath().value());
+        error.put("path", request.getRequestURI());
 
         Map<String, String> fieldErrors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(f ->
@@ -39,48 +39,49 @@ public class GlobalExceptionHandler {
     // InvalidArgumentException -> 400
     @ExceptionHandler(InvalidArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidArgument(
-            InvalidArgumentException ex, ServerWebExchange exchange) {
-        return buildError(HttpStatus.BAD_REQUEST, "Solicitud inválida", ex.getMessage(), exchange);
+            InvalidArgumentException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "Solicitud inválida", ex.getMessage(), request);
     }
 
     // EventoDuplicadoException -> 409
     @ExceptionHandler(EventoDuplicadoException.class)
     public ResponseEntity<Map<String, Object>> handleEventoDuplicado(
-            EventoDuplicadoException ex, ServerWebExchange exchange) {
-        return buildError(HttpStatus.CONFLICT, "Conflicto de datos", ex.getMessage(), exchange);
+            EventoDuplicadoException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "Conflicto de datos", ex.getMessage(), request);
     }
 
     // RegistroNoEncontradoException -> 404
     @ExceptionHandler(RegistroNoEncontradoException.class)
     public ResponseEntity<Map<String, Object>> handleRegistroNoEncontrado(
-            RegistroNoEncontradoException ex, ServerWebExchange exchange) {
-        return buildError(HttpStatus.NOT_FOUND, "Recurso no encontrado", ex.getMessage(), exchange);
+            RegistroNoEncontradoException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "Recurso no encontrado", ex.getMessage(), request);
     }
 
     // UnprocessableEntityException -> 422
     @ExceptionHandler(UnprocessableEntityException.class)
     public ResponseEntity<Map<String, Object>> handleUnprocessableEntity(
-            UnprocessableEntityException ex, ServerWebExchange exchange) {
-        return buildError(HttpStatus.UNPROCESSABLE_ENTITY, "Entidad no procesable", ex.getMessage(), exchange);
+            UnprocessableEntityException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.UNPROCESSABLE_ENTITY, "Entidad no procesable", ex.getMessage(), request);
     }
 
     // Excepción general -> 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(
-            Exception ex, ServerWebExchange exchange) {
+            Exception ex, HttpServletRequest request) {
+        ex.printStackTrace(); // Para debugging
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor",
-                "Ocurrió un error inesperado en el servidor", exchange);
+                "Ocurrió un error inesperado en el servidor", request);
     }
 
     // Método privado para construir la respuesta
     private ResponseEntity<Map<String, Object>> buildError(HttpStatus status, String errorType,
-                                                           String message, ServerWebExchange exchange) {
+                                                           String message, HttpServletRequest request) {
         Map<String, Object> error = new HashMap<>();
         error.put("timestamp", Instant.now());
         error.put("status", status.value());
         error.put("error", errorType);
         error.put("message", message);
-        error.put("path", exchange.getRequest().getPath().value());
+        error.put("path", request.getRequestURI());
 
         return ResponseEntity.status(status).body(error);
     }

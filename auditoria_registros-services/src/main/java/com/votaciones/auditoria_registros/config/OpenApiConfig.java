@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
 public class OpenApiConfig {
@@ -36,16 +37,28 @@ public class OpenApiConfig {
     String apiContactEmail;
 
     /**
-     * Se expone en $HOST:$PORT/openapi/swagger-ui.html
+     * Se expone en $HOST:$PORT/swagger-ui.html
      *
      * @return la documentación OpenAPI común
      */
     @Bean
     public OpenAPI getOpenApiDocumentation() {
+        // Servidor del Gateway (principal)
+        Server gatewayServer = new Server();
+        gatewayServer.setUrl("http://localhost:8080");
+        gatewayServer.setDescription("API Gateway (Producción)");
+
+        // Servidor directo (desarrollo)
+        Server directServer = new Server();
+        directServer.setUrl("http://localhost:8085");
+        directServer.setDescription("Servicio directo (Desarrollo)");
+
         return new OpenAPI()
                 .info(new Info().title(apiTitle).description(apiDescription).version(apiVersion)
                         .contact(new Contact().name(apiContactName).url(apiContactUrl).email(apiContactEmail))
                         .termsOfService(apiTermsOfService).license(new License().name(apiLicense).url(apiLicenseUrl)))
-                .externalDocs(new ExternalDocumentation().description(apiExternalDocDesc).url(apiExternalDocUrl));
+                .externalDocs(new ExternalDocumentation().description(apiExternalDocDesc).url(apiExternalDocUrl))
+                .addServersItem(gatewayServer)
+                .addServersItem(directServer);
     }
 }
