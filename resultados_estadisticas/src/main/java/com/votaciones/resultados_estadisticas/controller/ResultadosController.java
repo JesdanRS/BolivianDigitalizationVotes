@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,8 +34,10 @@ public class ResultadosController {
 	@Operation(summary = "Crear resultado", description = "Crea un nuevo resultado de mesa (datos se guardan en PostgreSQL)")
 	@ApiResponses({
 		@ApiResponse(responseCode = "201", description = "Resultado creado exitosamente"),
-		@ApiResponse(responseCode = "400", description = "Datos inválidos")
+		@ApiResponse(responseCode = "400", description = "Datos inválidos"),
+		@ApiResponse(responseCode = "403", description = "Acceso denegado - Requiere rol ADMIN")
 	})
+	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping
 	public ResponseEntity<ResultadoMesa> crear(@Valid @RequestBody ResultadoMesa resultado) {
 		ResultadoMesa creado = resultadosService.crear(resultado);
@@ -42,12 +45,23 @@ public class ResultadosController {
 	}
 
 	@Operation(summary = "Listar todos los resultados", description = "Obtiene todos los resultados desde PostgreSQL")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Lista de resultados obtenida exitosamente"),
+		@ApiResponse(responseCode = "403", description = "Acceso denegado - Requiere autenticación")
+	})
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@GetMapping
 	public ResponseEntity<List<ResultadoMesa>> listar() {
 		return ResponseEntity.ok(resultadosService.listarResultados());
 	}
 
 	@Operation(summary = "Obtener resultado por ID", description = "Obtiene un resultado específico desde PostgreSQL")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Resultado encontrado"),
+		@ApiResponse(responseCode = "404", description = "Resultado no encontrado"),
+		@ApiResponse(responseCode = "403", description = "Acceso denegado - Requiere autenticación")
+	})
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@GetMapping("/{id}")
 	public ResponseEntity<ResultadoMesa> obtenerPorId(
 			@Parameter(description = "ID del resultado", example = "1", required = true)
@@ -56,6 +70,12 @@ public class ResultadosController {
 	}
 
 	@Operation(summary = "Actualizar resultado", description = "Actualiza un resultado existente en PostgreSQL")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Resultado actualizado exitosamente"),
+		@ApiResponse(responseCode = "404", description = "Resultado no encontrado"),
+		@ApiResponse(responseCode = "403", description = "Acceso denegado - Requiere rol ADMIN")
+	})
+	@PreAuthorize("hasRole('ADMIN')")
 	@PutMapping("/{id}")
 	public ResponseEntity<ResultadoMesa> actualizar(
 			@PathVariable Long id, 
@@ -64,6 +84,12 @@ public class ResultadosController {
 	}
 
 	@Operation(summary = "Eliminar resultado", description = "Elimina un resultado de PostgreSQL")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Resultado eliminado exitosamente"),
+		@ApiResponse(responseCode = "404", description = "Resultado no encontrado"),
+		@ApiResponse(responseCode = "403", description = "Acceso denegado - Requiere rol ADMIN")
+	})
+	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Long id) {
 		resultadosService.eliminar(id);
@@ -76,6 +102,7 @@ public class ResultadosController {
 
 	@Operation(summary = "Buscar por departamento (DERIVED QUERY)", 
 		description = "Usa consulta derivada: findByDepartamentoIgnoreCase")
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@GetMapping("/departamento/{departamento}")
 	public ResponseEntity<List<ResultadoMesa>> buscarPorDepartamento(
 			@Parameter(description = "Nombre del departamento", example = "La Paz")
@@ -85,6 +112,7 @@ public class ResultadosController {
 
 	@Operation(summary = "Buscar por mínimo de inscritos (JPQL QUERY)", 
 		description = "Usa consulta JPQL con filtro y ordenamiento")
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@GetMapping("/inscritos-minimo/{min}")
 	public ResponseEntity<List<ResultadoMesa>> buscarPorMinimoInscritos(
 			@Parameter(description = "Mínimo de inscritos", example = "300")
@@ -94,6 +122,7 @@ public class ResultadosController {
 
 	@Operation(summary = "Buscar por votos válidos mínimos (NATIVE QUERY)", 
 		description = "Usa consulta SQL nativa")
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@GetMapping("/votos-validos-minimo/{min}")
 	public ResponseEntity<List<ResultadoMesa>> buscarPorVotosValidosMinimos(
 			@Parameter(description = "Mínimo de votos válidos totales", example = "200")
@@ -103,6 +132,7 @@ public class ResultadosController {
 
 	@Operation(summary = "Sumar inscritos por departamento (JPQL)", 
 		description = "Agrega inscritos por departamento con consulta JPQL")
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@GetMapping("/reportes/inscritos-por-departamento")
 	public ResponseEntity<List<Map<String, Object>>> inscritosPorDepartamento() {
 		List<Object[]> rows = resultadosService.sumarInscritosPorDepartamento();
@@ -114,6 +144,7 @@ public class ResultadosController {
 
 	@Operation(summary = "Contar mesas por departamento (NATIVE)", 
 		description = "Cuenta mesas con consulta SQL nativa")
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@GetMapping("/reportes/mesas-por-departamento")
 	public ResponseEntity<List<Map<String, Object>>> mesasPorDepartamento() {
 		List<Object[]> rows = resultadosService.contarMesasPorDepartamento();
@@ -128,12 +159,14 @@ public class ResultadosController {
 	// ========================================
 
 	@Operation(summary = "Estadísticas por departamento")
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@GetMapping("/estadisticas")
 	public ResponseEntity<List<EstadisticaDto>> estadisticasPorDepartamento() {
 		return ResponseEntity.ok(resultadosService.estadisticasPorDepartamento());
 	}
 
 	@Operation(summary = "Estadística de un departamento específico")
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@GetMapping("/estadisticas/{departamento}")
 	public ResponseEntity<EstadisticaDto> estadisticaDeDepartamento(
 			@PathVariable String departamento) {
