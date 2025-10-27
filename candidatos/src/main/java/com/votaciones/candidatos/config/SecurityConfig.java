@@ -2,31 +2,34 @@ package com.votaciones.candidatos.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configuración de seguridad para el microservicio de candidatos
+ */
 @Configuration
-@EnableWebFluxSecurity
+@EnableWebSecurity
 public class SecurityConfig {
 
 	@Bean
-	public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http
-			.csrf(ServerHttpSecurity.CsrfSpec::disable)
-			.authorizeExchange(exchanges -> exchanges
-				.pathMatchers(
+			.csrf(csrf -> csrf.disable())
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers(
 					"/swagger-ui.html",
 					"/swagger-ui/**",
 					"/v3/api-docs/**",
 					"/api-docs/**",
-					"/candidatos/**",
+					"/api/candidatos/**",
 					"/actuator/**"
 				).permitAll()
-				.anyExchange().permitAll()
+				.anyRequest().permitAll()
 			)
-			.httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
-			.formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+			.httpBasic(basic -> basic.disable())
+			.formLogin(form -> form.disable())
 			.build();
 	}
 }

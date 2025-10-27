@@ -1,18 +1,25 @@
 package com.votaciones.candidatos.dto;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 import com.votaciones.candidatos.model.Candidato;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * DTO para la respuesta de candidatos en el sistema de votaciones bolivianas
  */
-@Schema(name = "Candidato", description = "Información de un candidato")
+@Schema(name = "CandidatoDto", description = "Información de una fórmula de candidatos")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class candidatosDto {
 
-    @Schema(description = "ID único del candidato", example = "1")
-    private Long idCandidato;
+    @Schema(description = "ID único de la fórmula", example = "1")
+    private Long id;
 
     @Schema(description = "Nombre del partido político", example = "Movimiento al Socialismo (MAS)")
     private String partido;
@@ -23,6 +30,24 @@ public class candidatosDto {
     @Schema(description = "Nombre completo del candidato a vicepresidente", example = "David Choquehuanca Céspedes")
     private String nombreCompletoVicepresidente;
 
+    @Schema(description = "Carnet de identidad del presidente", example = "1234567")
+    private String carnetPresidente;
+
+    @Schema(description = "Carnet de identidad del vicepresidente", example = "7654321")
+    private String carnetVicepresidente;
+
+    @Schema(description = "Fecha de nacimiento del presidente", example = "1965-09-28")
+    private LocalDate fechaNacimientoPresidente;
+
+    @Schema(description = "Fecha de nacimiento del vicepresidente", example = "1964-06-15")
+    private LocalDate fechaNacimientoVicepresidente;
+
+    @Schema(description = "Correo electrónico de contacto", example = "contacto@partidomas.bo")
+    private String correoElectronico;
+
+    @Schema(description = "Indica si el correo ha sido verificado", example = "true")
+    private boolean correoVerificado;
+
     @Schema(description = "Descripción de la propuesta electoral", example = "Propuesta enfocada en estabilidad económica y social")
     private String descripcion;
 
@@ -32,71 +57,24 @@ public class candidatosDto {
     @Schema(description = "Fecha de última actualización", example = "2024-01-15T10:30:00Z")
     private Instant actualizadoEn;
 
+    /**
+     * Convierte una entidad Candidato a DTO
+     */
     public static candidatosDto fromCandidato(Candidato c) {
         candidatosDto dto = new candidatosDto();
-        dto.setIdCandidato(c.getIdCandidato());
+        dto.setId(c.getId());
         dto.setPartido(c.getPartido());
         dto.setNombreCompletoPresidente(c.getNombreCompletoPresidente());
         dto.setNombreCompletoVicepresidente(c.getNombreCompletoVicepresidente());
+        dto.setCarnetPresidente(c.getCarnetPresidente());
+        dto.setCarnetVicepresidente(c.getCarnetVicepresidente());
+        dto.setFechaNacimientoPresidente(c.getFechaNacimientoPresidente());
+        dto.setFechaNacimientoVicepresidente(c.getFechaNacimientoVicepresidente());
+        dto.setCorreoElectronico(c.getCorreoElectronico());
+        dto.setCorreoVerificado(c.isCorreoVerificado());
         dto.setDescripcion(c.getDescripcion());
         dto.setCreadoEn(c.getCreadoEn());
         dto.setActualizadoEn(c.getActualizadoEn());
         return dto;
-    }
-
-    public Long getIdCandidato() {
-        return idCandidato;
-    }
-
-    public void setIdCandidato(Long idCandidato) {
-        this.idCandidato = idCandidato;
-    }
-
-    public String getPartido() {
-        return partido;
-    }
-
-    public void setPartido(String partido) {
-        this.partido = partido;
-    }
-
-    public String getNombreCompletoPresidente() {
-        return nombreCompletoPresidente;
-    }
-
-    public void setNombreCompletoPresidente(String nombreCompletoPresidente) {
-        this.nombreCompletoPresidente = nombreCompletoPresidente;
-    }
-
-    public String getNombreCompletoVicepresidente() {
-        return nombreCompletoVicepresidente;
-    }
-
-    public void setNombreCompletoVicepresidente(String nombreCompletoVicepresidente) {
-        this.nombreCompletoVicepresidente = nombreCompletoVicepresidente;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public Instant getCreadoEn() {
-        return creadoEn;
-    }
-
-    public void setCreadoEn(Instant creadoEn) {
-        this.creadoEn = creadoEn;
-    }
-
-    public Instant getActualizadoEn() {
-        return actualizadoEn;
-    }
-
-    public void setActualizadoEn(Instant actualizadoEn) {
-        this.actualizadoEn = actualizadoEn;
     }
 }
