@@ -1,0 +1,196 @@
+═══════════════════════════════════════════════════════════════════
+  🎯 GUÍA RÁPIDA PARA LA DEMOSTRACIÓN - 3 CRITERIOS
+═══════════════════════════════════════════════════════════════════
+
+📌 INICIO (1 comando)
+─────────────────────────────────────────────────────────────────
+docker compose up -d eureka-server postgres-db-resultados resultados-estadisticas api-gateway
+
+Esperar ~20 segundos...
+
+
+═══════════════════════════════════════════════════════════════════
+  ✅ CRITERIO 1: PERSISTENCIA DE DATOS (5 minutos)
+═══════════════════════════════════════════════════════════════════
+
+1️⃣ MOSTRAR CÓDIGO:
+   - ResultadoMesa.java (entidad con @Entity, @Table, @Id)
+   - ResultadoMesaRepository.java (Derived, JPQL, Native queries)
+
+2️⃣ CONEXIÓN A BD:
+   curl http://localhost:8083/api/resultados
+   ✅ Retorna datos desde PostgreSQL
+
+3️⃣ DERIVED QUERY:
+   curl http://localhost:8083/api/resultados/departamento/La%20Paz
+   ✅ findByDepartamentoIgnoreCase
+
+4️⃣ JPQL QUERY:
+   curl http://localhost:8083/api/resultados/inscritos-minimo/300
+   ✅ @Query con JPQL
+
+5️⃣ NATIVE QUERY:
+   curl http://localhost:8083/api/resultados/votos-validos-minimo/200
+   ✅ @Query(nativeQuery = true)
+
+
+═══════════════════════════════════════════════════════════════════
+  ✅ CRITERIO 2: EUREKA SERVER (3 minutos)
+═══════════════════════════════════════════════════════════════════
+
+1️⃣ DASHBOARD DE EUREKA:
+   Navegador: http://localhost:8761
+   ✅ Ver "RESULTADOS-ESTADISTICAS" con status UP
+
+2️⃣ MOSTRAR CÓDIGO:
+   - application.properties (eureka.client.service-url.defaultZone)
+   - api-gateway/application.yml (uri: lb://RESULTADOS-ESTADISTICAS)
+
+3️⃣ API DE EUREKA:
+   curl http://localhost:8761/eureka/apps/RESULTADOS-ESTADISTICAS
+   ✅ Ver información del servicio registrado
+
+4️⃣ DESCUBRIMIENTO DINÁMICO:
+   curl http://localhost:8080/api/resultados
+   ✅ Gateway usa Eureka para resolver el nombre (NO usa IP fija)
+
+
+═══════════════════════════════════════════════════════════════════
+  ✅ CRITERIO 3: EDGE SERVER (GATEWAY) (5 minutos)
+═══════════════════════════════════════════════════════════════════
+
+1️⃣ MOSTRAR CÓDIGO:
+   - api-gateway/application.yml
+   - Señalar: predicates (Path)
+   - Señalar: filters (RewritePath)
+   - Señalar: uri (lb://)
+
+2️⃣ ENRUTAMIENTO BÁSICO:
+   curl http://localhost:8080/api/resultados
+   curl http://localhost:8080/api/resultados/1
+   ✅ Gateway enruta correctamente
+
+3️⃣ PREDICADO PATH:
+   curl http://localhost:8080/api/resultados/departamento/La%20Paz
+   ✅ Coincide con Path=/api/resultados/**
+
+4️⃣ FILTRO REWRITEPATH:
+   curl http://localhost:8080/resultados/actuator/health
+   ✅ Elimina /resultados antes de enviar al microservicio
+
+5️⃣ SWAGGER UI:
+   Navegador: http://localhost:8080/resultados/swagger-ui/index.html
+   ✅ Documentación accesible a través del Gateway
+   ✅ Probar un endpoint desde Swagger (botón "Try it out")
+
+
+═══════════════════════════════════════════════════════════════════
+  📊 TABLA DE VERIFICACIÓN RÁPIDA
+═══════════════════════════════════════════════════════════════════
+
+Criterio | Comando | Resultado esperado
+─────────|─────────|───────────────────
+1. BD    | curl http://localhost:8083/api/resultados | JSON con datos
+1. JPQL  | curl http://localhost:8083/api/resultados/inscritos-minimo/300 | Filtrados
+2. Eureka| http://localhost:8761 | RESULTADOS-ESTADISTICAS UP
+2. Desc. | curl http://localhost:8080/api/resultados | Mismos datos (usa Eureka)
+3. Gateway| curl http://localhost:8080/api/resultados/1 | Datos del ID 1
+3. Rewrite| curl http://localhost:8080/resultados/actuator/health | {"status":"UP"}
+3. Swagger| http://localhost:8080/resultados/swagger-ui/index.html | Interfaz carga
+
+
+═══════════════════════════════════════════════════════════════════
+  🎯 COMANDOS COPIAR-PEGAR PARA LA DEMO
+═══════════════════════════════════════════════════════════════════
+
+# CRITERIO 1
+curl http://localhost:8083/api/resultados
+curl http://localhost:8083/api/resultados/departamento/La%20Paz
+curl http://localhost:8083/api/resultados/inscritos-minimo/300
+curl http://localhost:8083/api/resultados/votos-validos-minimo/200
+
+# CRITERIO 2
+# Navegador: http://localhost:8761
+curl http://localhost:8761/eureka/apps/RESULTADOS-ESTADISTICAS
+
+# CRITERIO 3
+curl http://localhost:8080/api/resultados
+curl http://localhost:8080/api/resultados/1
+curl http://localhost:8080/resultados/actuator/health
+# Navegador: http://localhost:8080/resultados/swagger-ui/index.html
+
+
+═══════════════════════════════════════════════════════════════════
+  📁 ARCHIVOS PARA MOSTRAR EN CÓDIGO
+═══════════════════════════════════════════════════════════════════
+
+1. ResultadoMesa.java
+   - Línea 15: @Entity
+   - Línea 16: @Table(name = "resultados_mesa")
+   - Línea 22: @Id @GeneratedValue
+
+2. ResultadoMesaRepository.java
+   - Línea 15: Derived Query
+   - Línea 18: JPQL Query con @Query
+   - Línea 26: Native Query con nativeQuery = true
+
+3. application.properties
+   - Línea 7: spring.datasource.url (PostgreSQL)
+   - Línea 19: eureka.client.service-url.defaultZone
+
+4. api-gateway/application.yml
+   - Línea 42: Path Predicate
+   - Línea 43: uri: lb://RESULTADOS-ESTADISTICAS
+   - Línea 84: RewritePath Filter
+
+
+═══════════════════════════════════════════════════════════════════
+  💡 EXPLICACIONES CLAVE (1 FRASE CADA UNA)
+═══════════════════════════════════════════════════════════════════
+
+PERSISTENCIA:
+"Spring Data JPA genera automáticamente las Derived Queries, las JPQL
+usan objetos Java, y las Native Queries usan SQL directo de PostgreSQL."
+
+EUREKA:
+"Eureka actúa como directorio telefónico: los servicios se registran
+automáticamente y el Gateway pregunta 'dónde está X' en lugar de usar IPs."
+
+GATEWAY:
+"El Gateway es la puerta única de entrada que enruta con predicados (Path)
+y modifica URLs con filtros (RewritePath) antes de enviar a los microservicios."
+
+
+═══════════════════════════════════════════════════════════════════
+  ✅ CHECKLIST ANTES DE LA DEMO
+═══════════════════════════════════════════════════════════════════
+
+Servicios:
+[ ] docker ps muestra 4 contenedores (eureka, bd, microservicio, gateway)
+[ ] http://localhost:8761 muestra RESULTADOS-ESTADISTICAS UP
+
+Navegador preparado:
+[ ] Tab 1: http://localhost:8761
+[ ] Tab 2: http://localhost:8080/resultados/swagger-ui/index.html
+
+VS Code abierto con:
+[ ] ResultadoMesa.java
+[ ] ResultadoMesaRepository.java
+[ ] application.properties
+[ ] api-gateway/application.yml
+
+Terminal con comandos listos:
+[ ] curl http://localhost:8083/api/resultados
+[ ] curl http://localhost:8080/api/resultados
+
+
+═══════════════════════════════════════════════════════════════════
+  🎉 ¡LISTO PARA DEMOSTRAR!
+═══════════════════════════════════════════════════════════════════
+
+Tiempo estimado: 13 minutos (5 + 3 + 5)
+Criterios: 3/3 (100% completados)
+Estado: ✅ TODO FUNCIONAL
+
+¡MUCHA SUERTE! 🚀
+
