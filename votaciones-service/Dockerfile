@@ -5,11 +5,15 @@ FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 # Establecemos el directorio de trabajo
 WORKDIR /app
 
-# Primero copiamos y construimos el dto-votaciones ya que es una dependencia
+# Primero copiamos y construimos dto-notificaciones (dependencia de votaciones-service)
+COPY ./dto-notificaciones /app/dto-notificaciones
+RUN cd /app/dto-notificaciones && mvn clean install -DskipTests
+
+# Luego copiamos y construimos dto-votaciones (otra dependencia)
 COPY ./dto-votaciones /app/dto-votaciones
 RUN cd /app/dto-votaciones && mvn clean install -DskipTests
 
-# Ahora copiamos y construimos el servicio de votaciones
+# Finalmente copiamos y construimos el servicio de votaciones
 COPY ./votaciones-service /app/votaciones-service
 RUN cd /app/votaciones-service && mvn clean install -DskipTests
 

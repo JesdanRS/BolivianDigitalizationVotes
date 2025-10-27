@@ -102,10 +102,13 @@ services:
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-votaciones:5432/votaciones_db
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
     depends_on:
       postgres-db-votaciones:
         condition: service_healthy
       eureka-server:
+        condition: service_started
+      kafka:
         condition: service_started
 
   # API Gateway 
