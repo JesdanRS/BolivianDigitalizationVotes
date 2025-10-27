@@ -113,18 +113,27 @@ services:
       kafka:
         condition: service_started
 
-  # API Gateway (Sin cambios)
+  # API Gateway (ACTUALIZADO CON SSL + OAuth2)
   api-gateway:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
     container_name: api-gateway
     ports:
-      - "8080:8080"
+      - "8443:8443"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SERVER_SSL_KEY_STORE=file:/keystore/edge-test.p12
+      - SERVER_SSL_KEY_STORE_PASSWORD=password
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI=http://keycloak.ucb.edu.bo:8080/realms/Candidatos-demo
+    volumes:
+      - $PWD/keystore:/keystore
+    extra_hosts:
+      - "keycloak.ucb.edu.bo:host-gateway"
     depends_on:
       - eureka-server
+      - keycloak
       
   # =======================================================
   # NUEVO SERVICIO: NOTIFICACIONES
@@ -141,6 +150,50 @@ services:
       # Le decimos dónde encontrar Eureka y Kafka usando sus nombres de servicio
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
+
+  # =======================================================
+  # NUEVA INFRAESTRUCTURA: POSTGRESQL PARA KEYCLOAK
+  # =======================================================
+  postgres-keycloak:
+    image: postgres:15
+    container_name: postgres-keycloak
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =======================================================
+  # NUEVA INFRAESTRUCTURA: KEYCLOAK (SERVIDOR DE AUTENTICACIÓN)
+  # =======================================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.1
+    container_name: keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres-keycloak
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+    ports:
+      - "8888:8080"
+    depends_on:
+      postgres-keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db-data-usuarios:

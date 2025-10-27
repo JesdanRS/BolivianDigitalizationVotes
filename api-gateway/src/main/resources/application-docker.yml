@@ -1,0 +1,18 @@
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak.ucb.edu.bo:8080/realms/Candidatos-demo
+
+server:
+  ssl:
+    key-store: file:/keystore/edge-test.p12
+    key-store-password: password
+
+app:
+  eureka-server: eureka

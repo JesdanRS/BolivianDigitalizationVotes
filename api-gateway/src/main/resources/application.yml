@@ -1,39 +1,77 @@
 server:
-  # El puerto estándar para los gateways. Tu app externa llamará a este puerto.
-  port: 8080
+  port: 8443
+  ssl:
+    key-store-type: PKCS12
+    key-store: classpath:keystore/edge.p12
+    key-store-password: password
+    key-alias: localhost
 
 spring:
   application:
     name: api-gateway
-  
-  # =======================================================
-  # CONFIGURACIÓN DE LAS RUTAS DEL GATEWAY
-  # =======================================================
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/Candidatos-demo
+
   cloud:
     gateway:
+      default-filters:
+        - TokenRelay
       routes:
-        # Aquí defines una regla de enrutamiento para el servicio de usuarios
-        - id: usuarios_service_route # Un nombre único para la regla
-          
-          # El destino. 'lb' significa 'Load Balancer'. 
-          # Le dice al Gateway que busque en Eureka un servicio llamado 'USUARIOS-SERVICE'.
-          uri: lb://USUARIOS-SERVICE
-          
-          # La condición (o "predicado") para que esta regla se active.
+        - id: candidatos_service_route
+          uri: lb://MS-CANDIDATOS
           predicates:
-            # Si el path de la petición entrante coincide con este patrón...
-            - Path=/api/usuarios/**
+            - Path=/ms-candidatos/**
+          filters:
+            - StripPrefix=1
+        
+        - id: usuarios_service_route
+          uri: lb://USUARIOS-SERVICE
+          predicates:
+            - Path=/ms-usuarios/**
+          filters:
+            - StripPrefix=1
 
-# El Gateway también es un cliente de Eureka, necesita registrarse y descubrir otros.
+        - id: notificaciones_service_route
+          uri: lb://MS-NOTIFICACIONES
+          predicates:
+            - Path=/ms-notificaciones/**
+          filters:
+            - StripPrefix=1
+
+        - id: resultados_service_route
+          uri: lb://MS-RESULTADOS
+          predicates:
+            - Path=/ms-resultados/**
+          filters:
+            - StripPrefix=1
+
+app:
+  eureka-server: localhost
+
 eureka:
   client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
+    serviceUrl:
+      defaultZone: http://${app.eureka-server}:8761/eureka/
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
 
 management:
+  endpoint:
+    health:
+      show-details: "ALWAYS"
   endpoints:
     web:
       exposure:
-        # Le decimos que exponga los endpoints de salud e información.
-        # Para desarrollo, a veces es útil poner "*" para exponer todos.
-        include: health,info
+        include: "health,info"
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
