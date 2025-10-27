@@ -35,6 +35,24 @@ services:
     volumes:
       - db-data-votaciones:/var/lib/postgresql/data
 
+  # Base de datos de resultados_estadisticas
+  postgres-db-resultados:
+    image: postgres:16-alpine
+    container_name: bd-resultados
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_DB=resultados_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d resultados_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - db-data-resultados:/var/lib/postgresql/data
+
   # Eureka Server 
   # =======================================================
   # NUEVA INFRAESTRUCTURA: ZOOKEEPER (Requerido por Kafka)
@@ -168,6 +186,26 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
 
+  # =======================================================
+  # SERVICIO: RESULTADOS-ESTADISTICAS
+  # =======================================================
+  resultados-estadisticas:
+    build:
+      context: .
+      dockerfile: resultados_estadisticas/Dockerfile
+    container_name: ms-resultados
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-resultados:5432/resultados_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      postgres-db-resultados:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
 volumes:
   db-data-usuarios:
   db-data-votaciones:
+  db-data-resultados:
