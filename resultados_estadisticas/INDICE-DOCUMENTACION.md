@@ -46,6 +46,17 @@
 - **`GATEWAY-COMPLETADO.md`**  
   Resumen ejecutivo del criterio 3 con checklist
 
+### Criterio 4: Docker
+- **`CRITERIO-4-DOCKER.md`**  
+  Guía completa sobre Docker y Docker Compose:
+  - Dockerfile multi-stage
+  - docker-compose.yml
+  - Dependencias y health checks
+  - Logs y troubleshooting
+
+- **`DOCKER-COMPLETADO.md`**  
+  Resumen ejecutivo del criterio 4 con checklist
+
 ---
 
 ## 🧪 Comandos de Prueba
@@ -60,6 +71,9 @@
 
 - **`COMANDOS-PRUEBA-GATEWAY.md`**  
   Comandos específicos para verificar el Gateway
+
+- **`COMANDOS-PRUEBA-DOCKER.md`**  
+  Comandos específicos para verificar Docker y Docker Compose
 
 ---
 

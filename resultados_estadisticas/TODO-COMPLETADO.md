@@ -9,7 +9,7 @@
 
 ---
 
-## 📊 CRITERIOS IMPLEMENTADOS (3/3)
+## 📊 CRITERIOS IMPLEMENTADOS (4/4)
 
 ### ✅ 1. PERSISTENCIA DE DATOS (100%)
 
@@ -66,6 +66,25 @@
 - Gateway: http://localhost:8080
 - Swagger: http://localhost:8080/resultados/swagger-ui/index.html
 - Actuator: http://localhost:8080/resultados/actuator/health
+
+---
+
+### ✅ 4. DOCKER (100%)
+
+| Punto | Descripción | Estado |
+|-------|-------------|--------|
+| Dockerfile funcional | Multi-stage build implementado | ✅ |
+| Imagen construye | `docker build` sin errores | ✅ |
+| docker-compose.yml | Todos los servicios definidos | ✅ |
+| Levanta sin errores | `docker compose up` funcional | ✅ |
+| Dependencias | `depends_on` configurado | ✅ |
+| Health checks | PostgreSQL con health check | ✅ |
+| Comunicación | Servicios se comunican correctamente | ✅ |
+| Logs saludables | Sin errores críticos | ✅ |
+
+**Archivos clave:**
+- `Dockerfile` - Multi-stage build
+- `docker-compose.yml` - Orquestación de servicios
 
 ---
 

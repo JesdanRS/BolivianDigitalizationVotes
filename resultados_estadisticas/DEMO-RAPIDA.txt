@@ -1,5 +1,5 @@
 ═══════════════════════════════════════════════════════════════════
-  🎯 GUÍA RÁPIDA PARA LA DEMOSTRACIÓN - 3 CRITERIOS
+  🎯 GUÍA RÁPIDA PARA LA DEMOSTRACIÓN - 4 CRITERIOS
 ═══════════════════════════════════════════════════════════════════
 
 📌 INICIO (1 comando)
@@ -85,6 +85,33 @@ Esperar ~20 segundos...
 
 
 ═══════════════════════════════════════════════════════════════════
+  ✅ CRITERIO 4: DOCKER (3 minutos)
+═══════════════════════════════════════════════════════════════════
+
+1️⃣ MOSTRAR DOCKERFILE:
+   - resultados_estadisticas/Dockerfile
+   - Señalar: FASE 1 (build) y FASE 2 (runtime)
+   - Señalar: Multi-stage build optimizado
+
+2️⃣ MOSTRAR DOCKER-COMPOSE:
+   - docker-compose.yml
+   - Señalar: postgres-db-resultados con health check
+   - Señalar: resultados-estadisticas con depends_on
+
+3️⃣ VER ESTADO:
+   docker ps
+   ✅ Ver estado "Up (healthy)"
+
+4️⃣ VER LOGS:
+   docker compose logs resultados-estadisticas --tail=20
+   ✅ Sin errores, "Started" visible
+
+5️⃣ PROBAR COMUNICACIÓN:
+   curl http://localhost:8080/api/resultados
+   ✅ Datos reales desde PostgreSQL
+
+
+═══════════════════════════════════════════════════════════════════
   📊 TABLA DE VERIFICACIÓN RÁPIDA
 ═══════════════════════════════════════════════════════════════════
 
@@ -97,6 +124,8 @@ Criterio | Comando | Resultado esperado
 3. Gateway| curl http://localhost:8080/api/resultados/1 | Datos del ID 1
 3. Rewrite| curl http://localhost:8080/resultados/actuator/health | {"status":"UP"}
 3. Swagger| http://localhost:8080/resultados/swagger-ui/index.html | Interfaz carga
+4. Docker| docker ps | Servicios UP (healthy)
+4. Logs  | docker compose logs resultados-estadisticas | Sin errores críticos
 
 
 ═══════════════════════════════════════════════════════════════════
@@ -161,6 +190,12 @@ GATEWAY:
 y modifica URLs con filtros (RewritePath) antes de enviar a los microservicios."
 
 
+# CRITERIO 4 - COMANDOS
+curl http://localhost:8083/api/resultados
+docker ps
+docker compose logs resultados-estadisticas --tail=20
+
+
 ═══════════════════════════════════════════════════════════════════
   ✅ CHECKLIST ANTES DE LA DEMO
 ═══════════════════════════════════════════════════════════════════
@@ -178,6 +213,8 @@ VS Code abierto con:
 [ ] ResultadoMesaRepository.java
 [ ] application.properties
 [ ] api-gateway/application.yml
+[ ] Dockerfile
+[ ] docker-compose.yml
 
 Terminal con comandos listos:
 [ ] curl http://localhost:8083/api/resultados
@@ -188,9 +225,14 @@ Terminal con comandos listos:
   🎉 ¡LISTO PARA DEMOSTRAR!
 ═══════════════════════════════════════════════════════════════════
 
-Tiempo estimado: 13 minutos (5 + 3 + 5)
-Criterios: 3/3 (100% completados)
+Tiempo estimado: 16 minutos (5 + 3 + 5 + 3)
+Criterios: 4/4 (100% completados)
 Estado: ✅ TODO FUNCIONAL
+
+DOCKER:
+"Docker nos permite contenerizar los servicios para que corran en cualquier
+máquina. El Dockerfile usa multi-stage build para optimizar tamaño. Docker
+Compose orquesta todos los servicios con sus dependencias y health checks."
 
 ¡MUCHA SUERTE! 🚀
 
