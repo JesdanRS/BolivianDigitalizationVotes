@@ -9,6 +9,16 @@
 
 ---
 
+## ✅ Keycloak - **COMPLETO**
+
+| Criterio | Estado | Evidencia |
+|----------|--------|-----------|
+| **Configuración de realm y roles** | ✅ COMPLETO | Realm `votaciones` creado, Roles USER y ADMIN definidos |
+| **Integración con microservicios** | ✅ COMPLETO | Gateway y microservicio configurados con OAuth2 Resource Server |
+| **Protección de endpoints** | ✅ COMPLETO | - GET: requiere USER o ADMIN<br>- POST/PUT/DELETE: requiere ADMIN<br>- Sin token: 401<br>- Sin rol: 403 |
+
+---
+
 ## ✅ Eureka Server (Discovery) - **COMPLETO**
 
 | Criterio | Descripción | Evidencia | Estado |
@@ -105,35 +115,56 @@ Todos deberían mostrar estado **"healthy"** o **"running"**.
 - [x] Variables de entorno configuradas
 - [x] Volúmenes persistentes
 
+### Keycloak
+- [x] Keycloak agregado a Docker Compose
+- [x] Realm `votaciones` configurado
+- [x] Roles USER y ADMIN creados
+- [x] Client `votaciones-client` configurado
+- [x] Usuarios de prueba creados
+- [x] Gateway protegido con OAuth2
+- [x] Microservicio protegido con OAuth2
+- [x] Endpoints con autorización por roles
+- [x] SecurityConfig implementado en Gateway y Microservicio
+
 ---
 
 ## 🎯 Resultado Final
 
-**TODOS LOS CRITERIOS CUMPLIDOS** ✅
+**TODOS LOS CRITERIOS CUMPLIDOS 100%** ✅
 
 ### Arquitectura implementada:
 ```
-┌─────────────────────────────────┐
-│      API Gateway :8080          │
-│   - Enrutamiento                │
-│   - LoadBalancer                │
-│   - Swagger UI                  │
-└────────────┬────────────────────┘
-             │
-        ┌────┴────┐
-        │         │
-    ┌───▼───┐ ┌──▼──────────────────┐
-    │Eureka │ │ Auditoría Service   │
-    │ :8761 │ │ :8085               │
-    └───────┘ │ - CRUD completo     │
-              │ - Queries avanzadas │
-              └──────────┬──────────┘
-                         │
-                  ┌──────▼──────────┐
-                  │ PostgreSQL      │
-                  │ :5435           │
-                  │ auditoria_db    │
-                  └─────────────────┘
+          ┌─────────────────────────┐
+          │  Keycloak :8090         │
+          │  - OAuth2/OIDC          │
+          │  - Realm: votaciones    │
+          │  - Roles: USER, ADMIN   │
+          └──────────┬──────────────┘
+                     │ Valida JWT
+          ┌──────────▼──────────────┐
+          │  API Gateway :8080      │
+          │  - Enrutamiento         │
+          │  - LoadBalancer         │
+          │  - Swagger UI           │
+          │  - OAuth2 Security      │
+          └──────────┬──────────────┘
+                     │
+            ┌────────┴────────┐
+            │                 │
+      ┌─────▼─────┐  ┌───────▼────────────────┐
+      │  Eureka   │  │ Auditoría Service      │
+      │  :8761    │  │ :8085                  │
+      └───────────┘  │ - CRUD completo        │
+                     │ - Queries avanzadas    │
+                     │ - OAuth2 Security      │
+                     │ - Autorización Roles   │
+                     └────────┬───────────────┘
+                              │
+                       ┌──────▼──────────┐
+                       │  PostgreSQL     │
+                       │  :5435          │
+                       │  auditoria_db   │
+                       └─────────────────┘
 ```
 
 ### Tecnologías utilizadas:
@@ -141,7 +172,10 @@ Todos deberían mostrar estado **"healthy"** o **"running"**.
 - ✅ Spring Cloud 2024.0.1
 - ✅ Spring Cloud Gateway (WebFlux)
 - ✅ Spring Cloud Netflix Eureka
+- ✅ Spring Security OAuth2 Resource Server
+- ✅ Spring Security OAuth2 Client
 - ✅ Spring Data JPA
+- ✅ Keycloak 23.0.7 (OAuth2/OIDC)
 - ✅ PostgreSQL 16
 - ✅ Docker + Docker Compose
 - ✅ SpringDoc OpenAPI 2.6.0
@@ -151,6 +185,9 @@ Todos deberían mostrar estado **"healthy"** o **"running"**.
 
 ## 📚 Documentación adicional
 
+- `KEYCLOAK-SETUP.md` - Guía paso a paso para configurar Keycloak (OAuth2/OIDC)
 - `DOCKER-README.md` - Guía completa de despliegue con Docker
-- `docker-compose.yml` - Configuración de servicios
+- `EVALUACION-ESTADO.md` - Este archivo - Estado completo de la evaluación
+- `docker-compose.yml` - Configuración de servicios (incluye Keycloak)
 - `*/Dockerfile` - Configuración de imágenes individuales
+- `*/SecurityConfig.java` - Configuración de seguridad OAuth2

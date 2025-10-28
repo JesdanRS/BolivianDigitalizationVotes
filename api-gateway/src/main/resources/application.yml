@@ -24,6 +24,11 @@ spring:
             - Path=/api/auditoria/**
           filters:
             - StripPrefix=0
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs}
 
 eureka:
   client:
@@ -58,3 +63,5 @@ logging:
     '[org.springframework.cloud.gateway]': DEBUG
     '[org.springframework.cloud.loadbalancer]': DEBUG
     '[com.netflix.discovery]': DEBUG
+    '[org.springframework.security]': TRACE
+    '[org.springframework.security.oauth2]': TRACE
