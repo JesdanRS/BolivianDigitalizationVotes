@@ -33,11 +33,11 @@ public interface ResultadoMesaRepository extends JpaRepository<ResultadoMesa, Lo
     // ========================================
     // 3. NATIVE QUERY (SQL directo)
     // ========================================
-    @Query(value = "SELECT * FROM resultados_mesa WHERE votos_validos_presencial + votos_validos_web > :minVotos", 
+    @Query(value = "SELECT * FROM resultado_mesa WHERE votos_validos_presencial + votos_validos_web > :minVotos", 
            nativeQuery = true)
     List<ResultadoMesa> buscarPorVotosValidosMinimos(@Param("minVotos") Long minVotos);
 
-    @Query(value = "SELECT departamento, COUNT(*) as total_mesas FROM resultados_mesa GROUP BY departamento ORDER BY total_mesas DESC", 
+    @Query(value = "SELECT departamento, COUNT(*) as total_mesas FROM resultado_mesa GROUP BY departamento ORDER BY total_mesas DESC", 
            nativeQuery = true)
     List<Object[]> contarMesasPorDepartamento();
 }

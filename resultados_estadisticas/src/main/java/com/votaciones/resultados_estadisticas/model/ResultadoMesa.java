@@ -34,6 +34,9 @@ public class ResultadoMesa {
 	private String mesa;
 
 	@Column(nullable = false)
+	private Long numeroMesa;
+
+	@Column(nullable = false)
 	private Long inscritos;
 
 	// Votos por canal presencial

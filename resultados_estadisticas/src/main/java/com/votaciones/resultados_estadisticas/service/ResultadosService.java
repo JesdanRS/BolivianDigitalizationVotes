@@ -33,13 +33,13 @@ public class ResultadosService {
 		if (resultadoMesaRepository.count() == 0) {
 			log.info("Inicializando datos de ejemplo en BD...");
 			
-			ResultadoMesa r1 = new ResultadoMesa(null, "La Paz", "La Paz", "Coliseo Central", "Mesa 1", 
+			ResultadoMesa r1 = new ResultadoMesa(null, "La Paz", "La Paz", "Coliseo Central", "Mesa 1", 1001L,
 				300L, 180L, 12L, 4L, 30L, 3L, 1L, null, null);
-			ResultadoMesa r2 = new ResultadoMesa(null, "La Paz", "La Paz", "Coliseo Central", "Mesa 2", 
+			ResultadoMesa r2 = new ResultadoMesa(null, "La Paz", "La Paz", "Coliseo Central", "Mesa 2", 1002L,
 				280L, 170L, 8L, 6L, 20L, 2L, 2L, null, null);
-			ResultadoMesa r3 = new ResultadoMesa(null, "Santa Cruz", "Santa Cruz de la Sierra", "Unidad Educativa 12", "Mesa 5", 
+			ResultadoMesa r3 = new ResultadoMesa(null, "Santa Cruz", "Santa Cruz de la Sierra", "Unidad Educativa 12", "Mesa 5", 2001L,
 				350L, 230L, 9L, 6L, 30L, 3L, 3L, null, null);
-			ResultadoMesa r4 = new ResultadoMesa(null, "Cochabamba", "Cercado", "Escuela Central", "Mesa 3", 
+			ResultadoMesa r4 = new ResultadoMesa(null, "Cochabamba", "Cercado", "Escuela Central", "Mesa 3", 3001L,
 				320L, 210L, 9L, 5L, 20L, 2L, 2L, null, null);
 			
 			resultadoMesaRepository.saveAll(List.of(r1, r2, r3, r4));
@@ -75,6 +75,7 @@ public class ResultadosService {
 		existente.setMunicipio(resultado.getMunicipio());
 		existente.setRecinto(resultado.getRecinto());
 		existente.setMesa(resultado.getMesa());
+		existente.setNumeroMesa(resultado.getNumeroMesa());
 		existente.setInscritos(resultado.getInscritos());
 		existente.setVotosValidosPresencial(resultado.getVotosValidosPresencial());
 		existente.setVotosNulosPresencial(resultado.getVotosNulosPresencial());
