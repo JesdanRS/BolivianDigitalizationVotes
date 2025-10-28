@@ -44,10 +44,10 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui.html").permitAll()
                 
                 // Endpoints específicos con roles
-                .requestMatchers(HttpMethod.GET, "/api/auditoria/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/auditoria/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/auditoria/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/auditoria/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/auditoria/**").hasAnyRole("USER", "AUDITOR")
+                .requestMatchers(HttpMethod.POST, "/api/auditoria/**").hasRole("AUDITOR")
+                .requestMatchers(HttpMethod.PUT, "/api/auditoria/**").hasRole("AUDITOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/auditoria/**").hasRole("AUDITOR")
                 
                 // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated()
