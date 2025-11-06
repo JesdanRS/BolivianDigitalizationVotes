@@ -12,16 +12,16 @@ public class ResultadoMesaDto {
     @Schema(description = "ID único del resultado", example = "1")
     private Long id;
     
-    @Schema(description = "Departamento electoral", example = "La Paz", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Departamento electoral", example = "La Paz")
     private String departamento;
     
-    @Schema(description = "Municipio electoral", example = "La Paz", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Municipio electoral", example = "La Paz")
     private String municipio;
     
-    @Schema(description = "Nombre del recinto electoral", example = "Colegio Bolívar", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Nombre del recinto electoral", example = "Colegio Bolívar")
     private String recinto;
     
-    @Schema(description = "Identificador de la mesa", example = "Mesa 1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Identificador de la mesa", example = "Mesa 1")
     private String mesa;
     
     @Schema(description = "Total de votantes inscritos en la mesa", example = "300")

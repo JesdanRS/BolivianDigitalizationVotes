@@ -2,14 +2,10 @@
 package com.votaciones.resultados_estadisticas.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Schema(name = "Estadistica", description = "Resumen estadístico agregado por departamento o nivel nacional")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class EstadisticaDto {
     
     @Schema(description = "Departamento o nivel de agregación", example = "La Paz")
@@ -48,15 +44,4 @@ public class EstadisticaDto {
     
     @Schema(description = "Votos blancos del canal web", example = "0")
     private long votosBlancosWeb;
-    
-    // Constructor simplificado para estadísticas básicas
-    public EstadisticaDto(String departamento, long totalVotantes, long votosValidos, 
-                         long votosNulos, long votosBlancos, double participacionPorcentaje) {
-        this.departamento = departamento;
-        this.totalVotantes = totalVotantes;
-        this.votosValidos = votosValidos;
-        this.votosNulos = votosNulos;
-        this.votosBlancos = votosBlancos;
-        this.participacionPorcentaje = participacionPorcentaje;
-    }
 }

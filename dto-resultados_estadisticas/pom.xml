@@ -15,8 +15,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies>
-        <!-- Dependencia para las validaciones (@NotBlank, @NotNull, etc.) -->
+     <dependencies>
+        <!-- Dependencia para las validaciones (@NotBlank, @Email, etc.) -->
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
