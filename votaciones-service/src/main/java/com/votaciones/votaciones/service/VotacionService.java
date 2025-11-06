@@ -29,10 +29,15 @@ public class VotacionService {
 		Votacion votacion = votacionMapper.toEntity(dto);
 		Votacion guardada = votacionRepository.save(votacion);
 		
+		VotacionDto votacionDto = votacionMapper.toDto(guardada);
+		
 		// Enviar notificación a Kafka cuando se registra una nueva votación
 		enviarNotificacionVotacion(guardada);
 		
-		return votacionMapper.toDto(guardada);
+		// Enviar votación a resultados_estadisticas para procesamiento
+		enviarVotacionAResultados(votacionDto);
+		
+		return votacionDto;
 	}
 	
 	/**
@@ -55,6 +60,14 @@ public class VotacionService {
 		
 		streamBridge.send("enviarNotificacionVotacion-out-0", notificacion);
 		log.info("Notificación de votación ID {} enviada a Kafka.", votacion.getId());
+	}
+	
+	/**
+	 * Envía la votación a resultados_estadisticas para procesamiento
+	 */
+	private void enviarVotacionAResultados(VotacionDto votacionDto) {
+		streamBridge.send("enviarVotacionAResultados-out-0", votacionDto);
+		log.info("Votación ID {} enviada a resultados_estadisticas para procesamiento.", votacionDto.getId());
 	}
 
 	@Transactional(readOnly = true)
