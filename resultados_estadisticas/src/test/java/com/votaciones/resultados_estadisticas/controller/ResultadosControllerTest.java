@@ -6,25 +6,26 @@ import com.votaciones.resultados_estadisticas.service.ResultadosService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class ResultadosControllerTest {
 
-	@LocalServerPort
-	private int port;
 	@Autowired
-	private WebTestClient webTestClient;
+	private MockMvc mockMvc;
 
 	@MockBean
 	private ResultadosService resultadosService;
@@ -40,51 +41,43 @@ public class ResultadosControllerTest {
 	}
 
 	@Test
-	void testListarResultados() {
+	void testListarResultados() throws Exception {
 		when(resultadosService.listarResultados()).thenReturn(Arrays.asList(muestra));
 
-		webTestClient.get().uri("/resultados")
-			.exchange()
-			.expectStatus().isOk()
-			.expectBody()
-			.jsonPath("$").isArray()
-			.jsonPath("$[0].departamento").isEqualTo("La Paz");
+		mockMvc.perform(get("/resultados"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$").isArray())
+			.andExpect(jsonPath("$[0].departamento").value("La Paz"));
 	}
 
 	@Test
-	void testResultadosPorDepartamento() {
+	void testResultadosPorDepartamento() throws Exception {
 		when(resultadosService.listarPorDepartamento("La Paz")).thenReturn(Arrays.asList(muestra));
 
-		webTestClient.get().uri("/resultados/departamento/La Paz")
-			.exchange()
-			.expectStatus().isOk()
-			.expectBody()
-			.jsonPath("$").isArray()
-			.jsonPath("$[0].departamento").isEqualTo("La Paz");
+		mockMvc.perform(get("/resultados/departamento/La Paz"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$").isArray())
+			.andExpect(jsonPath("$[0].departamento").value("La Paz"));
 	}
 
 	@Test
-	void testEstadisticasPorDepartamento() {
+	void testEstadisticasPorDepartamento() throws Exception {
 		when(resultadosService.estadisticasPorDepartamento()).thenReturn(Arrays.asList(estadistica));
 
-		webTestClient.get().uri("/resultados/estadisticas")
-			.exchange()
-			.expectStatus().isOk()
-			.expectBody()
-			.jsonPath("$").isArray()
-			.jsonPath("$[0].departamento").isEqualTo("La Paz");
+		mockMvc.perform(get("/resultados/estadisticas"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$").isArray())
+			.andExpect(jsonPath("$[0].departamento").value("La Paz"));
 	}
 
 	@Test
-	void testEstadisticaDeDepartamento() {
+	void testEstadisticaDeDepartamento() throws Exception {
 		when(resultadosService.estadisticaDe(anyString())).thenReturn(estadistica);
 
-		webTestClient.get().uri("/resultados/estadisticas/La Paz")
-			.exchange()
-			.expectStatus().isOk()
-			.expectBody()
-			.jsonPath("$.departamento").isEqualTo("La Paz")
-			.jsonPath("$.totalVotantes").isEqualTo(300);
+		mockMvc.perform(get("/resultados/estadisticas/La Paz"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.departamento").value("La Paz"))
+			.andExpect(jsonPath("$.totalVotantes").value(300));
 	}
 }
 

@@ -2,39 +2,74 @@ package com.votaciones.resultados_estadisticas.model;
 
 import java.time.Instant;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
 
+@Entity
+@Table(
+	name = "resultado_mesa",
+	uniqueConstraints = @UniqueConstraint(
+		name = "unique_resultado_idx", 
+		columnNames = {"departamento", "municipio", "recinto", "mesa"}
+	)
+)
 @Schema(name = "ResultadoMesa", description = "Resultado por mesa con desglose por canal")
 public class ResultadoMesa {
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Schema(example = "1")
 	private Long id;
+
+	@Column(nullable = false, length = 100)
 	@Schema(example = "La Paz")
 	private String departamento;
+
+	@Column(nullable = false, length = 100)
 	@Schema(example = "La Paz")
 	private String municipio;
+
+	@Column(nullable = false, length = 200)
 	@Schema(example = "Colegio Bolívar")
 	private String recinto;
+
+	@Column(nullable = false, length = 50)
 	@Schema(example = "Mesa 1")
 	private String mesa;
+
+	@Column(nullable = false)
 	@Schema(example = "300")
 	private long inscritos;
 
 	// Desglose por canal
+	@Column(nullable = false)
 	@Schema(description = "Votos válidos canal presencial", example = "200")
 	private long votosValidosPresencial;
+
+	@Column(nullable = false)
 	@Schema(description = "Votos nulos canal presencial", example = "10")
 	private long votosNulosPresencial;
+
+	@Column(nullable = false)
 	@Schema(description = "Votos blancos canal presencial", example = "5")
 	private long votosBlancosPresencial;
 
+	@Column(nullable = false)
 	@Schema(description = "Votos válidos canal web", example = "0")
 	private long votosValidosWeb;
+
+	@Column(nullable = false)
 	@Schema(description = "Votos nulos canal web", example = "0")
 	private long votosNulosWeb;
+
+	@Column(nullable = false)
 	@Schema(description = "Votos blancos canal web", example = "0")
 	private long votosBlancosWeb;
+
+	@Column(nullable = false)
 	@Schema(description = "Fecha de registro", example = "2025-09-11T13:00:00Z")
 	private Instant registradoEn;
+
+	@Column(nullable = false)
 	@Schema(description = "Fecha de última actualización", example = "2025-09-11T13:10:00Z")
 	private Instant actualizadoEn;
 
@@ -73,12 +108,14 @@ public class ResultadoMesa {
 		this.votosBlancosWeb = votosBlancosWeb;
 	}
 
+	@PrePersist
 	public void prePersist() {
 		Instant now = Instant.now();
 		this.registradoEn = now;
 		this.actualizadoEn = now;
 	}
 
+	@PreUpdate
 	public void preUpdate() {
 		this.actualizadoEn = Instant.now();
 	}

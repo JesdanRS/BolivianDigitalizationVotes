@@ -38,6 +38,25 @@ services:
     networks:
       - votaciones-net
 
+  postgres-db-resultados:
+    image: postgres:16-alpine
+    container_name: bd-resultados
+    ports:
+      - "5436:5432"
+    environment:
+      - POSTGRES_DB=resultados_db
+      - POSTGRES_USER=resultados_user
+      - POSTGRES_PASSWORD=resultados_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resultados_user -d resultados_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - db-data-resultados:/var/lib/postgresql/data
+    networks:
+      - votaciones-net
+
 
   eureka-server:
     build:
@@ -97,6 +116,34 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+    networks:
+      - votaciones-net
+
+  resultados-service:
+    build:
+      context: ./resultados_estadisticas
+      dockerfile: Dockerfile
+    container_name: ms-resultados
+    hostname: ms-resultados
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-resultados:5432/resultados_db
+      - SPRING_DATASOURCE_USERNAME=resultados_user
+      - SPRING_DATASOURCE_PASSWORD=resultados_pass
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - HOSTNAME=ms-resultados
+    depends_on:
+      postgres-db-resultados:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     networks:
       - votaciones-net
 
@@ -183,6 +230,7 @@ services:
 volumes:
   db-data-usuarios:
   db-data-auditoria:
+  db-data-resultados:
   db-data-keycloak:
 
 networks:

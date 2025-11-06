@@ -4,43 +4,51 @@ import com.votaciones.resultados_estadisticas.dto.EstadisticaDto;
 import com.votaciones.resultados_estadisticas.exception.RecursoNoEncontradoException;
 import com.votaciones.resultados_estadisticas.exception.SolicitudInvalidaException;
 import com.votaciones.resultados_estadisticas.model.ResultadoMesa;
+import com.votaciones.resultados_estadisticas.repository.ResultadoMesaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ResultadosService {
 
-	private final List<ResultadoMesa> resultados = new ArrayList<>();
-	private final AtomicLong contadorId = new AtomicLong(1);
+	@Autowired
+	private ResultadoMesaRepository repository;
 
-	public ResultadosService() {
-		inicializarDatosEjemplo();
+	@PostConstruct
+	public void inicializarDatosEjemplo() {
+		// Solo inicializar si la base de datos está vacía
+		if (repository.count() == 0) {
+			cargarDatosIniciales();
+		}
 	}
 
+	@Transactional(readOnly = true)
 	public List<ResultadoMesa> listarResultados() {
-		return resultados;
+		return repository.findAll();
 	}
 
+	@Transactional(readOnly = true)
 	public List<ResultadoMesa> listarPorDepartamento(String departamento) {
-		return resultados.stream()
-			.filter(r -> r.getDepartamento().equalsIgnoreCase(departamento))
-			.toList();
+		return repository.findByDepartamentoIgnoreCase(departamento);
 	}
 
+	@Transactional(readOnly = true)
 	public ResultadoMesa obtenerPorId(Long id) {
-		return resultados.stream()
-			.filter(r -> r.getId().equals(id))
-			.findFirst()
+		return repository.findById(id)
 			.orElseThrow(() -> new RecursoNoEncontradoException("ResultadoMesa", id));
 	}
 
+	@Transactional(readOnly = true)
 	public List<EstadisticaDto> estadisticasPorDepartamento() {
-		Map<String, List<ResultadoMesa>> agrupado = resultados.stream()
+		List<ResultadoMesa> todos = repository.findAll();
+		Map<String, List<ResultadoMesa>> agrupado = todos.stream()
 			.collect(Collectors.groupingBy(ResultadoMesa::getDepartamento));
 
 		return agrupado.entrySet().stream()
@@ -48,6 +56,7 @@ public class ResultadosService {
 			.toList();
 	}
 
+	@Transactional(readOnly = true)
 	public EstadisticaDto estadisticaDe(String departamento) {
 		List<ResultadoMesa> lista = listarPorDepartamento(departamento);
 		if (lista.isEmpty()) {
@@ -56,9 +65,11 @@ public class ResultadosService {
 		return calcularEstadistica(departamento, lista);
 	}
 
+	@Transactional(readOnly = true)
 	public List<EstadisticaDto> estadisticasPorDepartamento(String canal) {
 		String canalNormalizado = normalizarCanal(canal);
-		Map<String, List<ResultadoMesa>> agrupado = resultados.stream()
+		List<ResultadoMesa> todos = repository.findAll();
+		Map<String, List<ResultadoMesa>> agrupado = todos.stream()
 			.collect(Collectors.groupingBy(ResultadoMesa::getDepartamento));
 
 		return agrupado.entrySet().stream()
@@ -66,6 +77,7 @@ public class ResultadosService {
 			.toList();
 	}
 
+	@Transactional(readOnly = true)
 	public EstadisticaDto estadisticaDe(String departamento, String canal) {
 		String canalNormalizado = normalizarCanal(canal);
 		List<ResultadoMesa> lista = listarPorDepartamento(departamento);
@@ -135,42 +147,34 @@ public class ResultadosService {
 		throw new SolicitudInvalidaException("El parámetro canal debe ser 'presencial' o 'web'.");
 	}
 
-	private void inicializarDatosEjemplo() {
+	private void cargarDatosIniciales() {
 		ResultadoMesa r1 = new ResultadoMesa(
 			"La Paz", "La Paz", "Coliseo Central", "Mesa 1", 300,
 			180, 12, 4, // presencial
 			30, 3, 1     // web
 		);
-		r1.setId(contadorId.getAndIncrement());
-		r1.prePersist();
-		resultados.add(r1);
+		repository.save(r1);
 
 		ResultadoMesa r2 = new ResultadoMesa(
 			"La Paz", "La Paz", "Coliseo Central", "Mesa 2", 280,
 			170, 8, 6, // presencial
 			20, 2, 2   // web
 		);
-		r2.setId(contadorId.getAndIncrement());
-		r2.prePersist();
-		resultados.add(r2);
+		repository.save(r2);
 
 		ResultadoMesa r3 = new ResultadoMesa(
 			"Santa Cruz", "Santa Cruz de la Sierra", "Unidad Educativa 12", "Mesa 5", 350,
 			230, 9, 6, // presencial
 			30, 3, 3   // web
 		);
-		r3.setId(contadorId.getAndIncrement());
-		r3.prePersist();
-		resultados.add(r3);
+		repository.save(r3);
 
 		ResultadoMesa r4 = new ResultadoMesa(
 			"Cochabamba", "Cercado", "Escuela Central", "Mesa 3", 320,
 			210, 9, 5, // presencial
 			20, 2, 2   // web
 		);
-		r4.setId(contadorId.getAndIncrement());
-		r4.prePersist();
-		resultados.add(r4);
+		repository.save(r4);
 	}
 }
 

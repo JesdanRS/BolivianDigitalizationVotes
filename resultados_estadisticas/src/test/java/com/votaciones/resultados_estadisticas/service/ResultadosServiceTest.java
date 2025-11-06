@@ -1,21 +1,19 @@
 package com.votaciones.resultados_estadisticas.service;
 
 import com.votaciones.resultados_estadisticas.dto.EstadisticaDto;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 public class ResultadosServiceTest {
 
+	@Autowired
 	private ResultadosService resultadosService;
-
-	@BeforeEach
-	void setUp() {
-		resultadosService = new ResultadosService();
-	}
 
 	@Test
 	void testListarResultadosNoVacio() {

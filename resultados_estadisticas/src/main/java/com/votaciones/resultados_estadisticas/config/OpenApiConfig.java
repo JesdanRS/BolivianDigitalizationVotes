@@ -9,54 +9,81 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
 public class OpenApiConfig {
 
-	@Value("${api.common.title:API Resultados y Estadísticas - Sistema de Votaciones}")
-	private String title;
+	@Value("${api.common.version}")
+	String apiVersion;
+	
+	@Value("${api.common.title}")
+	String apiTitle;
+	
+	@Value("${api.common.description}")
+	String apiDescription;
+	
+	@Value("${api.common.termsOfService}")
+	String apiTermsOfService;
+	
+	@Value("${api.common.license}")
+	String apiLicense;
+	
+	@Value("${api.common.licenseUrl}")
+	String apiLicenseUrl;
+	
+	@Value("${api.common.externalDocDesc}")
+	String apiExternalDocDesc;
+	
+	@Value("${api.common.externalDocUrl}")
+	String apiExternalDocUrl;
+	
+	@Value("${api.common.contact.name}")
+	String apiContactName;
+	
+	@Value("${api.common.contact.url}")
+	String apiContactUrl;
+	
+	@Value("${api.common.contact.email}")
+	String apiContactEmail;
 
-	@Value("${api.common.description:Microservicio para resultados y estadísticas del sistema de votaciones}")
-	private String description;
-
-	@Value("${api.common.version:1.0.0}")
-	private String version;
-
-	@Value("${api.common.termsOfService:https://www.bolivia.gob.bo/terminos}")
-	private String termsOfService;
-
-	@Value("${api.common.license:Licencia Pública General v3.0}")
-	private String licenseName;
-
-	@Value("${api.common.licenseUrl:https://www.gnu.org/licenses/gpl-3.0.html}")
-	private String licenseUrl;
-
-	@Value("${api.common.contact.name:Equipo de Desarrollo - Sistema de Votaciones}")
-	private String contactName;
-
-	@Value("${api.common.contact.url:https://www.bolivia.gob.bo/contacto}")
-	private String contactUrl;
-
-	@Value("${api.common.contact.email:soporte.votaciones@bolivia.gob.bo}")
-	private String contactEmail;
-
-	@Value("${api.common.externalDocDesc:Documentación del Sistema de Votaciones}")
-	private String externalDesc;
-
-	@Value("${api.common.externalDocUrl:https://www.bolivia.gob.bo/sistema-votaciones}")
-	private String externalUrl;
-
+	/**
+	 * Configuración de OpenAPI/Swagger accesible en:
+	 * - Directo: http://localhost:8086/swagger-ui.html
+	 * - Gateway: http://localhost:8080/api/resultados/swagger-ui.html
+	 * 
+	 * @return la documentación OpenAPI con servidores configurados
+	 */
 	@Bean
-	public OpenAPI customOpenAPI() {
+	public OpenAPI getOpenApiDocumentation() {
+		// Servidor del Gateway (principal) - EVIDENCIA: Acceso a través del Gateway
+		Server gatewayServer = new Server();
+		gatewayServer.setUrl("http://localhost:8080");
+		gatewayServer.setDescription("API Gateway (Producción)");
+
+		// Servidor directo (desarrollo)
+		Server directServer = new Server();
+		directServer.setUrl("http://localhost:8086");
+		directServer.setDescription("Servicio directo (Desarrollo)");
+
 		return new OpenAPI()
 			.info(new Info()
-				.title(title)
-				.description(description)
-				.version(version)
-				.termsOfService(termsOfService)
-				.license(new License().name(licenseName).url(licenseUrl))
-				.contact(new Contact().name(contactName).url(contactUrl).email(contactEmail)))
-			.externalDocs(new ExternalDocumentation().description(externalDesc).url(externalUrl));
+				.title(apiTitle)
+				.description(apiDescription)
+				.version(apiVersion)
+				.contact(new Contact()
+					.name(apiContactName)
+					.url(apiContactUrl)
+					.email(apiContactEmail))
+				.termsOfService(apiTermsOfService)
+				.license(new License()
+					.name(apiLicense)
+					.url(apiLicenseUrl)))
+			.externalDocs(new ExternalDocumentation()
+				.description(apiExternalDocDesc)
+				.url(apiExternalDocUrl))
+			.addServersItem(gatewayServer)
+			.addServersItem(directServer);
 	}
 }
 
