@@ -1,18 +1,21 @@
 server:
   port: 8086
 
+# =======================================================
+# UNA ÚNICA CLAVE 'spring:' PARA TODA LA CONFIGURACIÓN
+# =======================================================
 spring:
   application:
-    name: RESULTADOS-ESTADISTICAS-SERVICE
+    name: resultados-service
 
-  # Configuración de Base de Datos PostgreSQL
+  # Sección de la Base de Datos
   datasource:
-    url: jdbc:postgresql://localhost:5436/resultados_db
-    username: resultados_user
-    password: resultados_pass
+    url: jdbc:postgresql://localhost:5432/resultados_db
+    username: postgres
+    password: password
     driver-class-name: org.postgresql.Driver
 
-  # Configuración de JPA/Hibernate
+  # Sección de JPA/Hibernate
   jpa:
     hibernate:
       ddl-auto: update
@@ -20,31 +23,28 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
 
-# Configuración de Eureka Client
+  # Sección de Spring Cloud Stream (Kafka)
+  cloud:
+    stream:
+      function:
+        definition: procesarVotacion
+      bindings:
+        procesarVotacion-in-0:
+          destination: topic-votaciones
+      kafka:
+        binder:
+          brokers: localhost:9092
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
+      defaultZone: http://localhost:8761/eureka
   instance:
-    hostname: ${HOSTNAME:localhost}
-    prefer-ip-address: false
+    prefer-ip-address: true
+    hostname: localhost
 
-# Configuración de Actuator
 management:
   endpoints:
     web:
       exposure:
         include: "*"
-  endpoint:
-    health:
-      show-details: always
-
-# Configuración de Logging
-logging:
-  level:
-    root: INFO
-    com.votaciones.resultados_estadisticas: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
