@@ -19,7 +19,7 @@ RUN cd /app/notificaciones-service && mvn clean install -DskipTests
 # =================================================================
 # FASE 2: "EL VEHÍCULO DE PRODUCCIÓN" (Final Image)
 # =================================================================
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Copiamos solo el JAR final que se generó en la fase de construcción.

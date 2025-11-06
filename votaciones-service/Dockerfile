@@ -18,7 +18,7 @@ COPY ./votaciones-service /app/votaciones-service
 RUN cd /app/votaciones-service && mvn clean install -DskipTests
 
 # FASE 2: Final
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Copiamos solo el JAR final que se generó en la fase de construcción

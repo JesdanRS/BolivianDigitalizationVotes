@@ -38,6 +38,12 @@
             <version>1.0.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.votaciones</groupId>
+            <artifactId>dto-votaciones</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- MapStruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
