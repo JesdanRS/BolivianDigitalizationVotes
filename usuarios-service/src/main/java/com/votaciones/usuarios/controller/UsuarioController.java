@@ -5,6 +5,7 @@ import com.votaciones.usuarios.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -70,10 +71,12 @@ public class UsuarioController {
 
     /**
      * Endpoint para la carga masiva de usuarios.
-     * ¡¡¡IMPORTANTE!!! Este endpoint debe estar protegido y solo ser accesible por administradores.
+     * ¡¡¡IMPORTANTE!!! Este endpoint requiere autenticación JWT con rol ADMIN.
+     * Debe incluir el header: Authorization: Bearer <token_jwt>
      * HTTP Method: POST
      * URL: /api/usuarios/carga-masiva
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/carga-masiva")
     public ResponseEntity<String> cargaMasiva(@RequestBody List<UsuarioCargaDto> usuarios) {
         int numeroCargados = usuarioService.cargarUsuariosMasivamente(usuarios);

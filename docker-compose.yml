@@ -71,18 +71,17 @@ services:
     ports:
       - "8761:8761"
 
-  # Usuarios Service (Sin cambios, por ahora)
+  # Usuarios Service (Sin acceso directo, solo por gateway)
   usuarios-service:
     build:
       context: .
       dockerfile: usuarios-service/Dockerfile
     container_name: ms-usuarios
-    ports:
-      - "8081:8081"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-usuarios:5432/usuarios_db
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/auth/realms/votaciones-realm/protocol/openid-connect/certs
     depends_on:
       postgres-db-usuarios:
         condition: service_healthy
@@ -90,6 +89,10 @@ services:
         condition: service_started
       kafka:
         condition: service_started
+      keycloak:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # =======================================================
   # KEYCLOAK - Servidor de Autenticación y Autorización

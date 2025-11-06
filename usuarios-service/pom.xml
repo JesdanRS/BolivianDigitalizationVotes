@@ -71,6 +71,24 @@
             <artifactId>spring-cloud-stream-binder-kafka</artifactId>
         </dependency>
 
+        <!-- AÑADIDO: Spring Security para autenticación JWT -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- AÑADIDO: OAuth2 Resource Server para validar tokens JWT -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- AÑADIDO: Validación para @Valid -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
         <!-- ============== DEPENDENCIAS QUE YA TENÍAS (CORRECTAS) ============== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
