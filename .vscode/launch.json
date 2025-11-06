@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ResultadosEstadisticasApplication",
+            "request": "launch",
+            "mainClass": "com.votaciones.resultados_estadisticas.ResultadosEstadisticasApplication",
+            "projectName": "resultados_estadisticas"
+        },
+        {
+            "type": "java",
             "name": "ApiGatewayApplication",
             "request": "launch",
             "mainClass": "com.votaciones.api_gateway.ApiGatewayApplication",

@@ -1,10 +1,13 @@
 package com.votaciones.resultados_estadisticas.exception;
 
-public class SolicitudInvalidaException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-	public SolicitudInvalidaException(String mensaje) {
-		super(mensaje);
-	}
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+public class SolicitudInvalidaException extends RuntimeException {
+    public SolicitudInvalidaException(String message) {
+        super(message);
+    }
 }
 
 

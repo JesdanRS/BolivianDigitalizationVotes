@@ -1,17 +1,13 @@
 package com.votaciones.resultados_estadisticas.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "resultados_mesa")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ResultadoMesa {
 
     @Id

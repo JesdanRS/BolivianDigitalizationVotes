@@ -35,6 +35,24 @@ services:
     volumes:
       - db-data-votaciones:/var/lib/postgresql/data
 
+  # Base de datos de resultados y estadísticas
+  postgres-db-resultados:
+    image: postgres:16-alpine
+    container_name: bd-resultados
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_DB=resultados_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d resultados_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - db-data-resultados:/var/lib/postgresql/data
+
   # Eureka Server 
   # =======================================================
   # NUEVA INFRAESTRUCTURA: ZOOKEEPER (Requerido por Kafka)
@@ -174,3 +192,4 @@ services:
 volumes:
   db-data-usuarios:
   db-data-votaciones:
+  db-data-resultados:

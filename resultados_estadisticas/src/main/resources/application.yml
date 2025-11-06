@@ -10,7 +10,7 @@ spring:
 
   # Sección de la Base de Datos
   datasource:
-    url: jdbc:postgresql://localhost:5432/resultados_db
+    url: jdbc:postgresql://localhost:5434/resultados_db
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
@@ -35,6 +35,14 @@ spring:
       kafka:
         binder:
           brokers: localhost:9092
+
+  # Sección de OAuth2 Resource Server (Keycloak)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/auth/realms/votaciones-realm/protocol/openid-connect/certs
+
 eureka:
   client:
     service-url:

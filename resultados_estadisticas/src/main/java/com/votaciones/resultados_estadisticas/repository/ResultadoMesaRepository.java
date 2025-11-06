@@ -4,11 +4,9 @@ import com.votaciones.resultados_estadisticas.model.ResultadoMesa;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface ResultadoMesaRepository extends JpaRepository<ResultadoMesa, Long> {
 
     // Buscar resultados por departamento

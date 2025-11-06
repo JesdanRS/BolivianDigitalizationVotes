@@ -1,10 +1,13 @@
 package com.votaciones.resultados_estadisticas.exception;
 
-public class RecursoNoEncontradoException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-	public RecursoNoEncontradoException(String recurso, Object id) {
-		super(recurso + " con id " + id + " no encontrado");
-	}
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class RecursoNoEncontradoException extends RuntimeException {
+    public RecursoNoEncontradoException(String message) {
+        super(message);
+    }
 }
 
 

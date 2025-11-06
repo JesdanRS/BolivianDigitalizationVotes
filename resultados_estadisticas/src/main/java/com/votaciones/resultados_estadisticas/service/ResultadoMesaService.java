@@ -9,8 +9,8 @@ import com.votaciones.resultados_estadisticas.exception.SolicitudInvalidaExcepti
 import com.votaciones.resultados_estadisticas.mapper.ResultadoMesaMapper;
 import com.votaciones.resultados_estadisticas.model.ResultadoMesa;
 import com.votaciones.resultados_estadisticas.repository.ResultadoMesaRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +19,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class ResultadoMesaService {
 
     private final ResultadoMesaRepository repository;
     private final ResultadoMesaMapper mapper;
+
+    @Autowired
+    public ResultadoMesaService(ResultadoMesaRepository repository, ResultadoMesaMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
+    }
 
     @Transactional(readOnly = true)
     public List<ResultadoMesaDto> listarTodos() {
@@ -38,7 +43,7 @@ public class ResultadoMesaService {
     public ResultadoMesaDto obtenerPorId(Long id) {
         log.info("Obteniendo resultado con ID: {}", id);
         ResultadoMesa resultado = repository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("ResultadoMesa", id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("ResultadoMesa no encontrado con ID: " + id));
         return mapper.toDto(resultado);
     }
 
@@ -83,7 +88,7 @@ public class ResultadoMesaService {
         log.info("Actualizando resultado con ID: {}", id);
         
         ResultadoMesa resultado = repository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("ResultadoMesa", id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("ResultadoMesa no encontrado con ID: " + id));
         
         mapper.updateEntityFromDto(dto, resultado);
         ResultadoMesa actualizado = repository.save(resultado);
@@ -95,7 +100,7 @@ public class ResultadoMesaService {
     public void eliminar(Long id) {
         log.info("Eliminando resultado con ID: {}", id);
         if (!repository.existsById(id)) {
-            throw new RecursoNoEncontradoException("ResultadoMesa", id);
+            throw new RecursoNoEncontradoException("ResultadoMesa no encontrado con ID: " + id);
         }
         repository.deleteById(id);
         log.info("Resultado eliminado: ID {}", id);
@@ -120,7 +125,7 @@ public class ResultadoMesaService {
         List<ResultadoMesa> resultados = repository.findByDepartamento(departamento);
         
         if (resultados.isEmpty()) {
-            throw new RecursoNoEncontradoException("Departamento", departamento);
+            throw new RecursoNoEncontradoException("No se encontraron resultados para el departamento: " + departamento);
         }
         
         return calcularEstadistica(departamento, resultados);

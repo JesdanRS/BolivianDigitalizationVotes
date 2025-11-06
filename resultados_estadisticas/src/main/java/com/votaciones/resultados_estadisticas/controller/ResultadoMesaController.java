@@ -5,16 +5,8 @@ import com.votaciones.resultados_estadisticas.dto.ResultadoMesaDto;
 import com.votaciones.resultados_estadisticas.dto.ResultadoMesaCreacionDto;
 import com.votaciones.resultados_estadisticas.dto.ResultadoMesaActualizacionDto;
 import com.votaciones.resultados_estadisticas.service.ResultadoMesaService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,120 +15,104 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/resultados")
-@RequiredArgsConstructor
-@Tag(name = "Resultados Electorales", description = "API para gestión de resultados y estadísticas electorales")
 public class ResultadoMesaController {
 
     private final ResultadoMesaService service;
 
-    @Operation(summary = "Listar todos los resultados", description = "Obtiene todos los resultados electorales por mesa")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Lista de resultados obtenida exitosamente",
-            content = @Content(mediaType = "application/json",
-                array = @ArraySchema(schema = @Schema(implementation = ResultadoMesaDto.class))))
-    })
+    @Autowired
+    public ResultadoMesaController(ResultadoMesaService service) {
+        this.service = service;
+    }
+
+    /**
+     * Endpoint para listar todos los resultados electorales.
+     * HTTP Method: GET
+     * URL: /api/resultados/resultados
+     */
     @GetMapping("/resultados")
     public ResponseEntity<List<ResultadoMesaDto>> listarTodos() {
         return ResponseEntity.ok(service.listarTodos());
     }
 
-    @Operation(summary = "Obtener resultado por ID", description = "Obtiene un resultado electoral específico por su ID")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Resultado encontrado",
-            content = @Content(schema = @Schema(implementation = ResultadoMesaDto.class))),
-        @ApiResponse(responseCode = "404", description = "Resultado no encontrado")
-    })
+    /**
+     * Endpoint para obtener un resultado por su ID.
+     * HTTP Method: GET
+     * URL: /api/resultados/resultados/{id}
+     */
     @GetMapping("/resultados/{id}")
-    public ResponseEntity<ResultadoMesaDto> obtenerPorId(
-            @Parameter(description = "ID del resultado", example = "1", required = true)
-            @PathVariable Long id) {
+    public ResponseEntity<ResultadoMesaDto> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.obtenerPorId(id));
     }
 
-    @Operation(summary = "Listar resultados por departamento", description = "Obtiene resultados filtrados por departamento")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Resultados encontrados",
-            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ResultadoMesaDto.class))))
-    })
+    /**
+     * Endpoint para listar resultados por departamento.
+     * HTTP Method: GET
+     * URL: /api/resultados/resultados/departamento/{departamento}
+     */
     @GetMapping("/resultados/departamento/{departamento}")
-    public ResponseEntity<List<ResultadoMesaDto>> listarPorDepartamento(
-            @Parameter(description = "Nombre del departamento", example = "La Paz", required = true)
-            @PathVariable String departamento) {
+    public ResponseEntity<List<ResultadoMesaDto>> listarPorDepartamento(@PathVariable String departamento) {
         return ResponseEntity.ok(service.listarPorDepartamento(departamento));
     }
 
-    @Operation(summary = "Listar resultados por municipio", description = "Obtiene resultados filtrados por municipio")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Resultados encontrados",
-            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ResultadoMesaDto.class))))
-    })
+    /**
+     * Endpoint para listar resultados por municipio.
+     * HTTP Method: GET
+     * URL: /api/resultados/resultados/municipio/{municipio}
+     */
     @GetMapping("/resultados/municipio/{municipio}")
-    public ResponseEntity<List<ResultadoMesaDto>> listarPorMunicipio(
-            @Parameter(description = "Nombre del municipio", example = "La Paz", required = true)
-            @PathVariable String municipio) {
+    public ResponseEntity<List<ResultadoMesaDto>> listarPorMunicipio(@PathVariable String municipio) {
         return ResponseEntity.ok(service.listarPorMunicipio(municipio));
     }
 
-    @Operation(summary = "Crear nuevo resultado", description = "Registra un nuevo resultado electoral de mesa")
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Resultado creado exitosamente",
-            content = @Content(schema = @Schema(implementation = ResultadoMesaDto.class))),
-        @ApiResponse(responseCode = "400", description = "Datos inválidos o mesa ya registrada")
-    })
+    /**
+     * Endpoint para crear un nuevo resultado electoral.
+     * HTTP Method: POST
+     * URL: /api/resultados/resultados
+     */
     @PostMapping("/resultados")
-    public ResponseEntity<ResultadoMesaDto> crear(
-            @Valid @RequestBody ResultadoMesaCreacionDto dto) {
+    public ResponseEntity<ResultadoMesaDto> crear(@Valid @RequestBody ResultadoMesaCreacionDto dto) {
         ResultadoMesaDto creado = service.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
-    @Operation(summary = "Actualizar resultado", description = "Actualiza un resultado electoral existente")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Resultado actualizado exitosamente",
-            content = @Content(schema = @Schema(implementation = ResultadoMesaDto.class))),
-        @ApiResponse(responseCode = "404", description = "Resultado no encontrado")
-    })
+    /**
+     * Endpoint para actualizar un resultado existente.
+     * HTTP Method: PUT
+     * URL: /api/resultados/resultados/{id}
+     */
     @PutMapping("/resultados/{id}")
-    public ResponseEntity<ResultadoMesaDto> actualizar(
-            @Parameter(description = "ID del resultado", example = "1", required = true)
-            @PathVariable Long id,
-            @Valid @RequestBody ResultadoMesaActualizacionDto dto) {
+    public ResponseEntity<ResultadoMesaDto> actualizar(@PathVariable Long id, @Valid @RequestBody ResultadoMesaActualizacionDto dto) {
         return ResponseEntity.ok(service.actualizar(id, dto));
     }
 
-    @Operation(summary = "Eliminar resultado", description = "Elimina un resultado electoral")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Resultado eliminado exitosamente"),
-        @ApiResponse(responseCode = "404", description = "Resultado no encontrado")
-    })
+    /**
+     * Endpoint para eliminar un resultado.
+     * HTTP Method: DELETE
+     * URL: /api/resultados/resultados/{id}
+     */
     @DeleteMapping("/resultados/{id}")
-    public ResponseEntity<Void> eliminar(
-            @Parameter(description = "ID del resultado", example = "1", required = true)
-            @PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Estadísticas por departamento", description = "Obtiene estadísticas agregadas por departamento")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Estadísticas calculadas",
-            content = @Content(array = @ArraySchema(schema = @Schema(implementation = EstadisticaDto.class))))
-    })
+    /**
+     * Endpoint para obtener estadísticas por departamento.
+     * HTTP Method: GET
+     * URL: /api/resultados/resultados/estadisticas
+     */
     @GetMapping("/resultados/estadisticas")
     public ResponseEntity<List<EstadisticaDto>> obtenerEstadisticas() {
         return ResponseEntity.ok(service.obtenerEstadisticasPorDepartamento());
     }
 
-    @Operation(summary = "Estadística de un departamento", description = "Obtiene estadística de un departamento específico")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Estadística calculada",
-            content = @Content(schema = @Schema(implementation = EstadisticaDto.class))),
-        @ApiResponse(responseCode = "404", description = "Departamento sin resultados")
-    })
+    /**
+     * Endpoint para obtener estadística de un departamento específico.
+     * HTTP Method: GET
+     * URL: /api/resultados/resultados/estadisticas/{departamento}
+     */
     @GetMapping("/resultados/estadisticas/{departamento}")
-    public ResponseEntity<EstadisticaDto> obtenerEstadisticaDepartamento(
-            @Parameter(description = "Nombre del departamento", example = "La Paz", required = true)
-            @PathVariable String departamento) {
+    public ResponseEntity<EstadisticaDto> obtenerEstadisticaDepartamento(@PathVariable String departamento) {
         return ResponseEntity.ok(service.obtenerEstadisticaDepartamento(departamento));
     }
 }
