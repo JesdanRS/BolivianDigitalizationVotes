@@ -1,9 +1,7 @@
-package com.votaciones.candidatos.dto;
+package main.java.com.votaciones.dto.candidatos;
 
 import java.time.Instant;
 import java.time.LocalDate;
-
-import com.votaciones.candidatos.model.Candidato;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class candidatosDto {
+public class CandidatoDto {
 
     @Schema(description = "ID único de la fórmula", example = "1")
     private Long id;
@@ -56,25 +54,4 @@ public class candidatosDto {
 
     @Schema(description = "Fecha de última actualización", example = "2024-01-15T10:30:00Z")
     private Instant actualizadoEn;
-
-    /**
-     * Convierte una entidad Candidato a DTO
-     */
-    public static candidatosDto fromCandidato(Candidato c) {
-        candidatosDto dto = new candidatosDto();
-        dto.setId(c.getId());
-        dto.setPartido(c.getPartido());
-        dto.setNombreCompletoPresidente(c.getNombreCompletoPresidente());
-        dto.setNombreCompletoVicepresidente(c.getNombreCompletoVicepresidente());
-        dto.setCarnetPresidente(c.getCarnetPresidente());
-        dto.setCarnetVicepresidente(c.getCarnetVicepresidente());
-        dto.setFechaNacimientoPresidente(c.getFechaNacimientoPresidente());
-        dto.setFechaNacimientoVicepresidente(c.getFechaNacimientoVicepresidente());
-        dto.setCorreoElectronico(c.getCorreoElectronico());
-        dto.setCorreoVerificado(c.isCorreoVerificado());
-        dto.setDescripcion(c.getDescripcion());
-        dto.setCreadoEn(c.getCreadoEn());
-        dto.setActualizadoEn(c.getActualizadoEn());
-        return dto;
-    }
 }

@@ -1,4 +1,4 @@
-package com.votaciones.candidatos.dto;
+package main.java.com.votaciones.dto.candidatos;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -61,5 +61,3 @@ public class CandidatoCreacionDto {
 	@Size(max = 500, message = "La descripción no puede exceder 500 caracteres")
 	private String descripcion;
 }
-
-

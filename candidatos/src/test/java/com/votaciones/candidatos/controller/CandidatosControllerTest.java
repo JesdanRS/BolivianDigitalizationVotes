@@ -1,6 +1,6 @@
 package com.votaciones.candidatos.controller;
 
-import com.votaciones.candidatos.dto.candidatosDto;
+import com.votaciones.dto.candidatos.CandidatoDto;
 import com.votaciones.candidatos.exception.RecursoNoEncontradoException;
 import com.votaciones.candidatos.service.CandidatoService;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,13 +43,13 @@ public class CandidatosControllerTest {
 	@MockBean
 	private CandidatoService candidatoService;
 
-	private candidatosDto candidatoDto;
-	private candidatosDto candidatoDto2;
+	private CandidatoDto candidatoDto;
+	private CandidatoDto candidatoDto2;
 
 	@BeforeEach
 	void setUp() {
 		// Configurar DTO de respuesta 1
-		candidatoDto = new candidatosDto();
+		candidatoDto = new CandidatoDto();
 		candidatoDto.setId(1L);
 		candidatoDto.setPartido("MAS");
 		candidatoDto.setNombreCompletoPresidente("Luis Alberto Arce");
@@ -62,7 +62,7 @@ public class CandidatosControllerTest {
 		candidatoDto.setCorreoVerificado(false);
 
 		// Configurar DTO de respuesta 2
-		candidatoDto2 = new candidatosDto();
+		candidatoDto2 = new CandidatoDto();
 		candidatoDto2.setId(2L);
 		candidatoDto2.setPartido("CC");
 		candidatoDto2.setNombreCompletoPresidente("Luis Fernando Camacho");
@@ -72,12 +72,12 @@ public class CandidatosControllerTest {
 
 	@Test
 	void testListarCandidatos() {
-		List<candidatosDto> candidatos = Arrays.asList(candidatoDto, candidatoDto2);
+		List<CandidatoDto> candidatos = Arrays.asList(candidatoDto, candidatoDto2);
 		when(candidatoService.listarTodos()).thenReturn(candidatos);
 
-		ResponseEntity<candidatosDto[]> response = restTemplate.getForEntity(
+		ResponseEntity<CandidatoDto[]> response = restTemplate.getForEntity(
 			"/api/candidatos",
-			candidatosDto[].class
+			CandidatoDto[].class
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -89,9 +89,9 @@ public class CandidatosControllerTest {
 	void testObtenerCandidatoPorId() {
 		when(candidatoService.obtenerPorId(1L)).thenReturn(candidatoDto);
 
-		ResponseEntity<candidatosDto> response = restTemplate.getForEntity(
+		ResponseEntity<CandidatoDto> response = restTemplate.getForEntity(
 			"/api/candidatos/1",
-			candidatosDto.class
+			CandidatoDto.class
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -105,9 +105,9 @@ public class CandidatosControllerTest {
 		when(candidatoService.obtenerPorId(999L))
 			.thenThrow(new RecursoNoEncontradoException("Candidatura no encontrada con ID: 999"));
 
-		ResponseEntity<candidatosDto> response = restTemplate.getForEntity(
+		ResponseEntity<CandidatoDto> response = restTemplate.getForEntity(
 			"/api/candidatos/999",
-			candidatosDto.class
+			CandidatoDto.class
 		);
 
 		assertTrue(response.getStatusCode().is4xxClientError());
@@ -115,17 +115,17 @@ public class CandidatosControllerTest {
 
 	@Test
 	void testCrearCandidato() {
-		candidatosDto nuevoDto = new candidatosDto();
+		CandidatoDto nuevoDto = new CandidatoDto();
 		nuevoDto.setNombreCompletoPresidente("Nuevo Candidato");
 		nuevoDto.setPartido("NUEVO");
 
-		when(candidatoService.crear(any(candidatosDto.class)))
+		when(candidatoService.crear(any(CandidatoDto.class)))
 			.thenReturn(candidatoDto);
 
-		ResponseEntity<candidatosDto> response = restTemplate.postForEntity(
+		ResponseEntity<CandidatoDto> response = restTemplate.postForEntity(
 			"/api/candidatos",
 			nuevoDto,
-			candidatosDto.class
+			CandidatoDto.class
 		);
 
 		assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -135,23 +135,23 @@ public class CandidatosControllerTest {
 
 	@Test
 	void testActualizarCandidato() {
-		candidatosDto updateDto = new candidatosDto();
+		CandidatoDto updateDto = new CandidatoDto();
 		updateDto.setNombreCompletoPresidente("Luis Alberto Arce Catacora");
 		updateDto.setCorreoElectronico("nuevo@mas.bo");
 
-		candidatosDto actualizado = new candidatosDto();
+		CandidatoDto actualizado = new CandidatoDto();
 		actualizado.setId(1L);
 		actualizado.setNombreCompletoPresidente("Luis Alberto Arce Catacora");
 		actualizado.setCorreoElectronico("nuevo@mas.bo");
 
-		when(candidatoService.actualizar(eq(1L), any(candidatosDto.class)))
+		when(candidatoService.actualizar(eq(1L), any(CandidatoDto.class)))
 			.thenReturn(actualizado);
 
-		ResponseEntity<candidatosDto> response = restTemplate.exchange(
+		ResponseEntity<CandidatoDto> response = restTemplate.exchange(
 			"/api/candidatos/1",
 			HttpMethod.PUT,
 			new HttpEntity<>(updateDto),
-			candidatosDto.class
+			CandidatoDto.class
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());

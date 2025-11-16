@@ -1,6 +1,6 @@
 package com.votaciones.candidatos.service;
 
-import com.votaciones.candidatos.dto.candidatosDto;
+import com.votaciones.dto.candidatos.CandidatoDto;
 import com.votaciones.candidatos.exception.RecursoNoEncontradoException;
 import com.votaciones.candidatos.mapper.CandidatoMapper;
 import com.votaciones.candidatos.model.Candidato;
@@ -52,11 +52,11 @@ public class CandidatoServiceTest {
 		candidato2.setId(2L);
 		candidato2.setPartido("CC");
 
-		candidatosDto dto1 = new candidatosDto();
+		CandidatoDto dto1 = new CandidatoDto();
 		dto1.setId(1L);
 		dto1.setPartido("MAS");
 
-		candidatosDto dto2 = new candidatosDto();
+		CandidatoDto dto2 = new CandidatoDto();
 		dto2.setId(2L);
 		dto2.setPartido("CC");
 
@@ -65,7 +65,7 @@ public class CandidatoServiceTest {
 		when(candidatoMapper.toDto(candidato2)).thenReturn(dto2);
 
 		// When
-		List<candidatosDto> resultado = candidatoService.listarTodos();
+		List<CandidatoDto> resultado = candidatoService.listarTodos();
 
 		// Then
 		assertNotNull(resultado);
@@ -80,7 +80,7 @@ public class CandidatoServiceTest {
 		candidato.setId(1L);
 		candidato.setPartido("MAS");
 
-		candidatosDto esperado = new candidatosDto();
+		CandidatoDto esperado = new CandidatoDto();
 		esperado.setId(1L);
 		esperado.setPartido("MAS");
 
@@ -88,7 +88,7 @@ public class CandidatoServiceTest {
 		when(candidatoMapper.toDto(candidato)).thenReturn(esperado);
 
 		// When
-		candidatosDto resultado = candidatoService.obtenerPorId(1L);
+		CandidatoDto resultado = candidatoService.obtenerPorId(1L);
 
 		// Then
 		assertNotNull(resultado);
@@ -110,7 +110,7 @@ public class CandidatoServiceTest {
 	@Test
 	void testCrearCandidatoExitoso() {
 		// Given
-		candidatosDto inputDto = new candidatosDto();
+		CandidatoDto inputDto = new CandidatoDto();
 		inputDto.setNombreCompletoPresidente("Luis Arce");
 		inputDto.setCarnetPresidente("12345678");
 		inputDto.setPartido("MAS");
@@ -121,7 +121,7 @@ public class CandidatoServiceTest {
 		candidatoGuardado.setCarnetPresidente("12345678");
 		candidatoGuardado.setPartido("MAS");
 
-		candidatosDto outputDto = new candidatosDto();
+		CandidatoDto outputDto = new CandidatoDto();
 		outputDto.setId(1L);
 		outputDto.setNombreCompletoPresidente("Luis Arce");
 		outputDto.setPartido("MAS");
@@ -130,7 +130,7 @@ public class CandidatoServiceTest {
 		when(candidatoMapper.toDto(candidatoGuardado)).thenReturn(outputDto);
 
 		// When
-		candidatosDto resultado = candidatoService.crear(inputDto);
+		CandidatoDto resultado = candidatoService.crear(inputDto);
 
 		// Then
 		assertNotNull(resultado);
@@ -142,7 +142,7 @@ public class CandidatoServiceTest {
 	@Test
 	void testActualizarCandidatoExitoso() {
 		// Given
-		candidatosDto updateDto = new candidatosDto();
+		CandidatoDto updateDto = new CandidatoDto();
 		updateDto.setNombreCompletoPresidente("Luis Alberto Arce Catacora");
 		updateDto.setCorreoElectronico("luis@mas.bo");
 
@@ -156,7 +156,7 @@ public class CandidatoServiceTest {
 		candidatoActualizado.setNombreCompletoPresidente("Luis Alberto Arce Catacora");
 		candidatoActualizado.setCorreoElectronico("luis@mas.bo");
 
-		candidatosDto outputDto = new candidatosDto();
+		CandidatoDto outputDto = new CandidatoDto();
 		outputDto.setId(1L);
 		outputDto.setNombreCompletoPresidente("Luis Alberto Arce Catacora");
 		outputDto.setCorreoElectronico("luis@mas.bo");
@@ -166,7 +166,7 @@ public class CandidatoServiceTest {
 		when(candidatoMapper.toDto(candidatoActualizado)).thenReturn(outputDto);
 
 		// When
-		candidatosDto resultado = candidatoService.actualizar(1L, updateDto);
+		CandidatoDto resultado = candidatoService.actualizar(1L, updateDto);
 
 		// Then
 		assertNotNull(resultado);

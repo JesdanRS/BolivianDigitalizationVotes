@@ -1,8 +1,8 @@
 package com.votaciones.candidatos.mapper;
 
-import com.votaciones.candidatos.dto.CandidatoCreacionDto;
-import com.votaciones.candidatos.dto.CandidatoCargaDto;
-import com.votaciones.candidatos.dto.candidatosDto;
+import com.votaciones.dto.candidatos.CandidatoCreacionDto;
+import com.votaciones.dto.candidatos.CandidatoCargaDto;
+import com.votaciones.dto.candidatos.CandidatoDto;
 import com.votaciones.candidatos.model.Candidato;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -28,10 +28,10 @@ public interface CandidatoMapper {
 	/**
 	 * Convierte una entidad Candidato a DTO
 	 */
-	candidatosDto toDto(Candidato candidato);
+	CandidatoDto toDto(Candidato candidato);
 
 	/**
-	 * Convierte una entidad Candidato a candidatosDto
+	 * Convierte una entidad Candidato a CandidatoDto
 	 */
-	candidatosDto toCandidatoDto(Candidato candidato);
+	CandidatoDto toCandidatoDto(Candidato candidato);
 }

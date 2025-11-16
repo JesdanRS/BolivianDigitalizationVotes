@@ -51,6 +51,13 @@
 			<version>1.0.0</version>
 		</dependency>
 
+		<!-- 3b. AÑADIDO: Dependencia a nuestro módulo de DTOs de candidatos (REFACTORIZADO) -->
+		<dependency>
+			<groupId>com.votaciones</groupId>
+			<artifactId>dto-candidatos</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
 		<!-- 4. AÑADIDO: Para la librería de mapeo MapStruct -->
 		<dependency>
 			<groupId>org.mapstruct</groupId>
@@ -85,6 +92,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<!-- OAuth2 Resource Server para JWT -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 
 		<!-- JPA y Base de Datos -->

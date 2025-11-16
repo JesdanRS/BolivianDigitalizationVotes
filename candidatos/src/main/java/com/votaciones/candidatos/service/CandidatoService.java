@@ -1,6 +1,6 @@
 package com.votaciones.candidatos.service;
 
-import com.votaciones.candidatos.dto.candidatosDto;
+import com.votaciones.dto.candidatos.CandidatoDto;
 import com.votaciones.candidatos.exception.RecursoNoEncontradoException;
 import com.votaciones.candidatos.mapper.CandidatoMapper;
 import com.votaciones.candidatos.model.Candidato;
@@ -32,7 +32,7 @@ public class CandidatoService {
 	 * Obtiene todas las candidaturas registradas
 	 */
 	@Transactional(readOnly = true)
-	public List<candidatosDto> listarTodos() {
+	public List<CandidatoDto> listarTodos() {
 		log.info("Listando todas las candidaturas");
 		return candidatoRepository.findAll().stream()
 			.map(candidatoMapper::toDto)
@@ -43,7 +43,7 @@ public class CandidatoService {
 	 * Obtiene una candidatura por su ID
 	 */
 	@Transactional(readOnly = true)
-	public candidatosDto obtenerPorId(Long id) {
+	public CandidatoDto obtenerPorId(Long id) {
 		log.info("Obteniendo candidatura con ID: {}", id);
 		Candidato candidato = candidatoRepository.findById(id)
 			.orElseThrow(() -> new RecursoNoEncontradoException("Candidatura no encontrada con ID: " + id));
@@ -54,7 +54,7 @@ public class CandidatoService {
 	 * Crea una nueva candidatura
 	 */
 	@Transactional
-	public candidatosDto crear(candidatosDto candidatoDto) {
+	public CandidatoDto crear(CandidatoDto candidatoDto) {
 		log.info("Creando nueva candidatura: {}", candidatoDto.getNombreCompletoPresidente());
 		Candidato candidato = new Candidato();
 		candidato.setPartido(candidatoDto.getPartido());
@@ -76,7 +76,7 @@ public class CandidatoService {
 	 * Actualiza una candidatura existente
 	 */
 	@Transactional
-	public candidatosDto actualizar(Long id, candidatosDto candidatoDto) {
+	public CandidatoDto actualizar(Long id, CandidatoDto candidatoDto) {
 		log.info("Actualizando candidatura con ID: {}", id);
 		Candidato candidato = candidatoRepository.findById(id)
 			.orElseThrow(() -> new RecursoNoEncontradoException("Candidatura no encontrada con ID: " + id));
