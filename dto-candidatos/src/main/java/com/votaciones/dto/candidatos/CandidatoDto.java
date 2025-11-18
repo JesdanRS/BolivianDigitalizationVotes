@@ -1,4 +1,4 @@
-package main.java.com.votaciones.dto.candidatos;
+package com.votaciones.dto.candidatos;
 
 import java.time.Instant;
 import java.time.LocalDate;

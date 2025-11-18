@@ -104,7 +104,7 @@ services:
       dockerfile: Dockerfile
     container_name: eureka-server
     ports:
-      - "8761:8761"
+      - "8761:8861"
 
   # Usuarios Service
   usuarios-service:
@@ -114,7 +114,7 @@ services:
     container_name: ms-usuarios
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-usuarios:5432/usuarios_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/auth/realms/votaciones-realm/protocol/openid-connect/certs
     depends_on:
@@ -141,7 +141,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-candidatos:5432/candidatos_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
       - SERVER_PORT=8082
     depends_on:
@@ -162,7 +162,7 @@ services:
       - "8083:8082"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-votaciones:5432/votaciones_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/auth/realms/votaciones-realm/protocol/openid-connect/certs
     depends_on:
@@ -187,7 +187,7 @@ services:
       - "8086:8086"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-resultados:5432/resultados_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/auth/realms/votaciones-realm/protocol/openid-connect/certs
     depends_on:
@@ -212,12 +212,12 @@ services:
       - "8443:8443"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
       - SERVER_SSL_KEY_STORE=file:/keystore/edge-test.p12
       - SERVER_SSL_KEY_STORE_PASSWORD=password
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI=http://keycloak.ucb.edu.bo:8080/realms/Candidatos-demo
     volumes:
-      - $PWD/keystore:/keystore
+      - ./keystore:/keystore
     extra_hosts:
       - "keycloak.ucb.edu.bo:host-gateway"
     depends_on:
@@ -237,7 +237,7 @@ services:
       - kafka # Depende de que Eureka y Kafka estén iniciados
     environment:
       # Le decimos dónde encontrar Eureka y Kafka usando sus nombres de servicio
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
 
   # =======================================================

@@ -1,14 +1,40 @@
-# Dockerfile para candidatos-service - Optimizado
+# Dockerfile para candidatos-service (Versión Final con Múltiples Dependencias)
 
 # =================================================================
-# FASE ÚNICA: Usar JAR pre-compilado
+# FASE 1: "EL TALLER DE CONSTRUCCIÓN" (Builder)
 # =================================================================
-FROM openjdk:21-slim
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 
+# Establecemos el directorio de trabajo
 WORKDIR /app
 
-# Copiar el JAR compilado directamente
-COPY ./candidatos/target/candidatos-0.0.1-SNAPSHOT.jar app.jar
+# =================================================================
+# Paso 1: Construir la dependencia (`dto-notificaciones`)
+# =================================================================
+COPY ./dto-notificaciones /app/dto-notificaciones
+RUN cd /app/dto-notificaciones && mvn clean install -DskipTests
+
+# =================================================================
+# Paso 2: Construir la dependencia (`dto-candidatos`)
+# =================================================================
+COPY ./dto-candidatos /app/dto-candidatos
+RUN cd /app/dto-candidatos && mvn clean install -DskipTests
+
+# =================================================================
+# Paso 3: Construir el servicio principal (`candidatos`)
+# Ahora Maven encontrará las dependencias en el repositorio .m2 del contenedor.
+# =================================================================
+COPY ./candidatos /app/candidatos
+RUN cd /app/candidatos && mvn clean install -DskipTests
+
+# =================================================================
+# FASE 2: "EL VEHÍCULO DE PRODUCCIÓN" (Final Image)
+# =================================================================
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# Copiamos solo el JAR final que nos interesa desde la carpeta target del módulo correcto.
+COPY --from=build /app/candidatos/target/*.jar app.jar
 
 # Usar el perfil Docker
 ENV SPRING_PROFILES_ACTIVE=docker

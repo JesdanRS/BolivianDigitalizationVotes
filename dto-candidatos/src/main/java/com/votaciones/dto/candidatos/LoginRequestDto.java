@@ -1,4 +1,4 @@
-package main.java.com.votaciones.dto.candidatos;
+package com.votaciones.dto.candidatos;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

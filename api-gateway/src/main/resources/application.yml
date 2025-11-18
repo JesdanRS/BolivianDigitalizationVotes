@@ -38,7 +38,7 @@ spring:
         # ========== RUTAS DE MICROSERVICIOS ==========
         # Servicio de Candidatos
         - id: candidatos_service_route
-          uri: lb://MS-CANDIDATOS
+          uri: lb://candidatos
           predicates:
             - Path=/ms-candidatos/**
           filters:
@@ -46,7 +46,7 @@ spring:
         
         # Servicio de Usuarios (ruta nueva con StripPrefix)
         - id: usuarios_service_route_new
-          uri: lb://USUARIOS-SERVICE
+          uri: lb://usuarios-service
           predicates:
             - Path=/ms-usuarios/**
           filters:
@@ -54,13 +54,13 @@ spring:
         
         # Servicio de Usuarios (ruta legacy)
         - id: usuarios_service_route
-          uri: lb://USUARIOS-SERVICE
+          uri: lb://usuarios-service
           predicates:
             - Path=/api/usuarios/**
         
         # Servicio de Notificaciones
         - id: notificaciones_service_route
-          uri: lb://MS-NOTIFICACIONES
+          uri: lb://notificaciones-service
           predicates:
             - Path=/ms-notificaciones/**
           filters:
@@ -68,13 +68,13 @@ spring:
         
         # Servicio de Votaciones
         - id: votaciones_service_route
-          uri: lb://VOTACIONES-SERVICE
+          uri: lb://votaciones-service
           predicates:
             - Path=/api/votaciones/**
         
         # Servicio de Resultados y Estadísticas (ruta nueva con StripPrefix)
         - id: resultados_service_route_new
-          uri: lb://MS-RESULTADOS
+          uri: lb://resultados-service
           predicates:
             - Path=/ms-resultados/**
           filters:
@@ -82,21 +82,21 @@ spring:
         
         # Servicio de Resultados y Estadísticas (ruta legacy)
         - id: resultados_service_route
-          uri: lb://RESULTADOS-SERVICE
+          uri: lb://resultados-service
           predicates:
             - Path=/api/resultados/**
         
         # ========== RUTAS PARA SWAGGER/OPENAPI ==========
         # Swagger de Usuarios Service
         - id: usuarios_swagger
-          uri: lb://USUARIOS-SERVICE
+          uri: lb://usuarios-service
           predicates:
             - Path=/usuarios/swagger-ui/**
           filters:
             - RewritePath=/usuarios/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
         
         - id: usuarios_api_docs
-          uri: lb://USUARIOS-SERVICE
+          uri: lb://usuarios-service
           predicates:
             - Path=/usuarios/v3/api-docs/**
           filters:
@@ -104,14 +104,14 @@ spring:
         
         # Swagger de Votaciones Service
         - id: votaciones_swagger
-          uri: lb://VOTACIONES-SERVICE
+          uri: lb://votaciones-service
           predicates:
             - Path=/votaciones/swagger-ui/**
           filters:
             - RewritePath=/votaciones/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
         
         - id: votaciones_api_docs
-          uri: lb://VOTACIONES-SERVICE
+          uri: lb://votaciones-service
           predicates:
             - Path=/votaciones/v3/api-docs/**
           filters:
@@ -119,14 +119,14 @@ spring:
         
         # Swagger de Resultados Service
         - id: resultados_swagger
-          uri: lb://RESULTADOS-SERVICE
+          uri: lb://resultados-service
           predicates:
             - Path=/resultados/swagger-ui/**
           filters:
             - RewritePath=/resultados/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
         
         - id: resultados_api_docs
-          uri: lb://RESULTADOS-SERVICE
+          uri: lb://resultados-service
           predicates:
             - Path=/resultados/v3/api-docs/**
           filters:
@@ -135,7 +135,7 @@ spring:
         # ========== RUTAS PARA ACTUATOR ==========
         # Actuator de Usuarios Service
         - id: usuarios_actuator
-          uri: lb://USUARIOS-SERVICE
+          uri: lb://usuarios-service
           predicates:
             - Path=/usuarios/actuator/**
           filters:
@@ -143,7 +143,7 @@ spring:
         
         # Actuator de Votaciones Service
         - id: votaciones_actuator
-          uri: lb://VOTACIONES-SERVICE
+          uri: lb://votaciones-service
           predicates:
             - Path=/votaciones/actuator/**
           filters:
@@ -151,7 +151,7 @@ spring:
         
         # Actuator de Resultados Service
         - id: resultados_actuator
-          uri: lb://RESULTADOS-SERVICE
+          uri: lb://resultados-service
           predicates:
             - Path=/resultados/actuator/**
           filters:
