@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: notificaciones-service
+  cloud:
+    function:
+      # Especificar qué función utilizar por defecto
+      definition: recibirEventoCandidatos
+    stream:
+      kafka:
+        binder:
+          brokers: kafka:9092
+      bindings:
+        # Consumer para eventos de candidatos (PRINCIPAL)
+        recibirEventoCandidatos-in-0:
+          destination: notificaciones
+          content-type: application/json
+          group: notificaciones-group
+
+server:
+  port: 8083
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    root: INFO
+    com.votaciones: DEBUG

@@ -1,94 +1,86 @@
 package com.votaciones.candidatos.model;
 
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * Modelo de Candidato para el sistema de digitalización de votaciones bolivianas
+ * Representa una fórmula de candidatos (Presidente + Vicepresidente) de un partido político
  */
+@Entity
+@Table(name = "candidatos")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Candidato {
 
-	private Long idCandidato;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(nullable = false, unique = true, length = 50)
 	private String partido;
+
+	@Column(nullable = false, length = 100)
 	private String nombreCompletoPresidente;
+
+	@Column(nullable = false, length = 100)
 	private String nombreCompletoVicepresidente;
+
+	@Column(length = 500)
 	private String descripcion;
+
+	@Column(nullable = false, unique = true, length = 20)
+	private String carnetPresidente;
+
+	@Column(nullable = false, unique = true, length = 20)
+	private String carnetVicepresidente;
+
+	@Column(nullable = false)
+	private LocalDate fechaNacimientoPresidente;
+
+	@Column(nullable = false)
+	private LocalDate fechaNacimientoVicepresidente;
+
+	@Column(unique = true, length = 150)
+	private String correoElectronico;
+
+	@Column(nullable = false)
+	private boolean correoVerificado = false;
+
+	@Column(length = 6)
+	private String codigoVerificacion;
+
+	private Instant codigoExpiracion;
+
+	@CreationTimestamp
 	private Instant creadoEn;
+
+	@UpdateTimestamp
 	private Instant actualizadoEn;
 
-	public Candidato() {
-	}
-
-	public Candidato(String partido, String nombreCompletoPresidente, String nombreCompletoVicepresidente, String descripcion) {
+	/**
+	 * Constructor auxiliar para crear un candidato con información básica
+	 */
+	public Candidato(String partido, String nombreCompletoPresidente, String nombreCompletoVicepresidente, 
+	                 String carnetPresidente, String carnetVicepresidente,
+	                 LocalDate fechaNacimientoPresidente, LocalDate fechaNacimientoVicepresidente,
+	                 String descripcion, String correoElectronico) {
 		this.partido = partido;
 		this.nombreCompletoPresidente = nombreCompletoPresidente;
 		this.nombreCompletoVicepresidente = nombreCompletoVicepresidente;
+		this.carnetPresidente = carnetPresidente;
+		this.carnetVicepresidente = carnetVicepresidente;
+		this.fechaNacimientoPresidente = fechaNacimientoPresidente;
+		this.fechaNacimientoVicepresidente = fechaNacimientoVicepresidente;
 		this.descripcion = descripcion;
-	}
-
-	public void prePersist() {
-		Instant now = Instant.now();
-		this.creadoEn = now;
-		this.actualizadoEn = now;
-	}
-
-	public void preUpdate() {
-		this.actualizadoEn = Instant.now();
-	}
-
-	public Long getIdCandidato() {
-		return idCandidato;
-	}
-
-	public void setIdCandidato(Long idCandidato) {
-		this.idCandidato = idCandidato;
-	}
-
-	public String getPartido() {
-		return partido;
-	}
-
-	public void setPartido(String partido) {
-		this.partido = partido;
-	}
-
-	public String getNombreCompletoPresidente() {
-		return nombreCompletoPresidente;
-	}
-
-	public void setNombreCompletoPresidente(String nombreCompletoPresidente) {
-		this.nombreCompletoPresidente = nombreCompletoPresidente;
-	}
-
-	public String getNombreCompletoVicepresidente() {
-		return nombreCompletoVicepresidente;
-	}
-
-	public void setNombreCompletoVicepresidente(String nombreCompletoVicepresidente) {
-		this.nombreCompletoVicepresidente = nombreCompletoVicepresidente;
-	}
-
-	public String getDescripcion() {
-		return descripcion;
-	}
-
-	public void setDescripcion(String descripcion) {
-		this.descripcion = descripcion;
-	}
-
-	public Instant getCreadoEn() {
-		return creadoEn;
-	}
-
-	public void setCreadoEn(Instant creadoEn) {
-		this.creadoEn = creadoEn;
-	}
-
-	public Instant getActualizadoEn() {
-		return actualizadoEn;
-	}
-
-	public void setActualizadoEn(Instant actualizadoEn) {
-		this.actualizadoEn = actualizadoEn;
+		this.correoElectronico = correoElectronico;
 	}
 }
 

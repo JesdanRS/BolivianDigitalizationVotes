@@ -1,112 +1,118 @@
 package com.votaciones.candidatos.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-
-import com.votaciones.candidatos.dto.CandidatoCreacionDto;
-import com.votaciones.candidatos.dto.candidatosDto;
-import com.votaciones.candidatos.model.Candidato;
+import com.votaciones.dto.candidatos.CandidatoDto;
 import com.votaciones.candidatos.exception.RecursoNoEncontradoException;
-import com.votaciones.candidatos.exception.PartidoDuplicadoException;
-import com.votaciones.candidatos.exception.NombreDuplicadoException;
+import com.votaciones.candidatos.mapper.CandidatoMapper;
+import com.votaciones.candidatos.model.Candidato;
+import com.votaciones.candidatos.repository.CandidatoRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+/**
+ * Servicio CRUD para la gestión de candidatos en el sistema de votaciones bolivianas
+ */
 @Service
+@Slf4j
 public class CandidatoService {
 
-	private final List<Candidato> candidatos = new ArrayList<>();
-	private final AtomicLong contadorId = new AtomicLong(1);
+	private final CandidatoRepository candidatoRepository;
+	private final CandidatoMapper candidatoMapper;
 
-	public CandidatoService() {
-		inicializarDatosEjemplo();
+	@Autowired
+	public CandidatoService(CandidatoRepository candidatoRepository, CandidatoMapper candidatoMapper) {
+		this.candidatoRepository = candidatoRepository;
+		this.candidatoMapper = candidatoMapper;
 	}
 
-	public candidatosDto crearCandidato(CandidatoCreacionDto dto) {
-		// Validación: presidente y vicepresidente no pueden ser iguales
-		if (dto.getNombreCompletoPresidente() != null && dto.getNombreCompletoVicepresidente() != null) {
-			String p = dto.getNombreCompletoPresidente().trim();
-			String v = dto.getNombreCompletoVicepresidente().trim();
-			if (!p.isEmpty() && p.equalsIgnoreCase(v)) {
-				throw new NombreDuplicadoException(dto.getNombreCompletoPresidente(), dto.getNombreCompletoVicepresidente());
-			}
+	/**
+	 * Obtiene todas las candidaturas registradas
+	 */
+	@Transactional(readOnly = true)
+	public List<CandidatoDto> listarTodos() {
+		log.info("Listando todas las candidaturas");
+		return candidatoRepository.findAll().stream()
+			.map(candidatoMapper::toDto)
+			.toList();
+	}
+
+	/**
+	 * Obtiene una candidatura por su ID
+	 */
+	@Transactional(readOnly = true)
+	public CandidatoDto obtenerPorId(Long id) {
+		log.info("Obteniendo candidatura con ID: {}", id);
+		Candidato candidato = candidatoRepository.findById(id)
+			.orElseThrow(() -> new RecursoNoEncontradoException("Candidatura no encontrada con ID: " + id));
+		return candidatoMapper.toDto(candidato);
+	}
+
+	/**
+	 * Crea una nueva candidatura
+	 */
+	@Transactional
+	public CandidatoDto crear(CandidatoDto candidatoDto) {
+		log.info("Creando nueva candidatura: {}", candidatoDto.getNombreCompletoPresidente());
+		Candidato candidato = new Candidato();
+		candidato.setPartido(candidatoDto.getPartido());
+		candidato.setNombreCompletoPresidente(candidatoDto.getNombreCompletoPresidente());
+		candidato.setNombreCompletoVicepresidente(candidatoDto.getNombreCompletoVicepresidente());
+		candidato.setCarnetPresidente(candidatoDto.getCarnetPresidente());
+		candidato.setCarnetVicepresidente(candidatoDto.getCarnetVicepresidente());
+		candidato.setFechaNacimientoPresidente(candidatoDto.getFechaNacimientoPresidente());
+		candidato.setFechaNacimientoVicepresidente(candidatoDto.getFechaNacimientoVicepresidente());
+		candidato.setCorreoElectronico(candidatoDto.getCorreoElectronico());
+		candidato.setDescripcion(candidatoDto.getDescripcion());
+		
+		Candidato guardado = candidatoRepository.save(candidato);
+		log.info("Candidatura creada exitosamente con ID: {}", guardado.getId());
+		return candidatoMapper.toDto(guardado);
+	}
+
+	/**
+	 * Actualiza una candidatura existente
+	 */
+	@Transactional
+	public CandidatoDto actualizar(Long id, CandidatoDto candidatoDto) {
+		log.info("Actualizando candidatura con ID: {}", id);
+		Candidato candidato = candidatoRepository.findById(id)
+			.orElseThrow(() -> new RecursoNoEncontradoException("Candidatura no encontrada con ID: " + id));
+
+		if (candidatoDto.getPartido() != null) {
+			candidato.setPartido(candidatoDto.getPartido());
+		}
+		if (candidatoDto.getNombreCompletoPresidente() != null) {
+			candidato.setNombreCompletoPresidente(candidatoDto.getNombreCompletoPresidente());
+		}
+		if (candidatoDto.getNombreCompletoVicepresidente() != null) {
+			candidato.setNombreCompletoVicepresidente(candidatoDto.getNombreCompletoVicepresidente());
+		}
+		if (candidatoDto.getCorreoElectronico() != null) {
+			candidato.setCorreoElectronico(candidatoDto.getCorreoElectronico());
+		}
+		if (candidatoDto.getDescripcion() != null) {
+			candidato.setDescripcion(candidatoDto.getDescripcion());
 		}
 
-		// Validación: partido no duplicado
-		if (dto.getPartido() != null) {
-			String partido = dto.getPartido().trim();
-			boolean existePartido = candidatos.stream()
-				.anyMatch(cand -> cand.getPartido().equalsIgnoreCase(partido));
-			if (existePartido) {
-				throw new PartidoDuplicadoException(dto.getPartido());
-			}
+		Candidato actualizado = candidatoRepository.save(candidato);
+		log.info("Candidatura actualizada exitosamente: {}", id);
+		return candidatoMapper.toDto(actualizado);
+	}
+
+	/**
+	 * Elimina una candidatura
+	 */
+	@Transactional
+	public void eliminar(Long id) {
+		log.info("Eliminando candidatura con ID: {}", id);
+		if (!candidatoRepository.existsById(id)) {
+			throw new RecursoNoEncontradoException("Candidatura no encontrada con ID: " + id);
 		}
-
-		Candidato c = new Candidato(
-			dto.getPartido(),
-			dto.getNombreCompletoPresidente(),
-			dto.getNombreCompletoVicepresidente(),
-			dto.getDescripcion()
-		);
-		c.setIdCandidato(contadorId.getAndIncrement());
-		c.prePersist();
-		candidatos.add(c);
-		return candidatosDto.fromCandidato(c);
-	}
-
-	public candidatosDto obtenerPorId(Long id) {
-		return candidatos.stream()
-			.filter(c -> c.getIdCandidato().equals(id))
-			.findFirst()
-			.map(candidatosDto::fromCandidato)
-			.orElseThrow(() -> new RecursoNoEncontradoException("Candidato", id));
-	}
-
-	public List<candidatosDto> listar() {
-		return candidatos.stream()
-			.map(candidatosDto::fromCandidato)
-			.collect(Collectors.toList());
-	}
-
-	public List<candidatosDto> buscarPorPartido(String partido) {
-		return candidatos.stream()
-			.filter(c -> c.getPartido().equalsIgnoreCase(partido))
-			.map(candidatosDto::fromCandidato)
-			.collect(Collectors.toList());
-	}
-
-	private void inicializarDatosEjemplo() {
-		Candidato c1 = new Candidato(
-			"Movimiento al Socialismo (MAS)",
-			"Luis Alberto Arce Catacora",
-			"David Choquehuanca Céspedes",
-			"Propuesta enfocada en estabilidad económica y social"
-		);
-		c1.setIdCandidato(contadorId.getAndIncrement());
-		c1.prePersist();
-		candidatos.add(c1);
-
-		Candidato c2 = new Candidato(
-			"Comunidad Ciudadana (CC)",
-			"Carlos Diego Mesa Gisbert",
-			"Gustavo Pedraza",
-			"Agenda de institucionalidad democrática y desarrollo sostenible"
-		);
-		c2.setIdCandidato(contadorId.getAndIncrement());
-		c2.prePersist();
-		candidatos.add(c2);
-
-		Candidato c3 = new Candidato(
-			"Creemos",
-			"Luis Fernando Camacho",
-			"Marco Antonio Pumari",
-			"Enfoque en libre empresa y autonomías regionales"
-		);
-		c3.setIdCandidato(contadorId.getAndIncrement());
-		c3.prePersist();
-		candidatos.add(c3);
+		candidatoRepository.deleteById(id);
+		log.info("Candidatura eliminada exitosamente: {}", id);
 	}
 }
 

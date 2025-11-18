@@ -1,32 +1,52 @@
 package com.votaciones.candidatos.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configuración de seguridad para el microservicio de candidatos
+ * Protege endpoints con OAuth2/JWT desde Keycloak
+ */
 @Configuration
-@EnableWebFluxSecurity
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+	@Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
+	private String jwkSetUri;
+
 	@Bean
-	public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+	public JwtDecoder jwtDecoder() {
+		return NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
+			.build();
+	}
+
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http
-			.csrf(ServerHttpSecurity.CsrfSpec::disable)
-			.authorizeExchange(exchanges -> exchanges
-				.pathMatchers(
+			.csrf(csrf -> csrf.disable())
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers(
 					"/swagger-ui.html",
 					"/swagger-ui/**",
 					"/v3/api-docs/**",
 					"/api-docs/**",
-					"/candidatos/**",
-					"/actuator/**"
+					"/actuator/**",
+					"/actuator/health"
 				).permitAll()
-				.anyExchange().permitAll()
+				.requestMatchers("/api/candidatos/**").authenticated()
+				.anyRequest().authenticated()
 			)
-			.httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
-			.formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+			.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))
+			.httpBasic(basic -> basic.disable())
+			.formLogin(form -> form.disable())
 			.build();
 	}
 }
