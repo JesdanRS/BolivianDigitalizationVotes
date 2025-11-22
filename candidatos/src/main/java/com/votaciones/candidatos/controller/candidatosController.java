@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * Controlador REST para la gestión CRUD de candidatos
- * TODOS los endpoints requieren autenticación OAuth2 con token JWT
+ * TODOS los endpoints requieren autenticación OAuth2 con token JWT especificado en el header Authorization
  */
 @RestController
 @RequestMapping("/api/candidatos")
