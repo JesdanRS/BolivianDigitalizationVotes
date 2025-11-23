@@ -1,7 +1,7 @@
 package com.votaciones.auditoria_registros.controller;
 
 import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
-import com.votaciones.auditoria.lib.model.AuditoriaRegistro;
+import com.votaciones.auditoria_registros.model.AuditoriaRegistro;
 import com.votaciones.auditoria_registros.service.AuditoriaRegistroService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -91,16 +91,6 @@ public class AuditoriaRegistrosController {
     })
     @GetMapping("/contarPorTipo")
     public ResponseEntity<Map<String, Long>> estadisticas() {
-        return ResponseEntity.ok(auditoriaService.obtenerEstadisticasPorTipo());
-    }
-
-    @Operation(summary = "Exportar registros de auditoría a CSV")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Registros exportados exitosamente"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    @GetMapping("/formatoCsv")
-    public ResponseEntity<List<String>> exportar() {
-        return ResponseEntity.ok(auditoriaService.exportarRegistrosCSV());
+        return ResponseEntity.ok(auditoriaService.contarEventosPorTipo());
     }
 }

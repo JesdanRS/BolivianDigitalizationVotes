@@ -1,7 +1,7 @@
 package com.votaciones.auditoria_registros.service;
 
 import com.votaciones.auditoria_registros.dto.AuditoriaRegistrosDto;
-import com.votaciones.auditoria.lib.model.AuditoriaRegistro;
+import com.votaciones.auditoria_registros.model.AuditoriaRegistro;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +20,4 @@ public interface AuditoriaRegistroService {
     int limpiarRegistrosAntiguos(LocalDateTime limite);
 
     Map<String, Long> contarEventosPorTipo();
-    Map<String, Long> obtenerEstadisticasPorTipo();
-    List<String> exportarRegistrosCSV();
 }

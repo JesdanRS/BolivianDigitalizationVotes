@@ -58,14 +58,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.votaciones.auditoria</groupId>
-			<artifactId>auditoria_utilidades</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<scope>system</scope>
-			<systemPath>/auditoria_utilidades-1.0-SNAPSHOT.jar</systemPath>
-		</dependency>
-
-		<dependency>
    			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
