@@ -34,18 +34,21 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeExchange(exchanges -> exchanges
-                // Rutas públicas
-                .pathMatchers("/actuator/**").permitAll()
-                .pathMatchers("/eureka/**").permitAll()
-                .pathMatchers("/swagger-ui/**").permitAll()
-                .pathMatchers("/webjars/**").permitAll()
-                .pathMatchers("/v3/api-docs/**").permitAll()
-                .pathMatchers("/api/auditoria/v3/api-docs").permitAll()
-                
-                // Rutas protegidas - requieren autenticación
+                .pathMatchers(
+                    "/",                       // raíz
+                    "/swagger-ui.html",        // html principal de Swagger
+                    "/swagger-ui/**",          // recursos estáticos de swagger
+                    "/webjars/**",
+                    "/v3/api-docs/**",
+                    "/api/auditoria/v3/api-docs",
+                    "/actuator/**",
+                    "/eureka/**"
+                ).permitAll()
+
+                // 🔒 Rutas protegidas
                 .pathMatchers("/api/**").authenticated()
-                
-                // Cualquier otra ruta
+
+                // Cualquier otra ruta también autenticada
                 .anyExchange().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
