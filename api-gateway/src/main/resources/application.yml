@@ -1,10 +1,5 @@
 server:
-  port: 8443
-  ssl:
-    key-store-type: PKCS12
-    key-store: classpath:keystore/edge.p12
-    key-store-password: password
-    key-alias: localhost
+  port: 8080
 
 spring:
   application:
@@ -14,11 +9,18 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/Candidatos-demo
+          # Tu SecurityConfig usa jwk-set-uri
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs}
 
   cloud:
     gateway:
-      # Habilitar CORS para permitir peticiones desde diferentes orígenes
+      # Descubrimiento vía Eureka
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: false
+
+      # CORS global (frontend)
       globalcors:
         cors-configurations:
           '[/**]':
@@ -30,145 +32,149 @@ spring:
               - DELETE
               - OPTIONS
             allowedHeaders: "*"
-      
+
+      # Propagar token a los servicios
       default-filters:
         - TokenRelay
-      
+
       routes:
         # ========== RUTAS DE MICROSERVICIOS ==========
-        # Servicio de Candidatos
+
+        # Candidatos Service
         - id: candidatos_service_route
           uri: lb://candidatos
           predicates:
             - Path=/ms-candidatos/**
           filters:
             - StripPrefix=1
-        
-        # Servicio de Usuarios (ruta nueva con StripPrefix)
+
+        # Usuarios Service (ruta nueva con StripPrefix)
         - id: usuarios_service_route_new
           uri: lb://usuarios-service
           predicates:
             - Path=/ms-usuarios/**
           filters:
             - StripPrefix=1
-        
-        # Servicio de Usuarios (ruta legacy)
+
+        # Usuarios Service (ruta legacy)
         - id: usuarios_service_route
           uri: lb://usuarios-service
           predicates:
             - Path=/api/usuarios/**
-        
-        # Servicio de Notificaciones
+
+        # Notificaciones Service
         - id: notificaciones_service_route
           uri: lb://notificaciones-service
           predicates:
             - Path=/ms-notificaciones/**
           filters:
             - StripPrefix=1
-        
-        # Servicio de Votaciones
+
+        # Votaciones Service
         - id: votaciones_service_route
           uri: lb://votaciones-service
           predicates:
             - Path=/api/votaciones/**
-        
-        # Servicio de Resultados y Estadísticas (ruta nueva con StripPrefix)
+
+        # Resultados y Estadísticas (ruta nueva con StripPrefix)
         - id: resultados_service_route_new
           uri: lb://resultados-service
           predicates:
             - Path=/ms-resultados/**
           filters:
             - StripPrefix=1
-        
-        # Servicio de Resultados y Estadísticas (ruta legacy)
+
+        # Resultados y Estadísticas (ruta legacy)
         - id: resultados_service_route
           uri: lb://resultados-service
           predicates:
             - Path=/api/resultados/**
-        
-        # ========== RUTAS PARA SWAGGER/OPENAPI ==========
-        # Swagger de Usuarios Service
+
+        # Auditoría Registros (negocio)
+        - id: auditoria-registros
+          uri: lb://AUDITORIA-REGISTROS-SERVICE
+          predicates:
+            - Path=/api/auditoria/**
+          filters:
+            - StripPrefix=0
+
+        # ========== RUTAS PARA SWAGGER/OPENAPI (UI + DOCS) ==========
+
+        # --- Usuarios ---
         - id: usuarios_swagger
           uri: lb://usuarios-service
           predicates:
-            - Path=/usuarios/swagger-ui/**
+            - Path=/usuarios/swagger-ui/**        # UI
           filters:
-            - RewritePath=/usuarios/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
-        
+            - RewritePath=/usuarios/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
+
         - id: usuarios_api_docs
           uri: lb://usuarios-service
           predicates:
-            - Path=/usuarios/v3/api-docs/**
+            - Path=/api/usuarios/v3/api-docs      # DOCS vía gateway
           filters:
-            - RewritePath=/usuarios/v3/api-docs/(?<segment>.*), /v3/api-docs/$\{segment}
-        
-        # Swagger de Votaciones Service
+            - RewritePath=/api/usuarios/v3/api-docs, /v3/api-docs
+
+        # --- Votaciones ---
         - id: votaciones_swagger
           uri: lb://votaciones-service
           predicates:
             - Path=/votaciones/swagger-ui/**
           filters:
-            - RewritePath=/votaciones/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
-        
+            - RewritePath=/votaciones/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
+
         - id: votaciones_api_docs
           uri: lb://votaciones-service
           predicates:
-            - Path=/votaciones/v3/api-docs/**
+            - Path=/api/votaciones/v3/api-docs
           filters:
-            - RewritePath=/votaciones/v3/api-docs/(?<segment>.*), /v3/api-docs/$\{segment}
-        
-        # Swagger de Resultados Service
+            - RewritePath=/api/votaciones/v3/api-docs, /v3/api-docs
+
+        # --- Resultados/Estadísticas ---
         - id: resultados_swagger
           uri: lb://resultados-service
           predicates:
             - Path=/resultados/swagger-ui/**
           filters:
-            - RewritePath=/resultados/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
-        
+            - RewritePath=/resultados/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
+
         - id: resultados_api_docs
           uri: lb://resultados-service
           predicates:
-            - Path=/resultados/v3/api-docs/**
+            - Path=/api/resultados/v3/api-docs
           filters:
-            - RewritePath=/resultados/v3/api-docs/(?<segment>.*), /v3/api-docs/$\{segment}
-        
-        # ========== RUTAS PARA ACTUATOR ==========
-        # Actuator de Usuarios Service
-        - id: usuarios_actuator
-          uri: lb://usuarios-service
-          predicates:
-            - Path=/usuarios/actuator/**
-          filters:
-            - RewritePath=/usuarios/actuator/(?<segment>.*), /actuator/$\{segment}
-        
-        # Actuator de Votaciones Service
-        - id: votaciones_actuator
-          uri: lb://votaciones-service
-          predicates:
-            - Path=/votaciones/actuator/**
-          filters:
-            - RewritePath=/votaciones/actuator/(?<segment>.*), /actuator/$\{segment}
-        
-        # Actuator de Resultados Service
-        - id: resultados_actuator
-          uri: lb://resultados-service
-          predicates:
-            - Path=/resultados/actuator/**
-          filters:
-            - RewritePath=/resultados/actuator/(?<segment>.*), /actuator/$\{segment}
+            - RewritePath=/api/resultados/v3/api-docs, /v3/api-docs
 
-app:
-  eureka-server: localhost
+        # --- Candidatos ---
+        - id: candidatos_swagger
+          uri: lb://candidatos
+          predicates:
+            - Path=/candidatos/swagger-ui/**
+          filters:
+            - RewritePath=/candidatos/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
+
+        - id: candidatos_api_docs
+          uri: lb://candidatos
+          predicates:
+            - Path=/api/candidatos/v3/api-docs
+          filters:
+            - RewritePath=/api/candidatos/v3/api-docs, /v3/api-docs
+
+        # --- Auditoría (tu estilo) ---
+        - id: auditoria-openapi
+          uri: lb://AUDITORIA-REGISTROS-SERVICE
+          predicates:
+            - Path=/api/auditoria/v3/api-docs
+          filters:
+            - RewritePath=/api/auditoria/v3/api-docs, /v3/api-docs
 
 eureka:
   client:
-    serviceUrl:
-      defaultZone: http://${app.eureka-server}:8861/eureka/
-    initialInstanceInfoReplicationIntervalSeconds: 5
-    registryFetchIntervalSeconds: 5
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
   instance:
-    leaseRenewalIntervalInSeconds: 5
-    leaseExpirationDurationInSeconds: 5
+    hostname: ${HOSTNAME:localhost}
+    prefer-ip-address: false
 
 management:
   endpoint:
@@ -177,9 +183,34 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info"
+        include: "*"
+  endpoint:
+    gateway:
+      enabled: true
+    health:
+      show-details: always
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: Auditoria Service
+        url: /api/auditoria/v3/api-docs
+      - name: Usuarios Service
+        url: /api/usuarios/v3/api-docs
+      - name: Votaciones Service
+        url: /api/votaciones/v3/api-docs
+      - name: Resultados Service
+        url: /api/resultados/v3/api-docs
+      - name: Candidatos Service
+        url: /api/candidatos/v3/api-docs
 
 logging:
   level:
     root: INFO
-    org.springframework.security: DEBUG
+    '[org.springframework.cloud.gateway]': DEBUG
+    '[org.springframework.cloud.loadbalancer]': DEBUG
+    '[com.netflix.discovery]': DEBUG
+    '[org.springframework.security]': TRACE
+    '[org.springframework.security.oauth2]': TRACE

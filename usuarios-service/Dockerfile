@@ -1,40 +1,30 @@
-# Dockerfile para usuarios-service (Versión Final con Múltiples Dependencias)
-
-# =================================================================
-# FASE 1: "EL TALLER DE CONSTRUCCIÓN" (Builder)
-# =================================================================
+# ============================
+# FASE 1: BUILDER
+# ============================
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 
-# Establecemos el directorio de trabajo
 WORKDIR /app
 
-# =================================================================
-# Paso 1: Construir la PRIMERA dependencia (`dto-usuarios`)
-# =================================================================
+# 1) Construimos primero dto-usuarios (dependencia)
 COPY ./dto-usuarios /app/dto-usuarios
 RUN cd /app/dto-usuarios && mvn clean install -DskipTests
 
-# =================================================================
-# Paso 2: Construir la SEGUNDA dependencia (`dto-notificaciones`)
-# =================================================================
+# 2) Construimos dto-notificaciones (si otros servicios lo usan como dependencia)
 COPY ./dto-notificaciones /app/dto-notificaciones
 RUN cd /app/dto-notificaciones && mvn clean install -DskipTests
 
-# =================================================================
-# Paso 3: Construir el servicio principal (`usuarios-service`)
-# Ahora Maven encontrará ambas dependencias en el repositorio .m2 del contenedor.
-# =================================================================
+# 3) Construimos el microservicio de usuarios
 COPY ./usuarios-service /app/usuarios-service
 RUN cd /app/usuarios-service && mvn clean install -DskipTests
 
-# =================================================================
-# FASE 2: "EL VEHÍCULO DE PRODUCCIÓN" (Final Image)
-# =================================================================
+# ============================
+# FASE 2: FINAL
+# ============================
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Copiamos solo el JAR final que nos interesa desde la carpeta target del módulo correcto.
-COPY --from=build /app/usuarios-service/target/*.jar app.jar
+# Copiamos solo el JAR final del servicio de usuarios
+COPY --from=build /app/usuarios-service/target/usuarios-service-0.0.1-SNAPSHOT.jar app.jar
 
-# El comando que ejecutará el contenedor al arrancar
+# Comando de arranque
 ENTRYPOINT ["java", "-jar", "app.jar"]

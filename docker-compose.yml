@@ -16,6 +16,28 @@ services:
       retries: 5
     volumes:
       - db-data-usuarios:/var/lib/postgresql/data
+    networks:
+      - votaciones-net
+
+  # Base de datos para Auditoría
+  postgres-db-auditoria:
+    image: postgres:16-alpine
+    container_name: bd-auditoria
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_DB=auditoria_db
+      - POSTGRES_USER=auditoria_user
+      - POSTGRES_PASSWORD=auditoria_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auditoria_user -d auditoria_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - db-data-auditoria:/var/lib/postgresql/data
+    networks:
+      - votaciones-net
 
   # Base de datos de votaciones
   postgres-db-votaciones:
@@ -34,6 +56,8 @@ services:
       retries: 5
     volumes:
       - db-data-votaciones:/var/lib/postgresql/data
+    networks:
+      - votaciones-net
 
   # Base de datos para Candidatos
   postgres-db-candidatos:
@@ -52,13 +76,15 @@ services:
       retries: 5
     volumes:
       - db-data-candidatos:/var/lib/postgresql/data
+    networks:
+      - votaciones-net
 
   # Base de datos de resultados y estadísticas
   postgres-db-resultados:
     image: postgres:16-alpine
     container_name: bd-resultados
     ports:
-      - "5435:5432"
+      - "5436:5432"   # ojo: cambié a 5436 para no chocar con auditoría
     environment:
       - POSTGRES_DB=resultados_db
       - POSTGRES_USER=postgres
@@ -70,20 +96,21 @@ services:
       retries: 5
     volumes:
       - db-data-resultados:/var/lib/postgresql/data
+    networks:
+      - votaciones-net
 
-  # =======================================================
-  # NUEVA INFRAESTRUCTURA: ZOOKEEPER (Requerido por Kafka)
-  # =======================================================
+  # ==========================
+  # Infraestructura Kafka
+  # ==========================
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - votaciones-net
 
-  # =======================================================
-  # NUEVA INFRAESTRUCTURA: KAFKA (El sistema de mensajería)
-  # =======================================================
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
@@ -93,20 +120,87 @@ services:
       - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - votaciones-net
 
-  # Eureka Server (Sin cambios)
+  # ==========================
+  # Eureka Server
+  # ==========================
   eureka-server:
     build:
       context: ./eureka-server
       dockerfile: Dockerfile
     container_name: eureka-server
     ports:
-      - "8761:8861"
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - votaciones-net
 
-  # Usuarios Service
+  # ==========================
+  # Keycloak + BD
+  # ==========================
+  postgres-db-keycloak:
+    image: postgres:16-alpine
+    container_name: postgres-keycloak
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak
+    volumes:
+      - db-data-keycloak:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - votaciones-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.1
+    container_name: keycloak
+    hostname: localhost
+    ports:
+      - "8090:8080"
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HTTP_ENABLED=true
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HOSTNAME_URL=http://localhost:8090
+      - KC_HOSTNAME_ADMIN_URL=http://localhost:8090
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres-db-keycloak:5432/keycloak
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=keycloak
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+    command: start-dev
+    depends_on:
+      postgres-db-keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 90s
+    networks:
+      - votaciones-net
+
+  # ==========================
+  # Microservicios
+  # ==========================
   usuarios-service:
     build:
       context: .
@@ -114,26 +208,28 @@ services:
     container_name: ms-usuarios
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-usuarios:5432/usuarios_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/auth/realms/votaciones-realm/protocol/openid-connect/certs
+      # ojo: este endpoint de Keycloak lo pueden ajustar luego al nuevo realm
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
     depends_on:
       postgres-db-usuarios:
         condition: service_healthy
       eureka-server:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_started
       keycloak:
-        condition: service_started
+        condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - votaciones-net
 
-  # Candidatos Service
   candidatos-service:
     build:
       context: .
-      dockerfile: candidatos/Dockerfile
+    dockerfile: candidatos/Dockerfile
     container_name: ms-candidatos
     ports:
       - "8082:8082"
@@ -141,18 +237,19 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-candidatos:5432/candidatos_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
-      - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_STREAM_KAFKA_BINDER_KAFKA_BROKERS=kafka:9092
       - SERVER_PORT=8082
     depends_on:
       postgres-db-candidatos:
         condition: service_healthy
       eureka-server:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_started
+    networks:
+      - votaciones-net
 
-  # Votaciones Service
   votaciones-service:
     build:
       context: .
@@ -162,22 +259,23 @@ services:
       - "8083:8082"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-votaciones:5432/votaciones_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/auth/realms/votaciones-realm/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
     depends_on:
       postgres-db-votaciones:
         condition: service_healthy
       eureka-server:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_started
       keycloak:
-        condition: service_started
+        condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - votaciones-net
 
-  # Resultados y Estadísticas Service
   resultados-estadisticas-service:
     build:
       context: .
@@ -187,105 +285,106 @@ services:
       - "8086:8086"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-resultados:5432/resultados_db
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8180/auth/realms/votaciones-realm/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
     depends_on:
       postgres-db-resultados:
         condition: service_healthy
       eureka-server:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_started
       keycloak:
-        condition: service_started
+        condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - votaciones-net
 
-  # API Gateway (ACTUALIZADO CON SSL + OAuth2)
+  auditoria-service:
+    build:
+      context: .
+      dockerfile: auditoria_registros-services/Dockerfile
+    container_name: ms-auditoria
+    hostname: ms-auditoria
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-auditoria:5432/auditoria_db
+      - SPRING_DATASOURCE_USERNAME=auditoria_user
+      - SPRING_DATASOURCE_PASSWORD=auditoria_pass
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - HOSTNAME=ms-auditoria
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8090/realms/votaciones
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres-db-auditoria:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - votaciones-net
+
+  # API Gateway
   api-gateway:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
     container_name: api-gateway
+    hostname: api-gateway
     ports:
-      - "8443:8443"
+      - "8080:8080"  # cambié a 8080 para alinear con tu app y healthcheck
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
-      - SERVER_SSL_KEY_STORE=file:/keystore/edge-test.p12
-      - SERVER_SSL_KEY_STORE_PASSWORD=password
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI=http://keycloak.ucb.edu.bo:8080/realms/Candidatos-demo
-    volumes:
-      - ./keystore:/keystore
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - HOSTNAME=api-gateway
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:8090/realms/votaciones
     extra_hosts:
-      - "keycloak.ucb.edu.bo:host-gateway"
+      - "host.docker.internal:host-gateway"
     depends_on:
-      - eureka-server
-      - keycloak
-      
-  # =======================================================
-  # NUEVO SERVICIO: NOTIFICACIONES
-  # =======================================================
+      eureka-server:
+        condition: service_healthy
+      auditoria-service:
+        condition: service_started
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - votaciones-net
+
+  # Servicio de notificaciones
   notificaciones-service:
     build:
-      context: . # Usa el contexto raíz para ver a dto-notificaciones
+      context: .
       dockerfile: notificaciones-service/Dockerfile
     container_name: ms-notificaciones
     depends_on:
-      - eureka-server
-      - kafka # Depende de que Eureka y Kafka estén iniciados
-    environment:
-      # Le decimos dónde encontrar Eureka y Kafka usando sus nombres de servicio
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8861/eureka
-      - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
-
-  # =======================================================
-  # NUEVA INFRAESTRUCTURA: POSTGRESQL PARA KEYCLOAK
-  # =======================================================
-  postgres-keycloak:
-    image: postgres:15
-    container_name: postgres-keycloak
-    environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak
-    networks:
-      - default
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # =======================================================
-  # NUEVA INFRAESTRUCTURA: KEYCLOAK (SERVIDOR DE AUTENTICACIÓN)
-  # =======================================================
-  keycloak:
-    image: quay.io/keycloak/keycloak:25.0.1
-    container_name: keycloak
-    command: start-dev
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_DB: postgres
-      KC_DB_URL_HOST: postgres-keycloak
-      KC_DB_URL_DATABASE: keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: keycloak
-    ports:
-      - "8888:8080"
-    depends_on:
-      postgres-keycloak:
+      eureka-server:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      kafka:
+        condition: service_started
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
+    networks:
+      - votaciones-net
 
 volumes:
   db-data-usuarios:
+  db-data-auditoria:
   db-data-votaciones:
   db-data-candidatos:
   db-data-resultados:
+  db-data-keycloak:
+
+networks:
+  votaciones-net:
+    driver: bridge

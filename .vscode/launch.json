@@ -30,6 +30,13 @@
         },
         {
             "type": "java",
+            "name": "AuditoriaRegistrosApplication",
+            "request": "launch",
+            "mainClass": "com.votaciones.auditoria_registros.AuditoriaRegistrosApplication",
+            "projectName": "auditoria_registros-services"
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-AuditoriaRegistrosApplication<auditoria_registros>",
             "request": "launch",
             "cwd": "${workspaceFolder}",

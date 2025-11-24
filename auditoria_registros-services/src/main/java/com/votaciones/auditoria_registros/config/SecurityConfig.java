@@ -1,21 +1,22 @@
-package com.votaciones.api_gateway.config;
+package com.votaciones.auditoria_registros.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
-import org.springframework.security.web.server.SecurityWebFilterChain;
-import reactor.core.publisher.Mono;
+import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,38 +24,36 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
-@EnableWebFluxSecurity
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private String jwkSetUri;
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .authorizeExchange(exchanges -> exchanges
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
                 // Rutas públicas
-                .pathMatchers(
-                    "/",                       // raíz
-                    "/swagger-ui.html",        // HTML principal de Swagger
-                    "/swagger-ui/**",          // recursos estáticos de swagger
-                    "/webjars/**",
-                    "/v3/api-docs/**",
-                    "/api/auditoria/v3/api-docs",
-                    "/actuator/**",
-                    "/eureka/**",
-                    "/gateway/info/**"        // info del gateway de tus compas
-                ).permitAll()
-
-                // Rutas protegidas - todo lo que pase por /api/** requiere token
-                .pathMatchers("/api/**").authenticated()
-
-                // Cualquier otra ruta también autenticada
-                .anyExchange().authenticated()
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/swagger-ui.html").permitAll()
+                
+                // Endpoints específicos con roles
+                .requestMatchers(HttpMethod.GET, "/api/auditoria/**").hasAnyRole("USER", "AUDITOR")
+                .requestMatchers(HttpMethod.POST, "/api/auditoria/**").hasRole("AUDITOR")
+                .requestMatchers(HttpMethod.PUT, "/api/auditoria/**").hasRole("AUDITOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/auditoria/**").hasRole("AUDITOR")
+                
+                // Cualquier otra petición requiere autenticación
+                .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.jwtAuthenticationConverter(grantedAuthoritiesExtractor()))
+                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
             );
 
         return http.build();
@@ -64,12 +63,13 @@ public class SecurityConfig {
      * Extrae los roles desde realm_access.roles del JWT de Keycloak
      * y los convierte a GrantedAuthorities con prefijo ROLE_
      */
-    Converter<Jwt, Mono<AbstractAuthenticationToken>> grantedAuthoritiesExtractor() {
+    @Bean
+    public Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter() {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
             Collection<GrantedAuthority> authorities;
-
+            
             if (realmAccess != null && realmAccess.get("roles") != null) {
                 authorities = ((List<String>) realmAccess.get("roles")).stream()
                         .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
@@ -77,30 +77,30 @@ public class SecurityConfig {
             } else {
                 authorities = List.of();
             }
-
+            
             return authorities;
         });
-
-        return new ReactiveJwtAuthenticationConverterAdapter(jwtAuthenticationConverter);
+        
+        return jwtAuthenticationConverter;
     }
 
     /**
      * JwtDecoder personalizado que NO valida el issuer claim.
      * Esto permite aceptar tokens con issuer "localhost:8090" aunque los servicios
-     * se conecten vía "host.docker.internal:8090".
+     * se conecten vía "host.docker.internal:8090"
      */
     @Bean
-    public ReactiveJwtDecoder jwtDecoder() {
-        NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
+    public JwtDecoder jwtDecoder() {
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
                 .withJwkSetUri(jwkSetUri)
                 .build();
-
+        
         // Desactivar validación del issuer configurando un validador vacío
         // Solo se validará la firma del JWT usando las claves públicas de Keycloak
-        jwtDecoder.setJwtValidator(token ->
+        jwtDecoder.setJwtValidator(token -> 
             org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success()
         );
-
+        
         return jwtDecoder;
     }
 }
