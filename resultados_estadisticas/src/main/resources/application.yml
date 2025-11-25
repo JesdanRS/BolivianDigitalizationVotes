@@ -6,7 +6,7 @@ spring:
     name: resultados-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/resultados_db
+    url: jdbc:postgresql://localhost:5436/resultados_db
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
@@ -28,7 +28,7 @@ spring:
           destination: topic-votaciones
       kafka:
         binder:
-          brokers: localhost:9092
+          brokers: ${SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS:localhost:9092}
 
   security:
     oauth2:

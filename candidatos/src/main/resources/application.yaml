@@ -2,7 +2,7 @@ spring:
   application:
     name: candidatos
   datasource:
-    url: jdbc:postgresql://localhost:5433/candidatos_db
+    url: jdbc:postgresql://localhost:5434/candidatos_db
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver

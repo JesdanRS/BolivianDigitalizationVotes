@@ -30,7 +30,7 @@ spring:
         binder:
           # En Docker este host existe; si quieres usar localhost en local,
           # puedes sobreescribir con una env var, pero para ahora déjalo así.
-          brokers: kafka:9092
+          brokers: ${SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS:localhost:9092}
 
 eureka:
   client:
