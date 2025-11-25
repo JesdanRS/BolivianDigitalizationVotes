@@ -9,7 +9,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # Tu SecurityConfig usa jwk-set-uri
+          # SecurityConfig usa jwk-set-uri
           jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs}
 
   cloud:
@@ -104,14 +104,14 @@ spring:
         - id: usuarios_swagger
           uri: lb://usuarios-service
           predicates:
-            - Path=/usuarios/swagger-ui/**        # UI
+            - Path=/usuarios/swagger-ui/**
           filters:
-            - RewritePath=/usuarios/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
+            - RewritePath=/usuarios/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
 
         - id: usuarios_api_docs
           uri: lb://usuarios-service
           predicates:
-            - Path=/api/usuarios/v3/api-docs      # DOCS vía gateway
+            - Path=/api/usuarios/v3/api-docs
           filters:
             - RewritePath=/api/usuarios/v3/api-docs, /v3/api-docs
 
@@ -121,7 +121,7 @@ spring:
           predicates:
             - Path=/votaciones/swagger-ui/**
           filters:
-            - RewritePath=/votaciones/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
+            - RewritePath=/votaciones/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
 
         - id: votaciones_api_docs
           uri: lb://votaciones-service
@@ -136,7 +136,7 @@ spring:
           predicates:
             - Path=/resultados/swagger-ui/**
           filters:
-            - RewritePath=/resultados/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
+            - RewritePath=/resultados/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
 
         - id: resultados_api_docs
           uri: lb://resultados-service
@@ -151,7 +151,7 @@ spring:
           predicates:
             - Path=/candidatos/swagger-ui/**
           filters:
-            - RewritePath=/candidatos/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
+            - RewritePath=/candidatos/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
 
         - id: candidatos_api_docs
           uri: lb://candidatos
@@ -160,7 +160,7 @@ spring:
           filters:
             - RewritePath=/api/candidatos/v3/api-docs, /v3/api-docs
 
-        # --- Auditoría (tu estilo) ---
+        # --- Auditoría (docs vía gateway) ---
         - id: auditoria-openapi
           uri: lb://AUDITORIA-REGISTROS-SERVICE
           predicates:
@@ -177,9 +177,6 @@ eureka:
     prefer-ip-address: false
 
 management:
-  endpoint:
-    health:
-      show-details: "ALWAYS"
   endpoints:
     web:
       exposure:

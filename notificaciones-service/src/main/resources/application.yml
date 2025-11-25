@@ -1,42 +1,54 @@
 server:
-  port: 8083 # Un nuevo puerto
+  port: 8083
 
 spring:
   application:
     name: notificaciones-service
-  
-  # =======================================================
-  # CONFIGURACIÓN DE SPRING CLOUD STREAM (KAFKA)
-  # =======================================================
-  cloud:
-    stream:
-      # Le decimos que vamos a usar Kafka
-      default-binder: kafka
-      
-      bindings:
-        # Define una "entrada" de mensajes.
-        # El nombre 'procesarNotificacion-in-0' se compone de:
-        # [nombreDeLaFuncion]-[in/out]-[indice]
-        procesarNotificacion-in-0:
-          # El "topic" de Kafka que vamos a escuchar
-          destination: topic-notificaciones
-          # El grupo de consumidores (permite escalar el servicio)
-          group: notificaciones-group
 
-      # Configuración del conector de Kafka
+  cloud:
+    function:
+      # Activamos las DOS funciones del servicio
+      definition: procesarNotificacion;recibirEventoCandidatos
+
+    stream:
+      default-binder: kafka
+
+      bindings:
+        # 1) Consumer para correos (NotificacionDto) desde topic-notificaciones
+        procesarNotificacion-in-0:
+          destination: topic-notificaciones
+          group: notificaciones-email-group
+          content-type: application/json
+
+        # 2) Consumer para eventos de candidatos desde 'notificaciones'
+        recibirEventoCandidatos-in-0:
+          destination: notificaciones
+          group: notificaciones-candidatos-group
+          content-type: application/json
+
       kafka:
         binder:
-          # La dirección del servidor de Kafka. Usaremos el nombre de servicio de Docker.
+          # En Docker este host existe; si quieres usar localhost en local,
+          # puedes sobreescribir con una env var, pero para ahora déjalo así.
           brokers: kafka:9092
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8861/eureka
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
   instance:
+    prefer-ip-address: true
     hostname: localhost
+
 management:
   endpoints:
     web:
       exposure:
         include: "*"
+
+logging:
+  level:
+    root: INFO
+    com.votaciones: DEBUG

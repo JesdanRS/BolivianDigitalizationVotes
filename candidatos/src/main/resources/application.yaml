@@ -18,7 +18,7 @@ spring:
     stream:
       kafka:
         binder:
-          brokers: localhost:9092
+          brokers: ${SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS:localhost:9092}
       bindings:
         enviarNotificacion-out-0:
           destination: notificaciones
@@ -27,8 +27,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # Solo usa jwk-set-uri para validar firma, sin validar issuer estricto
-          jwk-set-uri: http://localhost:8888/realms/master/protocol/openid-connect/certs
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs}
 
 server:
   port: 8082
@@ -36,7 +35,7 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
     register-with-eureka: true
     fetch-registry: true
   instance:
