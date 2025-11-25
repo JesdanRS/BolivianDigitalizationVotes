@@ -1,17 +1,13 @@
 server:
-  port: 8861 # El puerto estándar para Eureka
+  port: 8761   # ahora sí, estándar de Eureka
 
 spring:
   application:
     name: eureka-server
 
-# ESTA ES LA CONFIGURACIÓN MÁS IMPORTANTE
 eureka:
-
-   client:
-    # Un servidor Eureka no necesita registrarse consigo mismo.
+  client:
     register-with-eureka: false
-    # No necesita obtener el registro de otros servidores (porque él es la fuente de verdad).
     fetch-registry: false
 
 management:
@@ -19,3 +15,6 @@ management:
     web:
       exposure:
         include: "*"
+  endpoint:
+    health:
+      show-details: always

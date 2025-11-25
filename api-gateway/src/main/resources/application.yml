@@ -104,69 +104,69 @@ spring:
         - id: usuarios_swagger
           uri: lb://usuarios-service
           predicates:
-            - Path=/usuarios/swagger-ui/**
+            - Path=/docs/usuarios/swagger-ui/**
           filters:
-            - RewritePath=/usuarios/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
+            - RewritePath=/docs/usuarios/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
 
         - id: usuarios_api_docs
           uri: lb://usuarios-service
           predicates:
-            - Path=/api/usuarios/v3/api-docs
+            - Path=/docs/usuarios/v3/api-docs
           filters:
-            - RewritePath=/api/usuarios/v3/api-docs, /v3/api-docs
+            - RewritePath=/docs/usuarios/v3/api-docs, /v3/api-docs
 
         # --- Votaciones ---
         - id: votaciones_swagger
           uri: lb://votaciones-service
           predicates:
-            - Path=/votaciones/swagger-ui/**
+            - Path=/docs/votaciones/swagger-ui/**
           filters:
-            - RewritePath=/votaciones/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
+            - RewritePath=/docs/votaciones/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
 
         - id: votaciones_api_docs
           uri: lb://votaciones-service
           predicates:
-            - Path=/api/votaciones/v3/api-docs
+            - Path=/docs/votaciones/v3/api-docs
           filters:
-            - RewritePath=/api/votaciones/v3/api-docs, /v3/api-docs
+            - RewritePath=/docs/votaciones/v3/api-docs, /v3/api-docs
 
         # --- Resultados/Estadísticas ---
         - id: resultados_swagger
           uri: lb://resultados-service
           predicates:
-            - Path=/resultados/swagger-ui/**
+            - Path=/docs/resultados/swagger-ui/**
           filters:
-            - RewritePath=/resultados/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
+            - RewritePath=/docs/resultados/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
 
         - id: resultados_api_docs
           uri: lb://resultados-service
           predicates:
-            - Path=/api/resultados/v3/api-docs
+            - Path=/docs/resultados/v3/api-docs
           filters:
-            - RewritePath=/api/resultados/v3/api-docs, /v3/api-docs
+            - RewritePath=/docs/resultados/v3/api-docs, /v3/api-docs
 
         # --- Candidatos ---
         - id: candidatos_swagger
           uri: lb://candidatos
           predicates:
-            - Path=/candidatos/swagger-ui/**
+            - Path=/docs/candidatos/swagger-ui/**
           filters:
-            - RewritePath=/candidatos/swagger-ui/(?<segment>.*), /swagger-ui/$\{segment}
+            - RewritePath=/docs/candidatos/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
 
         - id: candidatos_api_docs
           uri: lb://candidatos
           predicates:
-            - Path=/api/candidatos/v3/api-docs
+            - Path=/docs/candidatos/v3/api-docs
           filters:
-            - RewritePath=/api/candidatos/v3/api-docs, /v3/api-docs
+            - RewritePath=/docs/candidatos/v3/api-docs, /v3/api-docs
 
         # --- Auditoría (docs vía gateway) ---
         - id: auditoria-openapi
           uri: lb://AUDITORIA-REGISTROS-SERVICE
           predicates:
-            - Path=/api/auditoria/v3/api-docs
+            - Path=/docs/auditoria/v3/api-docs
           filters:
-            - RewritePath=/api/auditoria/v3/api-docs, /v3/api-docs
+            - RewritePath=/docs/auditoria/v3/api-docs, /v3/api-docs
 
 eureka:
   client:
@@ -193,15 +193,15 @@ springdoc:
     path: /swagger-ui.html
     urls:
       - name: Auditoria Service
-        url: /api/auditoria/v3/api-docs
+        url: /docs/auditoria/v3/api-docs
       - name: Usuarios Service
-        url: /api/usuarios/v3/api-docs
+        url: /docs/usuarios/v3/api-docs
       - name: Votaciones Service
-        url: /api/votaciones/v3/api-docs
+        url: /docs/votaciones/v3/api-docs
       - name: Resultados Service
-        url: /api/resultados/v3/api-docs
+        url: /docs/resultados/v3/api-docs
       - name: Candidatos Service
-        url: /api/candidatos/v3/api-docs
+        url: /docs/candidatos/v3/api-docs
 
 logging:
   level:

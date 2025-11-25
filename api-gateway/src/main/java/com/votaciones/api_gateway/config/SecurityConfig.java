@@ -34,23 +34,23 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeExchange(exchanges -> exchanges
-                // Rutas públicas
+                // RUTAS PÚBLICAS: swagger, docs, actuator, eureka
                 .pathMatchers(
-                    "/",                       // raíz
-                    "/swagger-ui.html",        // HTML principal de Swagger
-                    "/swagger-ui/**",          // recursos estáticos de swagger
+                    "/",
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
                     "/webjars/**",
-                    "/v3/api-docs/**",
-                    "/api/auditoria/v3/api-docs",
+                    "/v3/api-docs/**",   // docs propios del gateway, si los usas
+                    "/docs/**",          // <-- NUEVO: docs de todos los servicios
                     "/actuator/**",
                     "/eureka/**",
-                    "/gateway/info/**"        // info del gateway de tus compas
+                    "/gateway/info/**"
                 ).permitAll()
 
-                // Rutas protegidas - todo lo que pase por /api/** requiere token
+                // RUTAS PROTEGIDAS (negocio)
                 .pathMatchers("/api/**").authenticated()
 
-                // Cualquier otra ruta también autenticada
+                // Cualquier otra cosa, autenticada también
                 .anyExchange().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
