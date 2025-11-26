@@ -1,5 +1,6 @@
 package com.votaciones.candidatos.service;
 
+import com.votaciones.candidatos.auditoria.AuditoriaClient;
 import com.votaciones.dto.candidatos.CandidatoDto;
 import com.votaciones.candidatos.exception.RecursoNoEncontradoException;
 import com.votaciones.candidatos.mapper.CandidatoMapper;
@@ -21,11 +22,14 @@ public class CandidatoService {
 
 	private final CandidatoRepository candidatoRepository;
 	private final CandidatoMapper candidatoMapper;
+    private final AuditoriaClient auditoriaClient;
 
 	@Autowired
-	public CandidatoService(CandidatoRepository candidatoRepository, CandidatoMapper candidatoMapper) {
+	public CandidatoService(CandidatoRepository candidatoRepository, CandidatoMapper candidatoMapper,
+                            AuditoriaClient auditoriaClient) {
 		this.candidatoRepository = candidatoRepository;
 		this.candidatoMapper = candidatoMapper;
+		this.auditoriaClient = auditoriaClient;
 	}
 
 	/**
@@ -69,6 +73,19 @@ public class CandidatoService {
 		
 		Candidato guardado = candidatoRepository.save(candidato);
 		log.info("Candidatura creada exitosamente con ID: {}", guardado.getId());
+
+		// Auditoría
+		String detalle = "Se creó candidato " + guardado.getNombreCompletoPresidente()
+				+ " - partido " + guardado.getPartido();
+
+		auditoriaClient.registrarEvento(
+				"CREAR_CANDIDATO",
+				"INFO",
+				"Candidatos",
+				null,
+				detalle
+		);
+
 		return candidatoMapper.toDto(guardado);
 	}
 
@@ -99,6 +116,17 @@ public class CandidatoService {
 
 		Candidato actualizado = candidatoRepository.save(candidato);
 		log.info("Candidatura actualizada exitosamente: {}", id);
+
+		String detalle = "Se actualizó candidato con id=" + id;
+
+		auditoriaClient.registrarEvento(
+				"ACTUALIZAR_CANDIDATO",
+				"INFO",
+				"Candidatos",
+				null,
+				detalle
+		);
+
 		return candidatoMapper.toDto(actualizado);
 	}
 
@@ -113,6 +141,16 @@ public class CandidatoService {
 		}
 		candidatoRepository.deleteById(id);
 		log.info("Candidatura eliminada exitosamente: {}", id);
+
+		String detalle = "Se eliminó candidato con id=" + id;
+
+		auditoriaClient.registrarEvento(
+				"ELIMINAR_CANDIDATO",
+				"WARN",
+				"Candidatos",
+				null,
+				detalle
+		);
 	}
 }
 

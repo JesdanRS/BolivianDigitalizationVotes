@@ -1,5 +1,6 @@
 package com.votaciones.votaciones.service;
 
+import com.votaciones.votaciones.auditoria.AuditoriaClient;
 import com.votaciones.votaciones.dto.VotacionCreacionDto;
 import com.votaciones.votaciones.dto.VotacionDto;
 import com.votaciones.votaciones.exception.RecursoNoEncontradoException;
@@ -23,6 +24,7 @@ public class VotacionService {
 	private final VotacionRepository votacionRepository;
 	private final VotacionMapper votacionMapper;
 	private final StreamBridge streamBridge;
+	private final AuditoriaClient auditoriaClient;
 
 	@Transactional
 	public VotacionDto crear(VotacionCreacionDto dto) {
@@ -36,6 +38,22 @@ public class VotacionService {
 		
 		// Enviar votación a resultados_estadisticas para procesamiento
 		enviarVotacionAResultados(votacionDto);
+
+		String detalle = String.format(
+				"Voto registrado. Partido=%s, Candidato=%s, Localidad=%s, Fecha=%s",
+				guardada.getPartido(),
+				guardada.getCandidato(),
+				guardada.getLocalidad(),
+				guardada.getFecha()
+		);
+
+		auditoriaClient.registrarEvento(
+				"VOTO_EMITIDO",
+				"INFO",
+				"Votaciones",
+				"999999999", // anónimo
+				detalle
+		);
 		
 		return votacionDto;
 	}
@@ -66,8 +84,20 @@ public class VotacionService {
 	 * Envía la votación a resultados_estadisticas para procesamiento
 	 */
 	private void enviarVotacionAResultados(VotacionDto votacionDto) {
-		streamBridge.send("enviarVotacionAResultados-out-0", votacionDto);
-		log.info("Votación ID {} enviada a resultados_estadisticas para procesamiento.", votacionDto.getId());
+		try {
+			streamBridge.send("enviarVotacionAResultados-out-0", votacionDto);
+			log.info("Votación ID {} enviada a resultados_estadisticas para procesamiento.", votacionDto.getId());
+		} catch (Exception ex) {
+			auditoriaClient.registrarEvento(
+					"ERROR",
+					"CRITICAL",
+					"Votaciones",
+					null,
+					"Error enviando votación ID " + votacionDto.getId()
+						+ " a resultados_estadisticas: " + ex.getMessage()
+			);
+			throw ex;
+		}
 	}
 
 	@Transactional(readOnly = true)

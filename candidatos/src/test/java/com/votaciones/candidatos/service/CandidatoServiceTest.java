@@ -1,6 +1,7 @@
 package com.votaciones.candidatos.service;
 
 import com.votaciones.dto.candidatos.CandidatoDto;
+import com.votaciones.candidatos.auditoria.AuditoriaClient;
 import com.votaciones.candidatos.exception.RecursoNoEncontradoException;
 import com.votaciones.candidatos.mapper.CandidatoMapper;
 import com.votaciones.candidatos.model.Candidato;
@@ -36,9 +37,12 @@ public class CandidatoServiceTest {
 	@MockBean
 	private CandidatoMapper candidatoMapper;
 
+	@MockBean
+	private AuditoriaClient auditoriaClient;
+
 	@BeforeEach
 	void setUp() {
-		candidatoService = new CandidatoService(candidatoRepository, candidatoMapper);
+		candidatoService = new CandidatoService(candidatoRepository, candidatoMapper, auditoriaClient);
 	}
 
 	@Test
