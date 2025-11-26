@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
 import MiVoto from './pages/MiVoto';
 import GestionCandidatos from './pages/GestionCandidatos';
+import GestionUsuarios from './pages/GestionUsuarios';
 import JuradoEspera from './pages/JuradoEspera';
 import './App.css';
 
@@ -24,6 +25,8 @@ function App() {
       <Link style={{color:'#fff'}} to="/auditoria">Auditoría</Link>
       <span>•</span>
       <Link style={{color:'#fff'}} to="/gestionar-candidatos">Gestionar Candidatos</Link>
+      <span>•</span>
+      <Link style={{color:'#fff'}} to="/gestionar-usuarios">Gestionar Usuarios</Link>
     </div>
   );
 
@@ -72,6 +75,11 @@ function App() {
           <Route path="/gestionar-candidatos" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <GestionCandidatos />
+            </ProtectedRoute>
+          } />
+          <Route path="/gestionar-usuarios" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <GestionUsuarios />
             </ProtectedRoute>
           } />
           <Route path="/jurado-espera" element={

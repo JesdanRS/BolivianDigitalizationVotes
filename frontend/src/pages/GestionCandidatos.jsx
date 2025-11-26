@@ -270,6 +270,7 @@ const GestionCandidatos = () => {
 
         <div style={{display:'flex', gap:6}}>
           <NavItem to="/gestionar-candidatos" label="Gestionar Candidatos" icon={<i className="fas fa-users"></i>} />
+          <NavItem to="/gestionar-usuarios" label="Gestionar Usuarios" icon={<i className="fas fa-people-group"></i>} />
           <NavItem to="/cargar-votos" label="Cargar Votos" icon={<i className="fas fa-upload"></i>} />
           <NavItem to="/estadisticas" label="Estadísticas" icon={<i className="fas fa-chart-bar"></i>} />
         </div>
