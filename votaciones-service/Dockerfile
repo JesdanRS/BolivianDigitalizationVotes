@@ -13,6 +13,10 @@ RUN cd /app/dto-notificaciones && mvn clean install -DskipTests
 COPY ./dto-votaciones /app/dto-votaciones
 RUN cd /app/dto-votaciones && mvn clean install -DskipTests
 
+# 3) dto-auditoria_registros  <-- NUEVO
+COPY ./dto-auditoria_registros /app/dto-auditoria_registros
+RUN cd /app/dto-auditoria_registros && mvn clean install -DskipTests
+
 # Finalmente copiamos y construimos el servicio de votaciones
 COPY ./votaciones-service /app/votaciones-service
 RUN cd /app/votaciones-service && mvn clean install -DskipTests

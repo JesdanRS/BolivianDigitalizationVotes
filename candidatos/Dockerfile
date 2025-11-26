@@ -20,6 +20,10 @@ RUN cd /app/dto-notificaciones && mvn clean install -DskipTests
 COPY ./dto-candidatos /app/dto-candidatos
 RUN cd /app/dto-candidatos && mvn clean install -DskipTests
 
+# 3) dto-auditoria_registros  <-- NUEVO
+COPY ./dto-auditoria_registros /app/dto-auditoria_registros
+RUN cd /app/dto-auditoria_registros && mvn clean install -DskipTests
+
 # =================================================================
 # Paso 3: Construir el servicio principal (`candidatos`)
 # Ahora Maven encontrará las dependencias en el repositorio .m2 del contenedor.

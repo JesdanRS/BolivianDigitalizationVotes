@@ -13,6 +13,10 @@ RUN cd /app/dto-usuarios && mvn clean install -DskipTests
 COPY ./dto-notificaciones /app/dto-notificaciones
 RUN cd /app/dto-notificaciones && mvn clean install -DskipTests
 
+# 3) dto-auditoria_registros  <-- NUEVO
+COPY ./dto-auditoria_registros /app/dto-auditoria_registros
+RUN cd /app/dto-auditoria_registros && mvn clean install -DskipTests
+
 # 3) Construimos el microservicio de usuarios
 COPY ./usuarios-service /app/usuarios-service
 RUN cd /app/usuarios-service && mvn clean install -DskipTests

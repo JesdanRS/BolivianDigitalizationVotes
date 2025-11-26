@@ -1,4 +1,4 @@
-package main.java.com.votaciones.usuarios.auditoria;
+package com.votaciones.usuarios.auditoria;
 
 import com.votaciones.auditoria_registros.dto.AuditoriaCreacionDto;
 import org.slf4j.Logger;

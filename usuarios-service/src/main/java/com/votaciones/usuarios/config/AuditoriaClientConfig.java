@@ -1,4 +1,4 @@
-package main.java.com.votaciones.usuarios.config;
+package com.votaciones.usuarios.config;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
