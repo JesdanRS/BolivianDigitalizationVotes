@@ -49,6 +49,10 @@ eureka:
     prefer-ip-address: true
     hostname: localhost
 
+app:
+  auditoria:
+    base-url: http://AUDITORIA-REGISTROS-SERVICE
+
 management:
   endpoints:
     web:

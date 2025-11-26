@@ -41,6 +41,10 @@ eureka:
   instance:
     prefer-ip-address: true
 
+app:
+  auditoria:
+    base-url: http://AUDITORIA-REGISTROS-SERVICE
+
 springdoc:
   swagger-ui:
     enabled: true
