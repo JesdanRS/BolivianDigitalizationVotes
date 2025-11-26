@@ -119,6 +119,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- AÑADIDO: Dependencia a nuestro módulo de DTOs de auditoria y registros -->
+		<dependency>
+			<groupId>com.votaciones.auditoria</groupId>
+			<artifactId>dto-auditoria_registros</artifactId>
+			<version>1.0.0</version>
+		</dependency>
     </dependencies>
     
     <dependencyManagement>
