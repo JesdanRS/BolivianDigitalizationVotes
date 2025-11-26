@@ -87,7 +87,7 @@ public class AuditoriaClient {
 
     private String normalizarUsuario(String usuarioParam) {
         // 1) Si el service ya pasó un "usuario" válido (incluido el anónimo), usarlo tal cual
-        if (usuarioParam != null && usuarioParam.matches("\\d{7,10}")) {
+        if (usuarioParam != null && usuarioParam.matches("\\d{7,8}")) {
             return usuarioParam;   // Aquí entra "99999999" y NO intentamos sacar nada del JWT
         }
 

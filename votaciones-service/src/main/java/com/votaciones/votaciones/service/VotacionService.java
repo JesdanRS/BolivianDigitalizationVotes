@@ -21,105 +21,152 @@ import java.util.stream.Collectors;
 @Slf4j
 public class VotacionService {
 
-	private final VotacionRepository votacionRepository;
-	private final VotacionMapper votacionMapper;
-	private final StreamBridge streamBridge;
-	private final AuditoriaClient auditoriaClient;
+    private final VotacionRepository votacionRepository;
+    private final VotacionMapper votacionMapper;
+    private final StreamBridge streamBridge;
+    private final AuditoriaClient auditoriaClient;
 
-	@Transactional
-	public VotacionDto crear(VotacionCreacionDto dto) {
-		Votacion votacion = votacionMapper.toEntity(dto);
-		Votacion guardada = votacionRepository.save(votacion);
-		
-		VotacionDto votacionDto = votacionMapper.toDto(guardada);
-		
-		// Enviar notificación a Kafka cuando se registra una nueva votación
-		enviarNotificacionVotacion(guardada);
-		
-		// Enviar votación a resultados_estadisticas para procesamiento
-		enviarVotacionAResultados(votacionDto);
+    @Transactional
+    public VotacionDto crear(VotacionCreacionDto dto) {
+        // 1) Lógica de negocio principal
+        Votacion votacion = votacionMapper.toEntity(dto);
+        Votacion guardada = votacionRepository.save(votacion);
+        VotacionDto votacionDto = votacionMapper.toDto(guardada);
 
-		String detalle = String.format(
-				"Voto registrado. Partido=%s, Candidato=%s, Localidad=%s, Fecha=%s",
-				guardada.getPartido(),
-				guardada.getCandidato(),
-				guardada.getLocalidad(),
-				guardada.getFecha()
-		);
+        // 2) Notificación por Kafka (best-effort)
+        try {
+            enviarNotificacionVotacion(guardada);
+        } catch (Exception ex) {
+            log.error("Error enviando notificación Kafka para votación ID {}",
+                    guardada.getId(), ex);
+        }
 
-		auditoriaClient.registrarEvento(
-				"VOTO_EMITIDO",
-				"INFO",
-				"Votaciones",
-				"999999999", // anónimo
-				detalle
-		);
-		
-		return votacionDto;
-	}
-	
-	/**
-	 * Envía una notificación a Kafka cuando se registra una nueva votación
-	 */
-	private void enviarNotificacionVotacion(Votacion votacion) {
-		var notificacion = new com.votaciones.notificaciones.dto.NotificacionDto(
-			"admin@votaciones.bo", // Email del administrador o sistema
-			"Nueva Votación Registrada",
-			String.format("Se ha registrado una nueva votación:\n" +
-				"Partido: %s\n" +
-				"Candidato: %s\n" +
-				"Localidad: %s\n" +
-				"Fecha: %s",
-				votacion.getPartido(),
-				votacion.getCandidato(),
-				votacion.getLocalidad(),
-				votacion.getFecha())
-		);
-		
-		streamBridge.send("enviarNotificacionVotacion-out-0", notificacion);
-		log.info("Notificación de votación ID {} enviada a Kafka.", votacion.getId());
-	}
-	
-	/**
-	 * Envía la votación a resultados_estadisticas para procesamiento
-	 */
-	private void enviarVotacionAResultados(VotacionDto votacionDto) {
-		try {
-			streamBridge.send("enviarVotacionAResultados-out-0", votacionDto);
-			log.info("Votación ID {} enviada a resultados_estadisticas para procesamiento.", votacionDto.getId());
-		} catch (Exception ex) {
-			auditoriaClient.registrarEvento(
-					"ERROR",
-					"CRITICAL",
-					"Votaciones",
-					null,
-					"Error enviando votación ID " + votacionDto.getId()
-						+ " a resultados_estadisticas: " + ex.getMessage()
-			);
-			throw ex;
-		}
-	}
+        // 3) Enviar a resultados_estadisticas (best-effort)
+        try {
+            enviarVotacionAResultados(votacionDto);
+        } catch (Exception ex) {
+            log.error("Error enviando votación ID {} a resultados_estadisticas",
+                    votacionDto.getId(), ex);
 
-	@Transactional(readOnly = true)
-	public VotacionDto obtenerPorId(Long id) {
-		Votacion votacion = votacionRepository.findById(id)
-			.orElseThrow(() -> new RecursoNoEncontradoException("Votación", id));
-		return votacionMapper.toDto(votacion);
-	}
+            // Intentamos registrar el error en auditoría, pero SIN reventar la transacción
+            safeAuditoria(
+                    "ERROR",
+                    "CRITICAL",
+                    "Votaciones",
+                    "999999999",
+                    "Error enviando votación ID " + votacionDto.getId()
+                            + " a resultados_estadisticas: " + ex.getMessage()
+            );
+        }
 
-	@Transactional(readOnly = true)
-	public List<VotacionDto> listar() {
-		return votacionRepository.findAll().stream()
-			.map(votacionMapper::toDto)
-			.collect(Collectors.toList());
-	}
+        // 4) Registrar evento de voto emitido (best-effort)
+        String detalle = String.format(
+                "Voto registrado. Partido=%s, Candidato=%s, Localidad=%s, Fecha=%s",
+                guardada.getPartido(),
+                guardada.getCandidato(),
+                guardada.getLocalidad(),
+                guardada.getFecha()
+        );
 
-	@Transactional(readOnly = true)
-	public List<VotacionDto> buscarPorLocalidad(String localidad) {
-		return votacionRepository.findByLocalidadIgnoreCase(localidad).stream()
-			.map(votacionMapper::toDto)
-			.collect(Collectors.toList());
-	}
+        safeAuditoria(
+                "VOTO_EMITIDO",
+                "INFO",
+                "Votaciones",
+                "99999999", // usuario “anónimo” pero válido (8 dígitos)
+                detalle
+        );
+
+        return votacionDto;
+    }
+
+    /**
+     * Envía una notificación a Kafka cuando se registra una nueva votación
+     */
+    private void enviarNotificacionVotacion(Votacion votacion) {
+        var notificacion = new com.votaciones.notificaciones.dto.NotificacionDto(
+                "admin@votaciones.bo", // Email del administrador o sistema
+                "Nueva Votación Registrada",
+                String.format("Se ha registrado una nueva votación:\n" +
+                                "Partido: %s\n" +
+                                "Candidato: %s\n" +
+                                "Localidad: %s\n" +
+                                "Fecha: %s",
+                        votacion.getPartido(),
+                        votacion.getCandidato(),
+                        votacion.getLocalidad(),
+                        votacion.getFecha())
+        );
+
+        boolean enviado = streamBridge.send("enviarNotificacionVotacion-out-0", notificacion);
+        if (!enviado) {
+            log.warn("StreamBridge devolvió false al enviar notificación de votación ID {}",
+                    votacion.getId());
+        } else {
+            log.info("Notificación de votación ID {} enviada a Kafka.", votacion.getId());
+        }
+    }
+
+    /**
+     * Envía la votación a resultados_estadisticas para procesamiento
+     */
+    private void enviarVotacionAResultados(VotacionDto votacionDto) {
+        boolean enviado = streamBridge.send("enviarVotacionAResultados-out-0", votacionDto);
+        if (!enviado) {
+            log.warn("StreamBridge devolvió false al enviar votación ID {} a resultados_estadisticas",
+                    votacionDto.getId());
+        } else {
+            log.info("Votación ID {} enviada a resultados_estadisticas para procesamiento.",
+                    votacionDto.getId());
+        }
+    }
+
+    /**
+     * Wrapper “seguro” para auditoría: nunca deja escapar excepciones.
+     */
+    private void safeAuditoria(
+            String tipo,
+            String severidad,
+            String modulo,
+            String usuario,
+            String detalle
+    ) {
+        try {
+            // Si viene null, mandamos un pseudo-usuario válido para cumplir la validación de auditoría
+            String usuarioEfectivo =
+                    (usuario == null || usuario.isBlank()) ? "999999999" : usuario;
+
+            auditoriaClient.registrarEvento(
+                    tipo,
+                    severidad,
+                    modulo,
+                    usuarioEfectivo,
+                    detalle
+            );
+        } catch (Exception e) {
+            log.error("Error registrando evento de auditoría [{} - {} - {}]: {}",
+                    tipo, severidad, modulo, e.getMessage(), e);
+            // NO relanzamos: auditoría no debe romper el endpoint principal
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public VotacionDto obtenerPorId(Long id) {
+        Votacion votacion = votacionRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Votación", id));
+        return votacionMapper.toDto(votacion);
+    }
+
+    @Transactional(readOnly = true)
+    public List<VotacionDto> listar() {
+        return votacionRepository.findAll().stream()
+                .map(votacionMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<VotacionDto> buscarPorLocalidad(String localidad) {
+        return votacionRepository.findByLocalidadIgnoreCase(localidad).stream()
+                .map(votacionMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }
-
-
