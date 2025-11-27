@@ -54,4 +54,7 @@ public class CandidatoDto {
 
     @Schema(description = "Fecha de última actualización", example = "2024-01-15T10:30:00Z")
     private Instant actualizadoEn;
+
+    @Schema(description = "CI del usuario que creó o modificó el registro", example = "9876543")
+    private String ciUsuario; 
 }

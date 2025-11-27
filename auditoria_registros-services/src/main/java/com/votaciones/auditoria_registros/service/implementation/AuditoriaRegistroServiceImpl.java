@@ -50,7 +50,7 @@ public class AuditoriaRegistroServiceImpl implements AuditoriaRegistroService {
             throw new InvalidArgumentException("Severidad no válida: " + dto.getSeveridad());
         }
 
-        if (dto.getUsuario() == null || !dto.getUsuario().matches("\\d{7,10}")) {
+        if (dto.getUsuario() == null || !dto.getUsuario().matches("\\d{7,8}")) {
             throw new InvalidArgumentException("Usuario inválido. Debe ser una cédula válida.");
         }
 

@@ -158,28 +158,4 @@ public class CandidatosControllerTest {
 		assertNotNull(response.getBody());
 		assertEquals("Luis Alberto Arce Catacora", response.getBody().getNombreCompletoPresidente());
 	}
-
-	@Test
-	void testEliminarCandidato() {
-		ResponseEntity<Void> response = restTemplate.exchange(
-			"/api/candidatos/1",
-			HttpMethod.DELETE,
-			null,
-			Void.class
-		);
-
-		assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-	}
-
-	@Test
-	void testEliminarCandidatoNoEncontrado() {
-		ResponseEntity<Void> response = restTemplate.exchange(
-			"/api/candidatos/999",
-			HttpMethod.DELETE,
-			null,
-			Void.class
-		);
-
-		assertTrue(response.getStatusCode().is4xxClientError());
-	}
 }

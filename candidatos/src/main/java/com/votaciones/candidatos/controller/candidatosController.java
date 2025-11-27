@@ -104,8 +104,12 @@ public class candidatosController {
 		@ApiResponse(responseCode = "404", description = "Candidato no encontrado")
 	})
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> eliminarCandidato(@PathVariable Long id) {
-		candidatoService.eliminar(id);
-		return ResponseEntity.noContent().build();
-	}
+    public ResponseEntity<Void> eliminarCandidato(
+            @PathVariable Long id,
+            @RequestBody CandidatoDto body) {
+
+        // Solo nos interesa el CI del usuario que ejecuta la acción
+        candidatoService.eliminar(id, body.getCiUsuario());
+        return ResponseEntity.noContent().build();
+    }
 }

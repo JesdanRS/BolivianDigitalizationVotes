@@ -26,6 +26,9 @@ public class VotacionService {
     private final StreamBridge streamBridge;
     private final AuditoriaClient auditoriaClient;
 
+    // Usuario anónimo para auditoría de votos
+    private static final String USUARIO_ANONIMO_VOTO = "00000000"; // 8 dígitos, válido
+
     @Transactional
     public VotacionDto crear(VotacionCreacionDto dto) {
         // 1) Lógica de negocio principal
@@ -48,18 +51,18 @@ public class VotacionService {
             log.error("Error enviando votación ID {} a resultados_estadisticas",
                     votacionDto.getId(), ex);
 
-            // Intentamos registrar el error en auditoría, pero SIN reventar la transacción
+            // Auditoría del error (con usuario anónimo técnico)
             safeAuditoria(
                     "ERROR",
                     "CRITICAL",
                     "Votaciones",
-                    "999999999",
+                    USUARIO_ANONIMO_VOTO,
                     "Error enviando votación ID " + votacionDto.getId()
                             + " a resultados_estadisticas: " + ex.getMessage()
             );
         }
 
-        // 4) Registrar evento de voto emitido (best-effort)
+        // 4) Registrar evento de voto emitido (best-effort, SIEMPRE anónimo)
         String detalle = String.format(
                 "Voto registrado. Partido=%s, Candidato=%s, Localidad=%s, Fecha=%s",
                 guardada.getPartido(),
@@ -72,7 +75,7 @@ public class VotacionService {
                 "VOTO_EMITIDO",
                 "INFO",
                 "Votaciones",
-                "99999999", // usuario “anónimo” pero válido (8 dígitos)
+                USUARIO_ANONIMO_VOTO, // nunca el CI real
                 detalle
         );
 
@@ -131,21 +134,16 @@ public class VotacionService {
             String detalle
     ) {
         try {
-            // Si viene null, mandamos un pseudo-usuario válido para cumplir la validación de auditoría
-            String usuarioEfectivo =
-                    (usuario == null || usuario.isBlank()) ? "999999999" : usuario;
-
             auditoriaClient.registrarEvento(
                     tipo,
                     severidad,
                     modulo,
-                    usuarioEfectivo,
+                    usuario,
                     detalle
             );
         } catch (Exception e) {
             log.error("Error registrando evento de auditoría [{} - {} - {}]: {}",
                     tipo, severidad, modulo, e.getMessage(), e);
-            // NO relanzamos: auditoría no debe romper el endpoint principal
         }
     }
 

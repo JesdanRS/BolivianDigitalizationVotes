@@ -60,6 +60,7 @@ public class CandidatoService {
 	@Transactional
 	public CandidatoDto crear(CandidatoDto candidatoDto) {
 		log.info("Creando nueva candidatura: {}", candidatoDto.getNombreCompletoPresidente());
+
 		Candidato candidato = new Candidato();
 		candidato.setPartido(candidatoDto.getPartido());
 		candidato.setNombreCompletoPresidente(candidatoDto.getNombreCompletoPresidente());
@@ -78,11 +79,11 @@ public class CandidatoService {
 		String detalle = "Se creó candidato " + guardado.getNombreCompletoPresidente()
 				+ " - partido " + guardado.getPartido();
 
-		auditoriaClient.registrarEvento(
+		safeAuditoria(
 				"CREAR_CANDIDATO",
 				"INFO",
 				"Candidatos",
-				null,
+				candidatoDto.getCiUsuario(),
 				detalle
 		);
 
@@ -119,11 +120,11 @@ public class CandidatoService {
 
 		String detalle = "Se actualizó candidato con id=" + id;
 
-		auditoriaClient.registrarEvento(
+		safeAuditoria(
 				"ACTUALIZAR_CANDIDATO",
 				"INFO",
 				"Candidatos",
-				null,
+				candidatoDto.getCiUsuario(), 
 				detalle
 		);
 
@@ -134,7 +135,7 @@ public class CandidatoService {
 	 * Elimina una candidatura
 	 */
 	@Transactional
-	public void eliminar(Long id) {
+	public void eliminar(Long id, String ciUsuario) {
 		log.info("Eliminando candidatura con ID: {}", id);
 		if (!candidatoRepository.existsById(id)) {
 			throw new RecursoNoEncontradoException("Candidatura no encontrada con ID: " + id);
@@ -144,14 +145,35 @@ public class CandidatoService {
 
 		String detalle = "Se eliminó candidato con id=" + id;
 
-		auditoriaClient.registrarEvento(
+		safeAuditoria(
 				"ELIMINAR_CANDIDATO",
 				"WARN",
 				"Candidatos",
-				null,
+				ciUsuario,
 				detalle
 		);
 	}
+
+	private void safeAuditoria(
+            String tipo,
+            String severidad,
+            String modulo,
+            String usuario,
+            String detalle
+    ) {
+        try {
+            auditoriaClient.registrarEvento(
+                    tipo,
+                    severidad,
+                    modulo,
+                    usuario,
+                    detalle
+            );
+        } catch (Exception e) {
+            log.error("Error registrando evento de auditoría [{} - {} - {}]: {}",
+                    tipo, severidad, modulo, e.getMessage(), e);
+        }
+    }
 }
 
 
