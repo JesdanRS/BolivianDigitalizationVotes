@@ -16,17 +16,19 @@ import './App.css';
 
 function App() {
   const miniBar = (
-    <div style={{position:'fixed',right:12,bottom:12,background:'#000',color:'#fff',
-      padding:'8px 12px',borderRadius:8,opacity:.75,display:'flex',gap:10,zIndex:999}}>
-      <Link style={{color:'#fff'}} to="/votacion">Votación</Link>
+    <div style={{
+      position: 'fixed', right: 12, bottom: 12, background: '#000', color: '#fff',
+      padding: '8px 12px', borderRadius: 8, opacity: .75, display: 'flex', gap: 10, zIndex: 999
+    }}>
+      <Link style={{ color: '#fff' }} to="/votacion">Votación</Link>
       <span>•</span>
-      <Link style={{color:'#fff'}} to="/resultados">Resultados</Link>
+      <Link style={{ color: '#fff' }} to="/resultados">Resultados</Link>
       <span>•</span>
-      <Link style={{color:'#fff'}} to="/auditoria">Auditoría</Link>
+      <Link style={{ color: '#fff' }} to="/auditoria">Auditoría</Link>
       <span>•</span>
-      <Link style={{color:'#fff'}} to="/gestionar-candidatos">Gestionar Candidatos</Link>
+      <Link style={{ color: '#fff' }} to="/gestionar-candidatos">Gestionar Candidatos</Link>
       <span>•</span>
-      <Link style={{color:'#fff'}} to="/gestionar-usuarios">Gestionar Usuarios</Link>
+      <Link style={{ color: '#fff' }} to="/gestionar-usuarios">Gestionar Usuarios</Link>
     </div>
   );
 
@@ -36,11 +38,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/votacion" element={
-            <ProtectedRoute requiredRole="usuario">
-              <Votacion />
-            </ProtectedRoute>
-          } />
+          <Route path="/votacion" element={<Votacion />} />
           <Route path="/mi-voto" element={
             <ProtectedRoute requiredRole="usuario">
               <MiVoto />

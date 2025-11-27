@@ -1,0 +1,102 @@
+=================================================================
+   INSTRUCCIONES PARA CONFIGURAR EL ARCHIVO .env
+=================================================================
+
+Según las imágenes que compartiste, tus credenciales de MongoDB son:
+
+📋 Usuario: user
+🔑 Contraseña: [LA QUE CREASTE EN MONGODB ATLAS]
+
+-------------------------------------------------------------------
+PASO 1: Abre el archivo .env
+-------------------------------------------------------------------
+
+Ubicación: backendBait\.env
+
+Puedes abrirlo con VS Code o cualquier editor de texto.
+
+-------------------------------------------------------------------
+PASO 2: Edita la línea MONGODB_URI
+-------------------------------------------------------------------
+
+Busca esta línea:
+
+MONGODB_URI=mongodb+srv://<db_user>:<db_password>@cluster0.gphzalx.mongodb.net/Dig_elecciones?retryWrites=true&w=majority
+
+Y reemplázala con:
+
+MONGODB_URI=mongodb+srv://user:TU_CONTRASEÑA_AQUI@cluster0.gphzalx.mongodb.net/Dig_elecciones?retryWrites=true&w=majority
+
+[IMPORTANTE]: Reemplaza TU_CONTRASEÑA_AQUI con tu contraseña real
+
+-------------------------------------------------------------------
+EJEMPLO
+-------------------------------------------------------------------
+
+Si tu contraseña es "MiPassword123", quedaría así:
+
+MONGODB_URI=mongodb+srv://user:MiPassword123@cluster0.gphzalx.mongodb.net/Dig_elecciones?retryWrites=true&w=majority
+
+-------------------------------------------------------------------
+PASO 3: Si no recuerdas tu contraseña
+-------------------------------------------------------------------
+
+1. Ve a MongoDB Atlas (https://cloud.mongodb.com)
+2. Click en "Database Access" (menú de la izquierda, bajo SECURITY)
+3. Busca el usuario "user"
+4. Click en "EDIT"
+5. Click en "Edit Password"
+6. Ingresa una nueva contraseña
+7. Guarda la contraseña en un lugar seguro
+8. Click en "Update User"
+
+-------------------------------------------------------------------
+PASO 4: Guardar el archivo .env
+-------------------------------------------------------------------
+
+Guarda el archivo .env con las credenciales correctas.
+
+-------------------------------------------------------------------
+PASO 5: Probar la conexión
+-------------------------------------------------------------------
+
+Ejecuta estos comandos en la terminal:
+
+cd backendBait
+npm run seed
+
+Si todo está bien configurado, verás:
+✅ Conexión exitosa a MongoDB Atlas
+✅ Candidatos insertados exitosamente
+
+-------------------------------------------------------------------
+PASO 6: Iniciar el servidor backend
+-------------------------------------------------------------------
+
+npm run dev
+
+El servidor debería iniciarse en: http://localhost:5000
+
+-------------------------------------------------------------------
+PASO 7: Iniciar el frontend
+-------------------------------------------------------------------
+
+En otra terminal:
+
+cd frontend
+npm run dev
+
+El frontend ya está configurado para conectarse al backend.
+
+-------------------------------------------------------------------
+¿Necesitas ayuda?
+-------------------------------------------------------------------
+
+Si tienes problemas:
+1. Verifica que tu IP esté en la whitelist de MongoDB Atlas
+2. Confirma que el usuario y contraseña sean correctos
+3. Verifica que el backend esté ejecutándose en el puerto 5000
+
+=================================================================
+              ¡Todo está listo para funcionar!
+=================================================================
