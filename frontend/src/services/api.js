@@ -81,26 +81,38 @@ apiClient.interceptors.response.use(
  * @returns {Object} Objeto de error formateado
  */
 export const handleApiError = (error) => {
-    if (error.response) {
-        // El servidor respondió con un código de error
-        return {
-            message: error.response.data?.message || 'Error en la petición',
-            status: error.response.status,
-            data: error.response.data
-        };
-    } else if (error.request) {
-        // La petición se hizo pero no hubo respuesta
-        return {
-            message: 'No se pudo conectar con el servidor. Verifica que los servicios estén ejecutándose.',
-            status: 0
-        };
-    } else {
-        // Algo pasó al configurar la petición
-        return {
-            message: error.message || 'Error desconocido',
-            status: -1
-        };
+  // Petición llegó al servidor y hay respuesta con status
+  if (error.response) {
+    const status = error.response.status;
+    const data = error.response.data;
+
+    // Intenta extraer un mensaje útil del backend
+    let backendMessage = null;
+
+    if (typeof data === 'string') {
+      backendMessage = data; // por si devuelves un String plano (como en login)
+    } else if (data?.message) {
+      backendMessage = data.message;
+    } else if (data?.detalle) {
+      backendMessage = data.detalle;
     }
+
+    const base = backendMessage ||
+      (status === 401 ? 'No autorizado' :
+       status === 403 ? 'Acceso denegado' :
+       status === 500 ? 'Error interno del servidor' :
+       'Error en la petición');
+
+    return new Error(base);
+  }
+
+  // Petición nunca salió o no hubo respuesta
+  if (error.request) {
+    return new Error('No se recibió respuesta del servidor');
+  }
+
+  // Error al configurar la petición
+  return new Error(error.message || 'Error desconocido');
 };
 
 export default apiClient;

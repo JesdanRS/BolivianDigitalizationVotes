@@ -8,8 +8,10 @@ import {
   deleteUser,
   procesarCSV,
   descargarPlantillaCSV,
-  exportarUsuariosCSV
+  exportarUsuariosCSV,
+  cargaMasivaUsuarios
 } from '../services/userService';
+import { csvToUsuariosPadron } from '../utils/csvToUsuariosPadron';
 
 // Modal de Confirmación
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
@@ -71,7 +73,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
 };
 
 // Modal de Edición/Creación
-const EditModal = ({ isOpen, onClose, onSave, usuario, rol }) => {
+const EditModal = ({ isOpen, onClose, onSave, usuario }) => {
   if (!isOpen) return null;
 
   const [formData, setFormData] = useState({
@@ -202,36 +204,53 @@ const EditModal = ({ isOpen, onClose, onSave, usuario, rol }) => {
   );
 };
 
-// Modal para cargar CSV
-const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
+// Modal para cargar CSV (misma UI, usando csvToUsuariosPadron + cargaMasivaUsuarios)
+const CSVUploadModal = ({ isOpen, onClose, onSuccess }) => {
   const [cargando, setCargando] = useState(false);
   const [resultado, setResultado] = useState(null);
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setCargando(true);
     const reader = new FileReader();
 
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
-        const contenido = event.target.result;
-        const res = procesarCSV(contenido, rol);
-        setResultado(res);
-        setCargando(false);
-        if (res.exito && res.usuariosAgregados > 0) {
-          setTimeout(() => {
-            onSuccess();
-            onClose();
-            setResultado(null);
-          }, 2000);
+        const csvText = event.target.result;
+
+        const usuarios = csvToUsuariosPadron(csvText);
+
+        if (!usuarios || usuarios.length === 0) {
+          setResultado({
+            exito: false,
+            errores: ['El archivo no contiene datos válidos.']
+          });
+          setCargando(false);
+          return;
         }
+
+        const res = await cargaMasivaUsuarios(usuarios);
+
+        setResultado({
+          exito: true,
+          mensaje: res?.mensaje || 'Carga masiva exitosa',
+          usuariosAgregados: usuarios.length
+        });
+
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+          setResultado(null);
+        }, 2000);
+
       } catch (error) {
         setResultado({
           exito: false,
-          errores: ['Error al procesar el archivo: ' + error.message]
+          errores: [error.message || 'Error inesperado']
         });
+      } finally {
         setCargando(false);
       }
     };
@@ -244,10 +263,7 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
   return (
     <div style={{
       position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex',
       justifyContent: 'center',
@@ -284,43 +300,38 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
                 style={{ display: 'none' }}
                 id="csv-input"
               />
-              <label htmlFor="csv-input" style={{
-                cursor: cargando ? 'not-allowed' : 'pointer',
-                display: 'block'
-              }}>
+              <label
+                htmlFor="csv-input"
+                style={{
+                  cursor: cargando ? 'not-allowed' : 'pointer',
+                  display: 'block'
+                }}
+              >
                 <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📁</div>
                 <div style={{ color: '#4b5563', marginBottom: '8px' }}>
                   {cargando ? 'Procesando...' : 'Haz clic o arrastra un archivo CSV'}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                  Formato: Carnet, Nombre, Email (sin encabezados o con encabezados)
+                  Formato: carnet,nombreCompleto,fechaNacimiento,departamento,correoElectronico
                 </div>
               </label>
             </div>
 
-            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '0.875rem', color: '#92400e' }}>
-              <strong>Formato esperado:</strong>
+            <div style={{
+              marginBottom: '20px',
+              padding: '12px',
+              backgroundColor: '#fef3c7',
+              borderRadius: '6px',
+              fontSize: '0.875rem',
+              color: '#92400e'
+            }}>
+              <strong>Ejemplo:</strong>
               <div style={{ marginTop: '8px', fontFamily: 'monospace' }}>
-                8812438,Juan Carlos Rojas,juan@example.com
+                8812438,Juan Pérez,1990-05-12,La Paz,juan@example.com
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                onClick={() => descargarPlantillaCSV(rol)}
-                style={{
-                  flex: 1,
-                  padding: '10px 16px',
-                  borderRadius: '6px',
-                  border: '1px solid #e5e7eb',
-                  background: 'white',
-                  color: '#4b5563',
-                  cursor: 'pointer',
-                  fontWeight: 500
-                }}
-              >
-                📥 Descargar Plantilla
-              </button>
               <button
                 onClick={onClose}
                 style={{
@@ -348,9 +359,7 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
                 color: '#166534'
               }}>
                 <div style={{ fontWeight: 600, marginBottom: '8px' }}>✓ Carga exitosa</div>
-                <div style={{ fontSize: '0.875rem' }}>
-                  Se agregaron {resultado.usuariosAgregados} usuarios correctamente.
-                </div>
+                <div>Usuarios cargados: {resultado.usuariosAgregados}</div>
               </div>
             ) : (
               <div style={{
@@ -360,27 +369,25 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
                 marginBottom: '16px',
                 color: '#991b1b'
               }}>
-                <div style={{ fontWeight: 600, marginBottom: '8px' }}>✗ Error en la carga</div>
+                <div style={{ fontWeight: 600, marginBottom: '8px' }}>
+                  ✗ Error en la carga
+                </div>
               </div>
             )}
 
-            {resultado.errores && resultado.errores.length > 0 && (
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.875rem' }}>
-                  Errores encontrados:
-                </div>
-                <div style={{
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  fontSize: '0.75rem',
-                  color: '#666'
-                }}>
-                  {resultado.errores.map((error, idx) => (
-                    <div key={idx} style={{ marginBottom: '4px', padding: '4px', backgroundColor: '#f3f4f6', borderRadius: '3px' }}>
-                      {error}
-                    </div>
-                  ))}
-                </div>
+            {resultado.errores && (
+              <div style={{
+                maxHeight: '200px',
+                overflowY: 'auto',
+                marginBottom: '16px',
+                fontSize: '0.75rem',
+                color: '#6b7280'
+              }}>
+                {resultado.errores.map((err, i) => (
+                  <div key={i} style={{ padding: '4px', background: '#f3f4f6', borderRadius: '4px', marginBottom: '4px' }}>
+                    {err}
+                  </div>
+                ))}
               </div>
             )}
 
@@ -396,8 +403,7 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
                 border: 'none',
                 background: '#dc2626',
                 color: 'white',
-                cursor: 'pointer',
-                fontWeight: 500
+                cursor: 'pointer'
               }}
             >
               Cerrar
@@ -431,8 +437,8 @@ const NavItem = ({ to, label, icon }) => {
   );
 };
 
-// Tabla de usuarios por rol
-const TablaUsuarios = ({ usuarios, rol, onEditar, onEliminar, onToggleStatus }) => {
+// Tabla de usuarios (solo población)
+const TablaUsuarios = ({ usuarios, onEditar, onEliminar, onToggleStatus }) => {
   return (
     <div style={{
       background: '#fff',
@@ -527,27 +533,22 @@ const TablaUsuarios = ({ usuarios, rol, onEditar, onEliminar, onToggleStatus }) 
 };
 
 const GestionUsuarios = () => {
-  const [rolActivo, setRolActivo] = useState('jurados');
-  const [usuarios, setUsuarios] = useState({
-    jurados: [],
-    administradores: [],
-    poblacion: []
-  });
-
+  const [usuariosPoblacion, setUsuariosPoblacion] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCSVModal, setShowCSVModal] = useState(false);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
 
-  // Cargar usuarios al montar
+  // Cargar usuarios de población al montar
   useEffect(() => {
-    const nuevosUsuarios = {
-      jurados: getUsersByRole('jurados'),
-      administradores: getUsersByRole('administradores'),
-      poblacion: getUsersByRole('poblacion')
-    };
-    setUsuarios(nuevosUsuarios);
+    const poblacion = getUsersByRole('poblacion');
+    setUsuariosPoblacion(poblacion);
   }, []);
+
+  const refrescarPoblacion = () => {
+    const poblacion = getUsersByRole('poblacion');
+    setUsuariosPoblacion(poblacion);
+  };
 
   const handleEditar = (usuario) => {
     setUsuarioSeleccionado(usuario);
@@ -560,39 +561,26 @@ const GestionUsuarios = () => {
   };
 
   const handleConfirmDelete = () => {
-    deleteUser(usuarioSeleccionado.id, rolActivo);
-    const nuevosUsuarios = {
-      ...usuarios,
-      [rolActivo]: usuarios[rolActivo].filter(u => u.id !== usuarioSeleccionado.id)
-    };
-    setUsuarios(nuevosUsuarios);
+    deleteUser(usuarioSeleccionado.id, 'poblacion');
+    refrescarPoblacion();
     setShowDeleteModal(false);
     setUsuarioSeleccionado(null);
   };
 
   const handleSaveEdit = (formData) => {
-    if (usuarioSeleccionado.id) {
-      updateUser(usuarioSeleccionado.id, rolActivo, formData);
+    if (usuarioSeleccionado && usuarioSeleccionado.id) {
+      updateUser(usuarioSeleccionado.id, 'poblacion', formData);
     } else {
-      createUser(rolActivo, formData);
+      createUser('poblacion', formData);
     }
-
-    const nuevosUsuarios = {
-      ...usuarios,
-      [rolActivo]: getUsersByRole(rolActivo)
-    };
-    setUsuarios(nuevosUsuarios);
+    refrescarPoblacion();
     setShowEditModal(false);
     setUsuarioSeleccionado(null);
   };
 
   const handleToggleStatus = (id) => {
-    toggleUserStatus(id, rolActivo);
-    const nuevosUsuarios = {
-      ...usuarios,
-      [rolActivo]: getUsersByRole(rolActivo)
-    };
-    setUsuarios(nuevosUsuarios);
+    toggleUserStatus(id, 'poblacion');
+    refrescarPoblacion();
   };
 
   const handleAnadirUsuario = () => {
@@ -601,17 +589,9 @@ const GestionUsuarios = () => {
   };
 
   const handleCSVSuccess = () => {
-    const nuevosUsuarios = {
-      ...usuarios,
-      [rolActivo]: getUsersByRole(rolActivo)
-    };
-    setUsuarios(nuevosUsuarios);
-  };
-
-  const etiquetasRol = {
-    jurados: { label: 'Jurados', icon: '👨‍⚖️' },
-    administradores: { label: 'Administradores', icon: '👨‍💼' },
-    poblacion: { label: 'Población', icon: '👥' }
+    // Si más adelante sincronizas localStorage con backend, aquí refrescas.
+    // Por ahora, si sigues usando localStorage para vista, puedes recargar.
+    refrescarPoblacion();
   };
 
   return (
@@ -634,9 +614,10 @@ const GestionUsuarios = () => {
         </div>
 
         <div style={{ display: 'flex', gap: 6 }}>
-          <NavItem to="/gestionar-candidatos" label="Gestionar Candidatos" icon="🗳️" />
-          <NavItem to="/gestionar-usuarios" label="Gestionar Usuarios" icon="👥" />
-          <NavItem to="/cargar-votos" label="Cargar Votos" icon="⬆️" />
+          <NavItem to="/gestionar-candidatos" label="Gestionar Candidatos" />
+          <NavItem to="/gestionar-usuarios" label="Gestionar Usuarios" />
+          <NavItem to="/cargar-votos" label="Cargar Votos"/>
+          <NavItem to="/estadisticas" label="Estadísticas"/>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -649,50 +630,12 @@ const GestionUsuarios = () => {
       <div style={{ padding: '24px 40px', width: '95%', maxWidth: '1400px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: 16 }}>Gestionar Usuarios</h1>
         <p style={{ color: '#6b7280', marginBottom: 24 }}>
-          Administra los usuarios del sistema por rol: Jurados, Administradores y Población.
+          Administra los usuarios del sistema (Padrón Electoral - Población).
         </p>
 
-        {/* Pestañas de roles */}
-        <div style={{
-          display: 'flex',
-          gap: '12px',
-          marginBottom: '24px',
-          borderBottom: '1px solid #e5e7eb',
-          paddingBottom: '12px'
-        }}>
-          {Object.entries(etiquetasRol).map(([rol, { label, icon }]) => (
-            <button
-              key={rol}
-              onClick={() => setRolActivo(rol)}
-              style={{
-                padding: '10px 16px',
-                borderRadius: '6px 6px 0 0',
-                border: 'none',
-                background: rolActivo === rol ? '#dc2626' : '#f3f4f6',
-                color: rolActivo === rol ? 'white' : '#4b5563',
-                cursor: 'pointer',
-                fontWeight: 500,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => {
-                if (rolActivo !== rol) e.target.style.background = '#e5e7eb';
-              }}
-              onMouseOut={(e) => {
-                if (rolActivo !== rol) e.target.style.background = '#f3f4f6';
-              }}
-            >
-              <span>{icon}</span> {label} ({usuarios[rol]?.length || 0})
-            </button>
-          ))}
-        </div>
-
-        {/* Tabla de usuarios */}
+        {/* Tabla de usuarios - solo Población */}
         <TablaUsuarios
-          usuarios={usuarios[rolActivo]}
-          rol={rolActivo}
+          usuarios={usuariosPoblacion}
           onEditar={handleEditar}
           onEliminar={handleEliminar}
           onToggleStatus={handleToggleStatus}
@@ -748,7 +691,7 @@ const GestionUsuarios = () => {
           </button>
 
           <button
-            onClick={() => exportarUsuariosCSV(rolActivo)}
+            onClick={() => exportarUsuariosCSV('poblacion')}
             style={{
               background: '#4b5563',
               color: 'white',
@@ -784,13 +727,11 @@ const GestionUsuarios = () => {
         onClose={() => setShowEditModal(false)}
         onSave={handleSaveEdit}
         usuario={usuarioSeleccionado}
-        rol={rolActivo}
       />
 
       <CSVUploadModal
         isOpen={showCSVModal}
         onClose={() => setShowCSVModal(false)}
-        rol={rolActivo}
         onSuccess={handleCSVSuccess}
       />
     </div>

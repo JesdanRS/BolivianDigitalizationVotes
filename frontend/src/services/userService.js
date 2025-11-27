@@ -67,11 +67,17 @@ export const obtenerPerfil = async (id) => {
  * @param {Array} usuarios - Lista de usuarios a cargar
  * @returns {Promise<string>} Mensaje de confirmación
  */
-export const cargaMasiva = async (usuarios) => {
+export const cargaMasivaUsuarios = async (usuarios) => {
   try {
     const response = await apiClient.post('/api/usuarios/carga-masiva', usuarios);
     return response.data;
   } catch (error) {
+    // Para ver exactamente qué responde el backend
+    console.error(
+      'Error en cargaMasivaUsuarios:',
+      error.response?.status,
+      error.response?.data
+    );
     throw handleApiError(error);
   }
 };
