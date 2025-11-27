@@ -72,15 +72,22 @@ export const AuthProvider = ({ children }) => {
    */
   const hasRole = (requiredRole) => {
     if (!user) return false;
+    const normalizedRequired = requiredRole.toLowerCase();
 
-    // Si es autenticación de Keycloak, verificar el rol del token
+    // 1) Mirar rol del token de Keycloak (USER, ADMIN, AUDITOR)
     if (keycloakToken) {
-      const currentRole = getCurrentRole();
-      return currentRole === requiredRole.toUpperCase();
+      const currentRole = getCurrentRole(); // e.g. 'USER'
+      if (currentRole && currentRole.toLowerCase() === normalizedRequired) {
+        return true;
+      }
     }
 
-    // Si es autenticación local, verificar el rol del usuario
-    return user.role === requiredRole.toLowerCase();
+    // 2) Fallback: rol guardado en el usuario del front (admin, auditor, jurado)
+    if (user.role && user.role.toLowerCase() === normalizedRequired) {
+      return true;
+    }
+
+    return false;
   };
 
   const value = {
@@ -91,7 +98,7 @@ export const AuthProvider = ({ children }) => {
     loginWithKeycloak,
     isAuthenticated: !!user,
     keycloakToken,
-    hasActiveSession: hasActiveSession(),
+    hasActiveSession, // OJO: aquí pasamos la función importada, no hasActiveSession()
     hasRole,
   };
 

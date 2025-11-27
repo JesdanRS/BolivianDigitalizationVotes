@@ -29,48 +29,70 @@ export const authenticateUser = (carnet, fechaNacimiento) => {
     return { success: false };
 };
 
-// Función para autenticar administradores, auditores o jurados (con contraseña)
+// src/services/authService.js
+
+const ADMIN_USERS = [
+  {
+    carnet: '1111111',
+    fechaNacimiento: '27/07/2003',
+    password: 'admin123',
+    role: 'admin',
+    nombre: 'Administrador General',
+  },
+  {
+    carnet: '2222222',
+    fechaNacimiento: '27/07/2003',
+    password: 'auditor123',
+    role: 'auditor',
+    nombre: 'Auditor del Sistema',
+  },
+  {
+    carnet: '3333333',
+    fechaNacimiento: '27/07/2003',
+    password: 'jurado123',
+    role: 'jurado',
+    nombre: 'Jurado de Mesa',
+  },
+];
+
 export const authenticateAdmin = (carnet, fechaNacimiento, password) => {
-    const user = users.find(u =>
-        u.carnet === carnet &&
-        u.fechaNacimiento === fechaNacimiento &&
-        (u.role === 'auditor' || u.role === 'jurado' || u.role === 'admin') &&
-        u.password === password
-    );
+  const user = ADMIN_USERS.find(
+    (u) =>
+      u.carnet === carnet &&
+      u.fechaNacimiento === fechaNacimiento &&
+      u.password === password
+  );
 
-    if (user) {
-        return {
-            success: true,
-            user: {
-                carnet: user.carnet,
-                fechaNacimiento: user.fechaNacimiento,
-                role: user.role,
-            }
-        };
-    }
-
+  if (!user) {
     return { success: false };
+  }
+
+  return {
+    success: true,
+    user: {
+      carnet: user.carnet,
+      nombre: user.nombre,
+      role: user.role, // 'admin' | 'auditor' | 'jurado'
+    },
+  };
 };
 
-// Guardar datos de usuario en localStorage
-export const saveUserData = (userData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
+export const saveUserData = (user) => {
+  localStorage.setItem('user', JSON.stringify(user));
 };
 
-// Obtener datos de usuario del localStorage
 export const getUserData = () => {
-    const data = localStorage.getItem('user');
-    return data ? JSON.parse(data) : null;
+  const data = localStorage.getItem('user');
+  return data ? JSON.parse(data) : null;
+};
+
+export const logout = () => {
+  localStorage.removeItem('user');
 };
 
 // Verificar si hay un usuario autenticado
 export const isAuthenticated = () => {
     return !!localStorage.getItem('user');
-};
-
-// Cerrar sesión
-export const logout = () => {
-    localStorage.removeItem('user');
 };
 
 // Datos predefinidos de usuarios para mostrar en MiVoto

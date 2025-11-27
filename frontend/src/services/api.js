@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { getValidToken, clearToken } from './keycloakService';
 
-// URL base del API Gateway
-const API_BASE_URL = 'http://localhost:8080';
+// Para desarrollo con proxy de Vite
+const API_BASE_URL = ''; // o '/', las dos funcionan
 
 // Crear instancia de axios configurada
 const apiClient = axios.create({

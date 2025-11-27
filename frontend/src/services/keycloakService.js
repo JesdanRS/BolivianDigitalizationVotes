@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Configuración de Keycloak
-const KEYCLOAK_URL = 'http://localhost:8090';
+// OJO: dejamos la URL vacía para que axios use el mismo origen (http://localhost:5173)
+// y Vite haga el proxy a Keycloak.
+const KEYCLOAK_URL = ''; // antes: 'http://localhost:8090'
 const REALM = 'votaciones';
 const CLIENT_ID = 'votaciones-client';
 const CLIENT_SECRET = '26Q02wNNRORoRTOmSFT0kvVJnksLymkq';
