@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from '../components/common/Navbar';
-import { useAuth } from '../context/AuthContext';
-import { getUserDisplayData } from '../services/authService';
+import React, { useState, useEffect, useRef } from "react";
+import Navbar from "../components/common/Navbar";
+import { useAuth } from "../context/AuthContext";
+import { getUserDisplayData } from "../services/authService";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const MiVoto = () => {
   const { user } = useAuth();
   const [votanteData, setVotanteData] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const carnetRef = useRef(null);
 
   useEffect(() => {
-    if (user && user.role === 'usuario') {
+    if (user && user.role === "usuario") {
       // Obtener datos del usuario para mostrar en el carnet
       const userData = getUserDisplayData(user.carnet);
       if (userData) {
@@ -17,34 +21,82 @@ const MiVoto = () => {
     }
   }, [user]);
 
+  // Función para descargar el carnet como PDF
+  const handleDownloadPDF = async () => {
+    if (!carnetRef.current) return;
+
+    setIsDownloading(true);
+
+    try {
+      // Configurar html2canvas para mejor calidad
+      const canvas = await html2canvas(carnetRef.current, {
+        scale: 2, // Mayor escala para mejor calidad
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      // Crear PDF en orientación horizontal
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
+
+      // Calcular dimensiones para centrar la imagen en el PDF
+      const imgWidth = 280; // ancho en mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const x = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
+      const y = (pdf.internal.pageSize.getHeight() - imgHeight) / 2;
+
+      pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+
+      // Descargar el PDF
+      const fileName = `Carnet_Sufragio_${
+        votanteData?.cedulaIdentidad || "usuario"
+      }.pdf`;
+      pdf.save(fileName);
+    } catch (error) {
+      console.error("Error al generar PDF:", error);
+      alert("Error al generar el PDF. Por favor intente nuevamente.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   // Renderizar un mensaje de carga si no hay datos de usuario aún
   if (!votanteData) {
     return (
-      <div style={{
-        fontFamily: 'Arial, sans-serif',
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        margin: 0,
-        padding: 0,
-        overflow: 'hidden',
-        backgroundColor: '#fff',
-        color: '#000',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-      }}>
+      <div
+        style={{
+          fontFamily: "Arial, sans-serif",
+          width: "100vw",
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          margin: 0,
+          padding: 0,
+          overflow: "hidden",
+          backgroundColor: "#fff",
+          color: "#000",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      >
         <Navbar />
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100%',
-          padding: '20px'
-        }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+            padding: "20px",
+          }}
+        >
           <p>Cargando datos de su voto...</p>
         </div>
       </div>
@@ -52,353 +104,476 @@ const MiVoto = () => {
   }
 
   return (
-    <div style={{
-      fontFamily: 'Arial, sans-serif',
-      width: '100vw',
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      margin: 0,
-      padding: 0,
-      overflow: 'hidden',
-      backgroundColor: '#fff',
-      color: '#000',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0
-    }}>
+    <div
+      style={{
+        fontFamily: "Arial, sans-serif",
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        margin: 0,
+        padding: 0,
+        overflow: "hidden",
+        backgroundColor: "#f5f5f5",
+        color: "#000",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
+    >
       {/* Navbar */}
       <Navbar />
 
       {/* Contenido principal */}
-      <div style={{
-        padding: '40px',
-        margin: '0',
-        textAlign: 'center',
-        width: '100%',
-        flex: '1',
-        overflow: 'auto',
-      }}>
-        <h1 style={{ 
-          fontSize: '2rem', 
-          marginBottom: '10px',
-          fontWeight: 'bold' 
-        }}>
+      <div
+        style={{
+          padding: "40px 20px",
+          margin: "0",
+          textAlign: "center",
+          width: "100%",
+          flex: "1",
+          overflow: "auto",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "2rem",
+            marginBottom: "10px",
+            fontWeight: "bold",
+            color: "#333",
+          }}
+        >
           Carnet de Sufragio Digital
         </h1>
-        <p style={{ 
-          color: '#666666', 
-          marginBottom: '25px',
-          fontSize: '1rem'
-        }}>
+        <p
+          style={{
+            color: "#666666",
+            marginBottom: "30px",
+            fontSize: "1rem",
+          }}
+        >
           Este es tu comprobante de votación. Guárdalo en un lugar seguro.
         </p>
 
         {/* Carnet de Sufragio Digital */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-          maxWidth: '800px',
-          margin: '0 auto',
-          marginBottom: '30px'
-        }}>
-          <div style={{
-            backgroundColor: '#222',
-            borderRadius: '8px',
-            padding: '15px',
-            width: '100%',
-            maxWidth: '750px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-            display: 'flex'
-          }}>
-            {/* Izquierda - Imagen de ID */}
-            <div style={{
-              flex: '0 0 40%',
-              padding: '10px',
-              backgroundColor: '#f8f8f8',
-              borderRadius: '5px',
-              marginRight: '15px'
-            }}>
-              <div style={{
-                backgroundColor: '#f0d9b5',
-                padding: '10px',
-                borderRadius: '5px',
-                position: 'relative',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  marginBottom: '15px'
-                }}>
-                  {/* Foto */}
-                  <div style={{
-                    width: '80px',
-                    height: '90px',
-                    backgroundColor: '#fff',
-                    borderRadius: '3px',
-                    marginRight: '10px',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      fontSize: '12px',
-                      color: '#666'
-                    }}>
-                      FOTO
-                    </div>
-                  </div>
-                  
-                  {/* Escudo */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                  }}>
-                    <img 
-                      src="/src/assets/images/example.png" 
-                      alt="Escudo Bolivia"
-                      style={{
-                        width: '50px',
-                        height: '50px',
-                        objectFit: 'contain'
-                      }}
-                    />
-                    <div style={{
-                      fontSize: '7px',
-                      color: '#333',
-                      textAlign: 'center',
-                      marginTop: '3px',
-                      lineHeight: '1.2'
-                    }}>
-                      <strong>REPÚBLICA DE BOLIVIA</strong><br/>
-                      ÓRGANO ELECTORAL<br/>
-                      PLURINACIONAL
-                    </div>
-                  </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            marginBottom: "30px",
+          }}
+        >
+          <div
+            ref={carnetRef}
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "12px",
+              padding: "30px",
+              width: "100%",
+              maxWidth: "900px",
+              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+              border: "2px solid #e0e0e0",
+            }}
+          >
+            {/* Encabezado */}
+            <div
+              style={{
+                borderBottom: "3px solid #dc2626",
+                paddingBottom: "20px",
+                marginBottom: "25px",
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "15px",
+                  marginBottom: "10px",
+                }}
+              >
+                {/* Bandera de Bolivia */}
+                <div
+                  style={{
+                    display: "flex",
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "30px",
+                      height: "20px",
+                      backgroundColor: "#D52B1E",
+                    }}
+                  ></div>
+                  <div
+                    style={{
+                      width: "30px",
+                      height: "20px",
+                      backgroundColor: "#F9E300",
+                    }}
+                  ></div>
+                  <div
+                    style={{
+                      width: "30px",
+                      height: "20px",
+                      backgroundColor: "#007934",
+                    }}
+                  ></div>
                 </div>
-                
-                {/* Bandera */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: '10px'
-                }}>
-                  <div style={{ 
-                    width: '18px', 
-                    height: '12px', 
-                    backgroundColor: '#D52B1E', 
-                    marginRight: '2px' 
-                  }}></div>
-                  <div style={{ 
-                    width: '18px', 
-                    height: '12px', 
-                    backgroundColor: '#F9E300', 
-                    marginRight: '2px' 
-                  }}></div>
-                  <div style={{ 
-                    width: '18px', 
-                    height: '12px', 
-                    backgroundColor: '#007934' 
-                  }}></div>
-                  <div style={{
-                    fontSize: '6px',
-                    marginLeft: '5px',
-                    color: '#333',
-                    lineHeight: '1.2'
-                  }}>
-                    CÉDULA DE IDENTIDAD<br/>
-                    PAPELETA DE SUFRAGIO
-                  </div>
+
+                <h2
+                  style={{
+                    fontSize: "1.8rem",
+                    fontWeight: "bold",
+                    margin: 0,
+                    color: "#1a1a1a",
+                  }}
+                >
+                  REPÚBLICA DE BOLIVIA
+                </h2>
+              </div>
+
+              <p
+                style={{
+                  fontSize: "1.1rem",
+                  color: "#666",
+                  margin: "5px 0",
+                  fontWeight: "500",
+                }}
+              >
+                Órgano Electoral Plurinacional
+              </p>
+
+              <div
+                style={{
+                  backgroundColor: "#dc2626",
+                  color: "white",
+                  padding: "8px 20px",
+                  borderRadius: "20px",
+                  display: "inline-block",
+                  marginTop: "10px",
+                  fontWeight: "bold",
+                  fontSize: "0.95rem",
+                }}
+              >
+                COMPROBANTE DE VOTACIÓN
+              </div>
+            </div>
+
+            {/* Contenido del Carnet */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "25px",
+                marginBottom: "25px",
+              }}
+            >
+              {/* Columna Izquierda */}
+              <div>
+                <div
+                  style={{
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "8px",
+                    padding: "20px",
+                    marginBottom: "15px",
+                    border: "1px solid #e0e0e0",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#666",
+                      marginBottom: "8px",
+                      textTransform: "uppercase",
+                      fontWeight: "600",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Nombre Completo
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      color: "#1a1a1a",
+                      margin: 0,
+                    }}
+                  >
+                    {votanteData?.nombreCompleto || "-"}
+                  </p>
                 </div>
-                
-                {/* Texto en pequeño */}
-                <div style={{
-                  fontSize: '5px',
-                  color: '#333',
-                  lineHeight: '1.2',
-                  marginBottom: '10px'
-                }}>
-                  ESTE DOCUMENTO ACREDITA LA IDENTIDAD DEL CIUDADANO Y SU<br/>
-                  DERECHO A PARTICIPAR EN LOS PROCESOS ELECTORALES<br/>
-                  DE ACUERDO A LEY.
+
+                <div
+                  style={{
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "8px",
+                    padding: "20px",
+                    marginBottom: "15px",
+                    border: "1px solid #e0e0e0",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#666",
+                      marginBottom: "8px",
+                      textTransform: "uppercase",
+                      fontWeight: "600",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Cédula de Identidad
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      color: "#1a1a1a",
+                      margin: 0,
+                    }}
+                  >
+                    {votanteData?.cedulaIdentidad || "-"}
+                  </p>
                 </div>
-                
-                {/* Código de barras simulado */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: '10px',
-                  width: '90%',
-                  textAlign: 'center',
-                  fontSize: '8px',
-                  letterSpacing: '1px',
-                }}>
-                  <div style={{
-                    borderBottom: '1px solid #333',
-                    paddingBottom: '3px',
-                    marginBottom: '3px'
-                  }}>
-                    C0 0342C0 250 9C7 63 22.52 040573 518
-                  </div>
+
+                <div
+                  style={{
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "8px",
+                    padding: "20px",
+                    border: "1px solid #e0e0e0",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#666",
+                      marginBottom: "8px",
+                      textTransform: "uppercase",
+                      fontWeight: "600",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Mesa de Sufragio
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      color: "#dc2626",
+                      margin: 0,
+                    }}
+                  >
+                    MESA Nº {votanteData?.mesaSufragio || "-"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Columna Derecha */}
+              <div>
+                <div
+                  style={{
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "8px",
+                    padding: "20px",
+                    marginBottom: "15px",
+                    border: "1px solid #e0e0e0",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#666",
+                      marginBottom: "8px",
+                      textTransform: "uppercase",
+                      fontWeight: "600",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Lugar de Votación
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "1.1rem",
+                      fontWeight: "bold",
+                      color: "#1a1a1a",
+                      margin: 0,
+                      lineHeight: "1.4",
+                    }}
+                  >
+                    {votanteData?.lugarVotacion || "-"}
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "8px",
+                    padding: "20px",
+                    marginBottom: "15px",
+                    border: "1px solid #e0e0e0",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#666",
+                      marginBottom: "8px",
+                      textTransform: "uppercase",
+                      fontWeight: "600",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Fecha de Votación
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      color: "#1a1a1a",
+                      margin: 0,
+                    }}
+                  >
+                    {votanteData?.fechaEmision || "-"}
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    backgroundColor: "#e8f5e9",
+                    borderRadius: "8px",
+                    padding: "20px",
+                    border: "2px solid #4caf50",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#2e7d32",
+                      marginBottom: "8px",
+                      textTransform: "uppercase",
+                      fontWeight: "600",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Estado
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      color: "#2e7d32",
+                      margin: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <span style={{ fontSize: "1.5rem" }}>✓</span>
+                    VOTO REGISTRADO
+                  </p>
                 </div>
               </div>
             </div>
-            
-            {/* Derecha - Información del votante */}
-            <div style={{
-              flex: '1',
-              backgroundColor: '#fff',
-              borderRadius: '5px',
-              padding: '20px',
-              textAlign: 'left',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <h2 style={{
-                fontSize: '1.2rem',
-                marginBottom: '8px',
-                fontWeight: 'bold',
-                color: '#333'
-              }}>
-                República de Bolivia
-              </h2>
-              
-              <p style={{
-                fontSize: '0.8rem',
-                color: '#666',
-                marginBottom: '20px'
-              }}>
-                Órgano Electoral Plurinacional
+
+            {/* Pie de página */}
+            <div
+              style={{
+                borderTop: "2px solid #e0e0e0",
+                paddingTop: "20px",
+                textAlign: "center",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "0.75rem",
+                  color: "#999",
+                  margin: 0,
+                  lineHeight: "1.5",
+                }}
+              >
+                Este documento certifica que el ciudadano arriba mencionado ha
+                ejercido su derecho al voto
+                <br />
+                en las elecciones realizadas en la fecha indicada, de acuerdo a
+                la Constitución Política del Estado.
               </p>
-              
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: '10px'
-              }}>
-                <div style={{width: '50%'}}>
-                  <p style={{
-                    fontSize: '0.7rem',
-                    color: '#888',
-                    marginBottom: '3px'
-                  }}>
-                    Nombre Completo
-                  </p>
-                  <p style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold'
-                  }}>
-                    {votanteData?.nombreCompleto || '-'}
-                  </p>
-                </div>
-                <div>
-                  <p style={{
-                    fontSize: '0.7rem',
-                    color: '#888',
-                    marginBottom: '3px'
-                  }}>
-                    Cédula de Identidad
-                  </p>
-                  <p style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold'
-                  }}>
-                    {votanteData?.cedulaIdentidad || '-'}
-                  </p>
-                </div>
-              </div>
-              
-              <div style={{
-                marginBottom: '10px'
-              }}>
-                <p style={{
-                  fontSize: '0.7rem',
-                  color: '#888',
-                  marginBottom: '3px'
-                }}>
-                  Lugar de Votación
-                </p>
-                <p style={{
-                  fontSize: '0.9rem',
-                  fontWeight: 'bold'
-                }}>
-                  {votanteData?.lugarVotacion || '-'}
-                </p>
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: '10px',
-                marginTop: 'auto'
-              }}>
-                <div>
-                  <p style={{
-                    fontSize: '0.7rem',
-                    color: '#888',
-                    marginBottom: '3px'
-                  }}>
-                    Mesa de Sufragio
-                  </p>
-                  <p style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold'
-                  }}>
-                    {votanteData?.mesaSufragio || '-'}
-                  </p>
-                </div>
-                <div>
-                  <p style={{
-                    fontSize: '0.7rem',
-                    color: '#888',
-                    marginBottom: '3px'
-                  }}>
-                    Fecha de Emisión
-                  </p>
-                  <p style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold'
-                  }}>
-                    {votanteData?.fechaEmision || '-'}
-                  </p>
-                </div>
-              </div>
+              <p
+                style={{
+                  fontSize: "0.7rem",
+                  color: "#ccc",
+                  marginTop: "10px",
+                  fontFamily: "monospace",
+                  letterSpacing: "1px",
+                }}
+              >
+                ID: {votanteData?.cedulaIdentidad}-{new Date().getFullYear()}
+              </p>
             </div>
           </div>
         </div>
-        
+
         {/* Botón de descarga */}
-        <button style={{
-          backgroundColor: '#dc2626',
-          color: 'white',
-          padding: '10px 20px',
-          border: 'none',
-          borderRadius: '4px',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto'
-        }}>
-          <span style={{
-            marginRight: '8px',
-            fontSize: '18px',
-            lineHeight: '1'
-          }}>⬇</span>
-          Descargar Carnet
+        <button
+          onClick={handleDownloadPDF}
+          disabled={isDownloading}
+          style={{
+            backgroundColor: isDownloading ? "#999" : "#dc2626",
+            color: "white",
+            padding: "14px 30px",
+            border: "none",
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: "bold",
+            cursor: isDownloading ? "not-allowed" : "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            transition: "all 0.3s ease",
+            transform: isDownloading ? "scale(0.98)" : "scale(1)",
+          }}
+          onMouseEnter={(e) => {
+            if (!isDownloading) {
+              e.target.style.backgroundColor = "#b91c1c";
+              e.target.style.transform = "scale(1.05)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isDownloading) {
+              e.target.style.backgroundColor = "#dc2626";
+              e.target.style.transform = "scale(1)";
+            }
+          }}
+        >
+          <span
+            style={{
+              fontSize: "20px",
+              lineHeight: "1",
+            }}
+          >
+            {isDownloading ? "⏳" : "📥"}
+          </span>
+          {isDownloading ? "Generando PDF..." : "Descargar Carnet en PDF"}
         </button>
+
+        <p
+          style={{
+            fontSize: "0.85rem",
+            color: "#666",
+            marginTop: "15px",
+          }}
+        >
+          El carnet se descargará en formato PDF
+        </p>
       </div>
     </div>
   );
