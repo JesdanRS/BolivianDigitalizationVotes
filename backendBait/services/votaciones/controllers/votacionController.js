@@ -161,18 +161,46 @@ const obtenerResultados = async (req, res) => {
 const obtenerEstadisticas = async (req, res) => {
     try {
         const totalCandidatos = await Candidato.countDocuments({ activo: true });
-        const totalVotos = await Voto.countDocuments();
+        const totalVotos = await Voto.countDocuments({ validado: true });
+        const totalVotosNulos = await Voto.countDocuments({ validado: false });
         const candidatoLider = await Candidato.findOne({ activo: true }).sort({ votos: -1 });
+
+        // Obtener todos los candidatos con sus votos
+        const candidatos = await Candidato.find({ activo: true })
+            .select('nombre votos')
+            .sort({ votos: -1 });
+
+        // Calcular total de votos válidos (suma de votos de todos los candidatos)
+        const totalVotosValidos = candidatos.reduce((sum, c) => sum + c.votos, 0);
+
+        // Simular mesas escrutadas (puedes ajustar esto según tu lógica)
+        const mesasTotal = 1560;
+        const mesasEscrutadas = Math.min(mesasTotal, Math.floor((totalVotos / 10) + 50));
+
+        // Calcular participación (simulada como porcentaje)
+        const votantesEsperados = mesasTotal * 10; // ~10 votos por mesa esperados
+        const participacion = ((totalVotos / votantesEsperados) * 100).toFixed(1);
 
         res.status(200).json({
             success: true,
             data: {
                 totalCandidatos,
                 totalVotos,
+                votosValidos: totalVotosValidos,
+                votosNulos: totalVotosNulos,
+                participacion: parseFloat(participacion),
+                mesasEscrutadas,
+                mesasTotal,
                 candidatoLider: candidatoLider ? {
                     nombre: candidatoLider.nombre,
                     votos: candidatoLider.votos
-                } : null
+                } : null,
+                distribucionVotos: candidatos.map(c => ({
+                    nombre: c.nombre,
+                    votos: c.votos,
+                    porcentaje: totalVotosValidos > 0 ?
+                        ((c.votos / totalVotosValidos) * 100).toFixed(2) : 0
+                }))
             }
         });
     } catch (error) {
