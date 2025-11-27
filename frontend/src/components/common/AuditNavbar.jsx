@@ -1,5 +1,7 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { logout } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 
 const Item = ({ to, label }) => {
   const { pathname } = useLocation();
@@ -18,6 +20,15 @@ const Item = ({ to, label }) => {
 };
 
 const AuditNavbar = () => {
+  const navigate = useNavigate();
+  const { logout: authLogout } = useAuth();
+  
+  const handleLogout = () => {
+    logout();
+    authLogout();
+    navigate('/login');
+  };
+  
   return (
     <nav style={{
       display:'flex',justifyContent:'space-between',alignItems:'center',
@@ -38,18 +49,22 @@ const AuditNavbar = () => {
       <div style={{display:'flex',alignItems:'center',gap:10}}>
         <span style={{fontSize:12,color:'#6b7280'}}>Auditor</span>
         <div style={{width:32,height:32,borderRadius:'50%',background:'#c7d2fe'}} />
-        <Link to="/login" style={{
-          backgroundColor: '#dc2626',
-          color: 'white',
-          padding: '5px 10px',
-          borderRadius: '4px',
-          textDecoration: 'none',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          marginLeft: '10px'
-        }}>
+        <button 
+          onClick={handleLogout}
+          style={{
+            backgroundColor: '#dc2626',
+            color: 'white',
+            padding: '5px 10px',
+            borderRadius: '4px',
+            border: 'none',
+            textDecoration: 'none',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            marginLeft: '10px',
+            cursor: 'pointer'
+          }}>
           Cerrar Sesión
-        </Link>
+        </button>
       </div>
     </nav>
   );

@@ -167,7 +167,8 @@ const EmailVerificationModal = ({
               cursor: 'pointer',
               marginTop: '20px',
             }}
-            onClick={() => onVerify("123456")} // Esto es temporal para asegurar que funcione
+            // Verificar solo si el código está completo
+            disabled={code.some(digit => digit === '')}
           >
             Verificar
           </button>
