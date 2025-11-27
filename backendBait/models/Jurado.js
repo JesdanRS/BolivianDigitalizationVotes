@@ -33,6 +33,10 @@ const juradoSchema = new mongoose.Schema({
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Por favor ingresa un correo válido']
   },
+  password: {
+    type: String,
+    required: [true, 'La contraseña es requerida']
+  },
   haVotado: {
     type: Boolean,
     default: false
@@ -41,12 +45,12 @@ const juradoSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  rol: {
+  role: {
     type: String,
-    default: 'jurados'
+    default: 'jurado'
   }
 }, {
-  collection: 'jurados',
+  collection: 'administradors',
   timestamps: true
 });
 
@@ -70,7 +74,7 @@ juradoSchema.methods.toDTO = function() {
     correo: this.correo,
     haVotado: this.haVotado,
     estado: this.estado,
-    rol: this.rol
+    role: this.role
   };
 };
 
@@ -86,4 +90,4 @@ juradoSchema.methods.cambiarEstado = function(nuevoEstado) {
   return this.save();
 };
 
-module.exports = mongoose.model('Jurado', juradoSchema);
+module.exports = mongoose.models.Jurado || mongoose.model('Jurado', juradoSchema);

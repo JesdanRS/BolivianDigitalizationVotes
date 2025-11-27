@@ -46,7 +46,7 @@ const poblacionSchema = new mongoose.Schema({
     default: 'poblacion'
   }
 }, {
-  collection: 'poblacion',
+  collection: 'votantes',
   timestamps: true
 });
 
@@ -86,4 +86,4 @@ poblacionSchema.methods.cambiarEstado = function(nuevoEstado) {
   return this.save();
 };
 
-module.exports = mongoose.model('Poblacion', poblacionSchema, 'votantes');
+module.exports = mongoose.models.Poblacion || mongoose.model('Poblacion', poblacionSchema);

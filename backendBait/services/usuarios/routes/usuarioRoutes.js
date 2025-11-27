@@ -1,57 +1,49 @@
 // services/usuarios/routes/usuarioRoutes.js
-// Rutas para gestionar usuarios de la colección administradors
+// Rutas para gestionar usuarios de diferentes roles con múltiples colecciones
 
 const express = require('express');
 const router = express.Router();
 const usuarioController = require('../controllers/usuarioController');
 
 /**
- * Rutas de usuarios
- * Nota: :rol es un parámetro que se ignora, todos los usuarios vienen de la colección administradors
+ * Rutas de usuarios por rol
+ * Colecciones:
+ * - poblacion -> colección 'votantes'
+ * - jurados -> colección 'administradors'
+ * - administradores -> colección 'administradors'
  */
 
-// Obtener usuarios
-router.get('/', usuarioController.obtenerUsuariosPorRol);
+// Obtener usuarios por rol
 router.get('/:rol', usuarioController.obtenerUsuariosPorRol);
 
-// Obtener estadísticas
-router.get('/estadisticas', usuarioController.obtenerEstadisticas);
+// Obtener estadísticas por rol
 router.get('/:rol/estadisticas', usuarioController.obtenerEstadisticas);
 
-// Exportar usuarios a CSV
-router.get('/export', usuarioController.exportarUsuarios);
+// Exportar usuarios a CSV por rol
 router.get('/:rol/export', usuarioController.exportarUsuarios);
 
-// Obtener usuario por carnet
-router.get('/carnet/:carnet', usuarioController.obtenerPorCarnet);
+// Obtener usuario por carnet en un rol
 router.get('/:rol/carnet/:carnet', usuarioController.obtenerPorCarnet);
 
-// Obtener usuario por ID
-router.get('/:id', usuarioController.obtenerUsuarioPorId);
+// Obtener usuario por ID en un rol
 router.get('/:rol/:id', usuarioController.obtenerUsuarioPorId);
 
-// Crear usuario
-router.post('/', usuarioController.crearUsuario);
+// Crear usuario en un rol
 router.post('/:rol', usuarioController.crearUsuario);
 
-// Importar usuarios desde CSV
-router.post('/import', usuarioController.importarCSV);
+// Importar usuarios desde CSV en un rol
 router.post('/:rol/import', usuarioController.importarCSV);
 
 // Actualizar usuario
-router.put('/:id', usuarioController.actualizarUsuario);
 router.put('/:rol/:id', usuarioController.actualizarUsuario);
 
 // Cambiar estado del usuario
-router.patch('/:id/estado', usuarioController.cambiarEstadoUsuario);
 router.patch('/:rol/:id/estado', usuarioController.cambiarEstadoUsuario);
 
 // Marcar como votado
-router.patch('/:id/votar', usuarioController.marcarComoVotado);
 router.patch('/:rol/:id/votar', usuarioController.marcarComoVotado);
 
 // Eliminar usuario
-router.delete('/:id', usuarioController.eliminarUsuario);
 router.delete('/:rol/:id', usuarioController.eliminarUsuario);
 
 module.exports = router;
