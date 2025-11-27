@@ -110,12 +110,39 @@ const Votacion = () => {
     async function startCameraAndDetection() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+
+        if (cancelled) return;
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          await videoRef.current.play();
+
+          // Esperar a que el video esté listo antes de reproducir
+          videoRef.current.onloadedmetadata = async () => {
+            if (cancelled || !videoRef.current) return;
+
+            try {
+              await videoRef.current.play();
+              setCameraActive(true);
+              setErrorCamara(null);
+            } catch (playError) {
+              console.warn('Error al reproducir video:', playError);
+              // Intentar de nuevo después de un breve delay
+              setTimeout(async () => {
+                if (videoRef.current && !cancelled) {
+                  try {
+                    await videoRef.current.play();
+                    setCameraActive(true);
+                    setErrorCamara(null);
+                  } catch (retryError) {
+                    console.error('No se pudo iniciar el video:', retryError);
+                    setErrorCamara('No se pudo activar la cámara.');
+                    setCameraActive(false);
+                  }
+                }
+              }, 100);
+            }
+          };
         }
-        setCameraActive(true);
-        setErrorCamara(null);
 
         model = await blazeface.load();
 
