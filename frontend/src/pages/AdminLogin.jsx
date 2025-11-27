@@ -112,7 +112,6 @@ const AdminLogin = () => {
         // 10) Pedir token técnico a Keycloak y redirigir según rol
         if (role === 'auditor') {
           await loginWithKeycloak('AUDITOR');
-          await loginWithKeycloak('ADMIN');
           navigate('/auditoria');
 
         } else if (role === 'admin') {
