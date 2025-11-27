@@ -27,7 +27,7 @@ const candidatosData = [
         nombre: 'MAS',
         descripcion: 'Movimiento Al Socialismo, partido político de izquierda que promueve el socialismo del siglo XXI y los derechos indígenas.',
         partido: 'Movimiento Al Socialismo',
-        imagen: 'mas.png',
+        imagen: 'mas.jpeg',
         votos: 0,
         activo: true
     },
@@ -35,7 +35,7 @@ const candidatosData = [
         nombre: 'CC',
         descripcion: 'Comunidad Ciudadana, partido de centro-derecha que busca modernizar Bolivia con políticas transparentes y democráticas.',
         partido: 'Comunidad Ciudadana',
-        imagen: 'cc.png',
+        imagen: 'cc.jpg',
         votos: 0,
         activo: true
     },

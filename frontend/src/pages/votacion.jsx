@@ -5,8 +5,12 @@ import CandidatoCard from '../components/voting/CandidatoCard';
 import Navbar from '../components/common/Navbar';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import SecurityModal from '../components/common/SecurityModal';
+import SuccessModal from '../components/common/SuccessModal';
 import candidatoA from '../assets/images/paz.png';
 import candidatoB from '../assets/images/tuto.png';
+import imagenCC from '../assets/images/cc.jpg';
+import imagenCreemos from '../assets/images/creemos.png';
+import imagenMAS from '../assets/images/mas.jpeg';
 import * as tf from '@tensorflow/tfjs';
 import * as blazeface from '@tensorflow-models/blazeface';
 
@@ -17,6 +21,11 @@ const API_BASE_URL = 'http://localhost:5000/api/votaciones';
 const imagenesLocales = {
   'paz.png': candidatoA,
   'tuto.png': candidatoB,
+  'cc.png': imagenCC,
+  'cc.jpg': imagenCC,
+  'creemos.png': imagenCreemos,
+  'mas.png': imagenMAS,
+  'mas.jpeg': imagenMAS,
 };
 
 const Votacion = () => {
@@ -25,6 +34,7 @@ const Votacion = () => {
   const [errorBackend, setErrorBackend] = useState(null);
   const [votoSeleccionado, setVotoSeleccionado] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [candidatoSeleccionado, setCandidatoSeleccionado] = useState(null);
   const [securityBlocked, setSecurityBlocked] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
@@ -186,7 +196,7 @@ const Votacion = () => {
 
       if (data.success) {
         setVotoSeleccionado(candidatoSeleccionado.id);
-        alert(`✅ ¡Voto registrado exitosamente para ${candidatoSeleccionado.nombre}!\n\nTotal de votos: ${data.data.totalVotos}`);
+        setSuccessModalOpen(true);
         console.log('✅ Voto registrado:', data);
       } else {
         throw new Error(data.message || 'Error al registrar el voto');
@@ -293,6 +303,12 @@ const Votacion = () => {
         onClose={() => setModalOpen(false)}
         onConfirm={confirmarVoto}
         candidato={candidatoSeleccionado}
+      />
+
+      {/* Modal de éxito */}
+      <SuccessModal
+        isOpen={successModalOpen}
+        onClose={() => setSuccessModalOpen(false)}
       />
     </div>
   );

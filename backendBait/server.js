@@ -19,7 +19,7 @@ app.use(helmet());
 
 // CORS - Permitir peticiones desde el frontend
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'], // Ajusta según tu puerto del frontend
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'], // Ajusta según tu puerto del frontend
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
