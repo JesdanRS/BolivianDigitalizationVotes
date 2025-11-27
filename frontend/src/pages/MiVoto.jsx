@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../components/common/Navbar";
 import { useAuth } from "../context/AuthContext";
-import { getUserDisplayData } from "../services/authService";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -13,11 +12,19 @@ const MiVoto = () => {
 
   useEffect(() => {
     if (user && user.role === "usuario") {
-      // Obtener datos del usuario para mostrar en el carnet
-      const userData = getUserDisplayData(user.carnet);
-      if (userData) {
-        setVotanteData(userData);
-      }
+      // Formatear datos del usuario para el carnet
+      const formattedData = {
+        nombreCompleto: user.nombre || "Usuario",
+        cedulaIdentidad: user.carnet || "N/A",
+        lugarVotacion: "Recinto Electoral Asignado",
+        mesaSufragio: Math.floor(Math.random() * 100) + 1,
+        fechaEmision: new Date().toLocaleDateString("es-BO", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }),
+      };
+      setVotanteData(formattedData);
     }
   }, [user]);
 
@@ -30,7 +37,7 @@ const MiVoto = () => {
     try {
       // Configurar html2canvas para mejor calidad
       const canvas = await html2canvas(carnetRef.current, {
-        scale: 2, // Mayor escala para mejor calidad
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
@@ -45,7 +52,7 @@ const MiVoto = () => {
       });
 
       // Calcular dimensiones para centrar la imagen en el PDF
-      const imgWidth = 280; // ancho en mm
+      const imgWidth = 280;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       const x = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
       const y = (pdf.internal.pageSize.getHeight() - imgHeight) / 2;
