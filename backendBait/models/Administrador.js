@@ -1,6 +1,6 @@
 // models/Administrador.js
 // Modelo de Administrador para MongoDB usando Mongoose
-// Colección: administradores
+// Colección: administradors
 
 const mongoose = require('mongoose');
 
@@ -33,6 +33,10 @@ const administradorSchema = new mongoose.Schema({
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Por favor ingresa un correo válido']
   },
+  password: {
+    type: String,
+    required: [true, 'La contraseña es requerida']
+  },
   haVotado: {
     type: Boolean,
     default: false
@@ -41,12 +45,12 @@ const administradorSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  rol: {
+  role: {
     type: String,
-    default: 'administradores'
+    default: 'admin'
   }
 }, {
-  collection: 'administradores',
+  collection: 'administradors',
   timestamps: true
 });
 
@@ -70,7 +74,7 @@ administradorSchema.methods.toDTO = function() {
     correo: this.correo,
     haVotado: this.haVotado,
     estado: this.estado,
-    rol: this.rol
+    role: this.role
   };
 };
 
@@ -86,4 +90,7 @@ administradorSchema.methods.cambiarEstado = function(nuevoEstado) {
   return this.save();
 };
 
-module.exports = mongoose.model('Administrador', administradorSchema);
+// 🔥 Solución al OverwriteModelError
+module.exports =
+  mongoose.models.Administrador ||
+  mongoose.model('Administrador', administradorSchema);

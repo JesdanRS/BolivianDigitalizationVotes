@@ -1,24 +1,7 @@
 // services/usuarios/controllers/usuarioController.js
-// Controlador para gestionar usuarios de tres roles: jurados, administradores, población
+// Controlador para gestionar usuarios de la colección administradors
 
-const Poblacion = require('../../../models/Poblacion');
-const Jurado = require('../../../models/Jurado');
 const Administrador = require('../../../models/Administrador');
-
-// Mapeo de modelos según el rol
-const modelosPorRol = {
-  poblacion: Poblacion,
-  jurados: Jurado,
-  administradores: Administrador
-};
-
-// Función auxiliar para obtener el modelo correcto
-const obtenerModelo = (rol) => {
-  if (!modelosPorRol[rol]) {
-    throw new Error(`Rol inválido: ${rol}. Debe ser: poblacion, jurados, administradores`);
-  }
-  return modelosPorRol[rol];
-};
 
 /**
  * Obtener usuarios por rol
@@ -26,10 +9,8 @@ const obtenerModelo = (rol) => {
  */
 exports.obtenerUsuariosPorRol = async (req, res) => {
   try {
-    const { rol } = req.params;
     const { estado, pagina = 1, limite = 10 } = req.query;
 
-    const Modelo = obtenerModelo(rol);
     const filtro = {};
 
     if (estado !== undefined) {
@@ -37,12 +18,12 @@ exports.obtenerUsuariosPorRol = async (req, res) => {
     }
 
     const skip = (pagina - 1) * limite;
-    const usuarios = await Modelo.find(filtro)
+    const usuarios = await Administrador.find(filtro)
       .skip(skip)
       .limit(parseInt(limite))
       .sort({ createdAt: -1 });
 
-    const total = await Modelo.countDocuments(filtro);
+    const total = await Administrador.countDocuments(filtro);
 
     res.status(200).json({
       exito: true,
@@ -66,10 +47,9 @@ exports.obtenerUsuariosPorRol = async (req, res) => {
  */
 exports.obtenerUsuarioPorId = async (req, res) => {
   try {
-    const { rol, id } = req.params;
-    const Modelo = obtenerModelo(rol);
+    const { id } = req.params;
 
-    const usuario = await Modelo.findById(id);
+    const usuario = await Administrador.findById(id);
     if (!usuario) {
       return res.status(404).json({
         exito: false,
@@ -96,10 +76,9 @@ exports.obtenerUsuarioPorId = async (req, res) => {
  */
 exports.obtenerPorCarnet = async (req, res) => {
   try {
-    const { rol, carnet } = req.params;
-    const Modelo = obtenerModelo(rol);
+    const { carnet } = req.params;
 
-    const usuario = await Modelo.findOne({ carnet });
+    const usuario = await Administrador.findOne({ carnet });
     if (!usuario) {
       return res.status(404).json({
         exito: false,
@@ -126,21 +105,18 @@ exports.obtenerPorCarnet = async (req, res) => {
  */
 exports.crearUsuario = async (req, res) => {
   try {
-    const { rol } = req.params;
-    const { nombre, carnet, fechaNacimiento, correo } = req.body;
+    const { nombre, carnet, fechaNacimiento, correo, password } = req.body;
 
     // Validaciones
-    if (!nombre || !carnet || !fechaNacimiento || !correo) {
+    if (!nombre || !carnet || !fechaNacimiento || !correo || !password) {
       return res.status(400).json({
         exito: false,
-        error: 'Faltan campos requeridos: nombre, carnet, fechaNacimiento, correo'
+        error: 'Faltan campos requeridos: nombre, carnet, fechaNacimiento, correo, password'
       });
     }
 
-    const Modelo = obtenerModelo(rol);
-
     // Verificar duplicados
-    const existente = await Modelo.findOne({
+    const existente = await Administrador.findOne({
       $or: [{ carnet }, { correo: correo.toLowerCase() }]
     });
 
@@ -151,15 +127,15 @@ exports.crearUsuario = async (req, res) => {
       });
     }
 
-    // Crear usuario
-    const usuario = new Modelo({
+    // Crear nuevo usuario
+    const usuario = new Administrador({
       nombre: nombre.trim(),
       carnet: carnet.trim(),
       fechaNacimiento: fechaNacimiento.trim(),
       correo: correo.toLowerCase().trim(),
+      password: password,
       haVotado: false,
-      estado: true,
-      rol
+      estado: true
     });
 
     await usuario.save();
@@ -167,7 +143,7 @@ exports.crearUsuario = async (req, res) => {
     res.status(201).json({
       exito: true,
       usuario: usuario.toDTO(),
-      mensaje: `${rol.charAt(0).toUpperCase() + rol.slice(1)} creado exitosamente`
+      mensaje: 'Usuario creado exitosamente'
     });
   } catch (error) {
     console.error('Error al crear usuario:', error);
@@ -184,11 +160,10 @@ exports.crearUsuario = async (req, res) => {
  */
 exports.actualizarUsuario = async (req, res) => {
   try {
-    const { rol, id } = req.params;
+    const { id } = req.params;
     const { nombre, carnet, fechaNacimiento, correo } = req.body;
 
-    const Modelo = obtenerModelo(rol);
-    const usuario = await Modelo.findById(id);
+    const usuario = await Administrador.findById(id);
 
     if (!usuario) {
       return res.status(404).json({
@@ -199,7 +174,7 @@ exports.actualizarUsuario = async (req, res) => {
 
     // Verificar duplicados de carnet y correo
     if (carnet && carnet !== usuario.carnet) {
-      const existente = await Modelo.findOne({ carnet });
+      const existente = await Administrador.findOne({ carnet });
       if (existente) {
         return res.status(409).json({
           exito: false,
@@ -209,7 +184,7 @@ exports.actualizarUsuario = async (req, res) => {
     }
 
     if (correo && correo.toLowerCase() !== usuario.correo) {
-      const existente = await Modelo.findOne({ correo: correo.toLowerCase() });
+      const existente = await Administrador.findOne({ correo: correo.toLowerCase() });
       if (existente) {
         return res.status(409).json({
           exito: false,
@@ -246,7 +221,7 @@ exports.actualizarUsuario = async (req, res) => {
  */
 exports.cambiarEstadoUsuario = async (req, res) => {
   try {
-    const { rol, id } = req.params;
+    const { id } = req.params;
     const { estado } = req.body;
 
     if (estado === undefined) {
@@ -256,8 +231,7 @@ exports.cambiarEstadoUsuario = async (req, res) => {
       });
     }
 
-    const Modelo = obtenerModelo(rol);
-    const usuario = await Modelo.findById(id);
+    const usuario = await Administrador.findById(id);
 
     if (!usuario) {
       return res.status(404).json({
@@ -288,10 +262,9 @@ exports.cambiarEstadoUsuario = async (req, res) => {
  */
 exports.marcarComoVotado = async (req, res) => {
   try {
-    const { rol, id } = req.params;
-    const Modelo = obtenerModelo(rol);
+    const { id } = req.params;
 
-    const usuario = await Modelo.findById(id);
+    const usuario = await Administrador.findById(id);
 
     if (!usuario) {
       return res.status(404).json({
@@ -329,10 +302,9 @@ exports.marcarComoVotado = async (req, res) => {
  */
 exports.eliminarUsuario = async (req, res) => {
   try {
-    const { rol, id } = req.params;
-    const Modelo = obtenerModelo(rol);
+    const { id } = req.params;
 
-    const usuario = await Modelo.findByIdAndDelete(id);
+    const usuario = await Administrador.findByIdAndDelete(id);
 
     if (!usuario) {
       return res.status(404).json({
@@ -361,10 +333,7 @@ exports.eliminarUsuario = async (req, res) => {
  */
 exports.importarCSV = async (req, res) => {
   try {
-    const { rol } = req.params;
     const csvData = req.body;
-
-    const Modelo = obtenerModelo(rol);
 
     if (!csvData) {
       return res.status(400).json({
@@ -415,7 +384,7 @@ exports.importarCSV = async (req, res) => {
         }
 
         // Verificar duplicados en BD
-        const existente = await Modelo.findOne({
+        const existente = await Administrador.findOne({
           $or: [{ carnet: carnet.trim() }, { correo: correo.toLowerCase().trim() }]
         });
 
@@ -428,14 +397,14 @@ exports.importarCSV = async (req, res) => {
         }
 
         // Crear usuario
-        const usuario = new Modelo({
+        const usuario = new Administrador({
           nombre: nombre.trim(),
           carnet: carnet.trim(),
           fechaNacimiento: fechaNacimiento.trim(),
           correo: correo.toLowerCase().trim(),
+          password: '', // Se requeriría enviar contraseña
           haVotado: false,
-          estado: true,
-          rol
+          estado: true
         });
 
         await usuario.save();
@@ -471,17 +440,15 @@ exports.importarCSV = async (req, res) => {
  */
 exports.exportarUsuarios = async (req, res) => {
   try {
-    const { rol } = req.params;
     const { estado } = req.query;
 
-    const Modelo = obtenerModelo(rol);
     const filtro = {};
 
     if (estado !== undefined) {
       filtro.estado = estado === 'true';
     }
 
-    const usuarios = await Modelo.find(filtro).sort({ nombre: 1 });
+    const usuarios = await Administrador.find(filtro).sort({ nombre: 1 });
 
     if (usuarios.length === 0) {
       return res.status(404).json({
@@ -508,7 +475,7 @@ exports.exportarUsuarios = async (req, res) => {
 
     // Enviar como descarga
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="usuarios_${rol}_${new Date().toISOString().split('T')[0]}.csv"`);
+    res.setHeader('Content-Disposition', `attachment; filename="usuarios_${new Date().toISOString().split('T')[0]}.csv"`);
     res.send(csv);
   } catch (error) {
     console.error('Error al exportar usuarios:', error);
@@ -525,19 +492,15 @@ exports.exportarUsuarios = async (req, res) => {
  */
 exports.obtenerEstadisticas = async (req, res) => {
   try {
-    const { rol } = req.params;
-    const Modelo = obtenerModelo(rol);
-
-    const total = await Modelo.countDocuments();
-    const activos = await Modelo.countDocuments({ estado: true });
-    const inactivos = await Modelo.countDocuments({ estado: false });
-    const hanVotado = await Modelo.countDocuments({ haVotado: true });
-    const noHanVotado = await Modelo.countDocuments({ haVotado: false });
+    const total = await Administrador.countDocuments();
+    const activos = await Administrador.countDocuments({ estado: true });
+    const inactivos = await Administrador.countDocuments({ estado: false });
+    const hanVotado = await Administrador.countDocuments({ haVotado: true });
+    const noHanVotado = await Administrador.countDocuments({ haVotado: false });
 
     res.status(200).json({
       exito: true,
       estadisticas: {
-        rol,
         total,
         activos,
         inactivos,
