@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { conectarDB } = require('./conexion');
 const votacionRoutes = require('./services/votaciones/routes/votacionRoutes');
+const authRoutes = require('./services/users/routes/authRoutes');
 
 // Crear app de Express
 const app = express();
@@ -38,13 +39,23 @@ app.get('/', (req, res) => {
         message: '🗳️ API de Votaciones - Sistema de Digitalización de Votos Bolivia',
         version: '1.0.0',
         endpoints: {
-            candidatos: '/api/votaciones/candidatos',
-            votar: '/api/votaciones/votar',
-            resultados: '/api/votaciones/resultados',
-            estadisticas: '/api/votaciones/estadisticas'
+            auth: {
+                login: '/api/auth/login',
+                verifyCode: '/api/auth/verify-code',
+                resendCode: '/api/auth/resend-code'
+            },
+            votaciones: {
+                candidatos: '/api/votaciones/candidatos',
+                votar: '/api/votaciones/votar',
+                resultados: '/api/votaciones/resultados',
+                estadisticas: '/api/votaciones/estadisticas'
+            }
         }
     });
 });
+
+// Rutas de autenticación
+app.use('/api/auth', authRoutes);
 
 // Rutas de votaciones
 app.use('/api/votaciones', votacionRoutes);

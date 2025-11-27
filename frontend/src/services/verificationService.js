@@ -1,101 +1,74 @@
-// Servicio para manejo de códigos de verificación
-import { useState } from 'react';
+// verificationService.js
+// Servicio para manejo de códigos de verificación - actualizado para usar backend
 
-// Objeto para almacenar los códigos generados (en una app real esto sería en el backend)
-const verificationCodes = {};
-
-/**
- * Genera un código de verificación de 6 dígitos para un correo electrónico
- * @param {string} email - Correo electrónico al que se enviará el código
- * @returns {string} - Código de verificación generado
- */
-export const generateVerificationCode = (email) => {
-  // Genera un código aleatorio de 6 dígitos
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  
-  // Almacena el código asociado al email (en una app real esto sería en el backend)
-  verificationCodes[email] = code;
-  
-  // Simula envío de correo electrónico (solo para prototipo)
-  console.log(`Código de verificación para ${email}: ${code}`);
-  
-  return code;
-};
+import { authAPI } from "./api";
 
 /**
- * Verifica si un código es válido para un correo electrónico
- * @param {string} email - Correo electrónico
+ * Verifica si un código es válido para un carnet
+ * @param {string} carnet - Carnet de identidad
  * @param {string} code - Código de verificación a validar
- * @returns {boolean} - true si el código es válido, false en caso contrario
+ * @returns {Promise<object>} - Resultado de la verificación
  */
-export const verifyCode = (email, code) => {
-  // Verifica si el código existe y coincide (en una app real esto sería en el backend)
-  return verificationCodes[email] === code;
+export const verifyCode = async (carnet, code) => {
+  try {
+    const response = await authAPI.verifyCode(carnet, code);
+
+    if (response.success) {
+      return {
+        success: true,
+        user: response.data.user,
+      };
+    }
+
+    return { success: false };
+  } catch (error) {
+    console.error("Error al verificar código:", error);
+    return {
+      success: false,
+      error: error.message || "Código incorrecto",
+    };
+  }
 };
 
 /**
- * Simula el envío de un correo electrónico con el código de verificación
- * @param {string} email - Correo electrónico al que enviar el código
- * @returns {Promise<string>} - Promesa que se resuelve con el código enviado
+ * Envía un código de verificación por correo electrónico
+ * @param {string} carnet - Carnet de identidad
+ * @returns {Promise<object>} - Resultado del envío
  */
-export const sendVerificationEmail = async (email) => {
-  // Genera un nuevo código de verificación
-  const code = generateVerificationCode(email);
-  
-  // Simula retardo del envío de correo
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // En una app real, aquí se enviaría el correo mediante una API
-      console.log(`✉️ Correo enviado a ${email} con código: ${code}`);
-      
-      // Muestra el código en un alert para facilitar las pruebas
-      alert(`Código de verificación enviado: ${code}\n(Este alert es solo para la demo)`);
-      
-      resolve(code);
-    }, 1000); // Retardo de 1 segundo para simular envío
-  });
+export const sendVerificationEmail = async (carnet) => {
+  try {
+    const response = await authAPI.resendCode(carnet);
+
+    if (response.success) {
+      return {
+        success: true,
+        emailOculto: response.data.emailOculto,
+      };
+    }
+
+    return { success: false };
+  } catch (error) {
+    console.error("Error al enviar código:", error);
+    throw new Error(
+      error.message || "Error al enviar el código de verificación"
+    );
+  }
 };
 
 /**
  * Hook personalizado para manejar la verificación en dos pasos
- * @returns {Object} - Objeto con funciones y estado para la verificación
+ * Este hook ya no es necesario con el backend, pero se mantiene por compatibilidad
  */
 export const useTwoFactorAuth = () => {
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [currentEmail, setCurrentEmail] = useState('');
-  
-  const startVerification = async (email) => {
-    setCurrentEmail(email);
-    setIsVerifying(true);
-    await sendVerificationEmail(email);
-    return true;
-  };
-  
-  const checkVerification = (code) => {
-    const isValid = verifyCode(currentEmail, code);
-    if (isValid) {
-      setIsVerifying(false);
-    }
-    return isValid;
-  };
-  
-  const cancelVerification = () => {
-    setIsVerifying(false);
-    setCurrentEmail('');
-  };
-  
-  const resendCode = async () => {
-    if (currentEmail) {
-      return await sendVerificationEmail(currentEmail);
-    }
-    return null;
-  };
-  
+  console.warn(
+    "useTwoFactorAuth está deprecado. Usa las funciones directas de authService."
+  );
+
   return {
-    isVerifying,
-    startVerification,
-    checkVerification,
-    cancelVerification,
-    resendCode
+    isVerifying: false,
+    startVerification: async () => true,
+    checkVerification: async () => false,
+    cancelVerification: () => {},
+    resendCode: async () => null,
   };
 };
