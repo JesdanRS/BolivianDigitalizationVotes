@@ -1,6 +1,85 @@
-// Servicio de gestión de usuarios
+import apiClient, { handleApiError } from './api';
 
-// Estado inicial de usuarios por rol
+/**
+ * Servicio para gestión de usuarios
+ * Base URL: /api/usuarios
+ */
+
+/**
+ * Autentica un usuario
+ * @param {Object} loginData - Datos de login { carnet, fechaNacimiento }
+ * @returns {Promise<Object>} Datos del usuario autenticado
+ */
+export const login = async (loginData) => {
+  try {
+    const response = await apiClient.post('/api/usuarios/login', loginData);
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Solicita un código de verificación por correo
+ * @param {string} carnet - Número de carnet del usuario
+ * @returns {Promise<void>}
+ */
+export const solicitarCodigo = async (carnet) => {
+  try {
+    const response = await apiClient.post(`/api/usuarios/${carnet}/solicitar-codigo`);
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Verifica el código enviado al correo
+ * @param {string} carnet - Número de carnet del usuario
+ * @param {string} codigo - Código de verificación
+ * @returns {Promise<void>}
+ */
+export const verificarCodigo = async (carnet, codigo) => {
+  try {
+    const response = await apiClient.post(`/api/usuarios/${carnet}/verificar-codigo`, { codigo });
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Obtiene el perfil de un usuario por ID
+ * @param {number} id - ID del usuario
+ * @returns {Promise<Object>} Datos del perfil del usuario
+ */
+export const obtenerPerfil = async (id) => {
+  try {
+    const response = await apiClient.get(`/api/usuarios/perfil/${id}`);
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Carga masiva de usuarios (requiere rol ADMIN)
+ * @param {Array} usuarios - Lista de usuarios a cargar
+ * @returns {Promise<string>} Mensaje de confirmación
+ */
+export const cargaMasiva = async (usuarios) => {
+  try {
+    const response = await apiClient.post('/api/usuarios/carga-masiva', usuarios);
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// ========== Funciones locales para gestión de usuarios (complementarias) ==========
+// Estas funciones mantienen compatibilidad con el sistema actual del frontend
+
+// Estado inicial de usuarios por rol (locales)
 const initialUsers = {
   jurados: [
     { id: 1, carnet: '8812438', nombre: 'Juan Carlos Rojas', email: 'juan.rojas@example.com', estado: true },
@@ -153,7 +232,7 @@ export const descargarPlantillaCSV = (rol) => {
 export const exportarUsuariosCSV = (rol) => {
   const usuarios = getUsersByRole(rol);
   let contenido = 'ID,Carnet,Nombre,Email,Estado\n';
-  
+
   usuarios.forEach(u => {
     contenido += `${u.id},${u.carnet},${u.nombre},${u.email},${u.estado ? 'Activo' : 'Inactivo'}\n`;
   });

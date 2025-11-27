@@ -12,13 +12,13 @@ const verificationCodes = {};
 export const generateVerificationCode = (email) => {
   // Genera un código aleatorio de 6 dígitos
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  
+
   // Almacena el código asociado al email (en una app real esto sería en el backend)
   verificationCodes[email] = code;
-  
+
   // Simula envío de correo electrónico (solo para prototipo)
   console.log(`Código de verificación para ${email}: ${code}`);
-  
+
   return code;
 };
 
@@ -41,16 +41,16 @@ export const verifyCode = (email, code) => {
 export const sendVerificationEmail = async (email) => {
   // Genera un nuevo código de verificación
   const code = generateVerificationCode(email);
-  
+
   // Simula retardo del envío de correo
   return new Promise((resolve) => {
     setTimeout(() => {
       // En una app real, aquí se enviaría el correo mediante una API
       console.log(`✉️ Correo enviado a ${email} con código: ${code}`);
-      
+
       // Muestra el código en un alert para facilitar las pruebas
       alert(`Código de verificación enviado: ${code}\n(Este alert es solo para la demo)`);
-      
+
       resolve(code);
     }, 1000); // Retardo de 1 segundo para simular envío
   });
@@ -63,14 +63,14 @@ export const sendVerificationEmail = async (email) => {
 export const useTwoFactorAuth = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [currentEmail, setCurrentEmail] = useState('');
-  
+
   const startVerification = async (email) => {
     setCurrentEmail(email);
     setIsVerifying(true);
     await sendVerificationEmail(email);
     return true;
   };
-  
+
   const checkVerification = (code) => {
     const isValid = verifyCode(currentEmail, code);
     if (isValid) {
@@ -78,19 +78,19 @@ export const useTwoFactorAuth = () => {
     }
     return isValid;
   };
-  
+
   const cancelVerification = () => {
     setIsVerifying(false);
     setCurrentEmail('');
   };
-  
+
   const resendCode = async () => {
     if (currentEmail) {
       return await sendVerificationEmail(currentEmail);
     }
     return null;
   };
-  
+
   return {
     isVerifying,
     startVerification,
