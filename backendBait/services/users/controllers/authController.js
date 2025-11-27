@@ -160,6 +160,7 @@ const verifyCode = async (req, res) => {
       message: "Autenticación exitosa",
       data: {
         user: {
+          _id: votante._id,
           nombre: votante.nombre,
           carnet: votante.carnet,
           correo: votante.correo,

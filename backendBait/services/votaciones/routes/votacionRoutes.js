@@ -8,7 +8,8 @@ const {
     obtenerCandidatoPorId,
     registrarVoto,
     obtenerResultados,
-    obtenerEstadisticas
+    obtenerEstadisticas,
+    verificarEstadoVotacion
 } = require('../controllers/votacionController');
 
 /**
@@ -45,5 +46,12 @@ router.get('/resultados', obtenerResultados);
  * @access  Public
  */
 router.get('/estadisticas', obtenerEstadisticas);
+
+/**
+ * @route   GET /api/votaciones/verificar/:votanteId
+ * @desc    Verificar si un votante ya ha votado
+ * @access  Public
+ */
+router.get('/verificar/:votanteId', verificarEstadoVotacion);
 
 module.exports = router;
