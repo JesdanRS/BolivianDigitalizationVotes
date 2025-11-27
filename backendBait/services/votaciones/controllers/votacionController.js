@@ -3,6 +3,7 @@
 
 const Candidato = require('../models/Candidato');
 const Voto = require('../models/Voto');
+const Votante = require('../../users/models/votanteModel');
 
 /**
  * Obtener todos los candidatos activos
@@ -62,13 +63,39 @@ const obtenerCandidatoPorId = async (req, res) => {
  */
 const registrarVoto = async (req, res) => {
     try {
-        const { candidatoId } = req.body;
+        const { candidatoId, votanteId } = req.body;
 
         // Validar que se envió el ID del candidato
         if (!candidatoId) {
             return res.status(400).json({
                 success: false,
                 message: 'El ID del candidato es requerido'
+            });
+        }
+
+        // Validar que se envió el ID del votante
+        if (!votanteId) {
+            return res.status(400).json({
+                success: false,
+                message: 'El ID del votante es requerido. Debe iniciar sesión primero.'
+            });
+        }
+
+        // Buscar el votante
+        const votante = await Votante.findById(votanteId);
+
+        if (!votante) {
+            return res.status(404).json({
+                success: false,
+                message: 'Votante no encontrado'
+            });
+        }
+
+        // Verificar si el votante ya votó
+        if (votante.haVotado) {
+            return res.status(403).json({
+                success: false,
+                message: 'Este usuario ya ha votado. No puede votar nuevamente.'
             });
         }
 
@@ -89,10 +116,11 @@ const registrarVoto = async (req, res) => {
             });
         }
 
-        // Registrar el voto
+        // Registrar el voto con el ID del votante
         const nuevoVoto = new Voto({
             candidatoId: candidato._id,
             candidatoNombre: candidato.nombre,
+            votanteId: votante._id,
             ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
             userAgent: req.get('user-agent') || 'unknown'
         });
@@ -102,13 +130,21 @@ const registrarVoto = async (req, res) => {
         // Incrementar contador de votos del candidato
         await candidato.incrementarVoto();
 
+        // Marcar al votante como que ya votó
+        votante.haVotado = true;
+        await votante.save();
+
         res.status(201).json({
             success: true,
             message: `Voto registrado exitosamente para ${candidato.nombre}`,
             data: {
                 candidato: candidato.nombre,
                 totalVotos: candidato.votos + 1,
-                timestamp: nuevoVoto.fechaVoto
+                timestamp: nuevoVoto.fechaVoto,
+                votante: {
+                    nombre: votante.nombre,
+                    haVotado: true
+                }
             }
         });
     } catch (error) {
@@ -213,10 +249,51 @@ const obtenerEstadisticas = async (req, res) => {
     }
 };
 
+/**
+ * Verificar si un votante ya ha votado
+ */
+const verificarEstadoVotacion = async (req, res) => {
+    try {
+        const { votanteId } = req.params;
+
+        if (!votanteId) {
+            return res.status(400).json({
+                success: false,
+                message: 'El ID del votante es requerido'
+            });
+        }
+
+        const votante = await Votante.findById(votanteId);
+
+        if (!votante) {
+            return res.status(404).json({
+                success: false,
+                message: 'Votante no encontrado'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                haVotado: votante.haVotado,
+                nombre: votante.nombre
+            }
+        });
+    } catch (error) {
+        console.error('Error al verificar estado de votación:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al verificar el estado de votación',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     obtenerCandidatos,
     obtenerCandidatoPorId,
     registrarVoto,
     obtenerResultados,
-    obtenerEstadisticas
+    obtenerEstadisticas,
+    verificarEstadoVotacion
 };

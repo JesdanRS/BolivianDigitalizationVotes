@@ -55,6 +55,12 @@ export const authAPI = {
       method: "POST",
       body: JSON.stringify({ carnet }),
     }),
+
+  adminLogin: (carnet, fechaNacimiento, correo, password) =>
+    apiRequest("/auth/admin-login", {
+      method: "POST",
+      body: JSON.stringify({ carnet, fechaNacimiento, correo, password }),
+    }),
 };
 
 export default apiRequest;

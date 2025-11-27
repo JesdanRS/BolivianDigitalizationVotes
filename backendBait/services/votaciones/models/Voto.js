@@ -13,9 +13,14 @@ const votoSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    votanteId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Votante',
+        required: [true, 'El ID del votante es requerido']
+    },
     usuarioId: {
         type: String,
-        default: 'anonimo' // Por defecto si no hay autenticación
+        default: 'anonimo' // Mantener por compatibilidad
     },
     ipAddress: {
         type: String,
@@ -41,6 +46,7 @@ const votoSchema = new mongoose.Schema({
 // Índices para mejorar consultas
 votoSchema.index({ candidatoId: 1 });
 votoSchema.index({ fechaVoto: -1 });
+votoSchema.index({ votanteId: 1 });
 votoSchema.index({ usuarioId: 1 });
 
 const Voto = mongoose.model('Voto', votoSchema);

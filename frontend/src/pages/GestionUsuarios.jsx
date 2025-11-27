@@ -77,12 +77,12 @@ const EditModal = ({ isOpen, onClose, onSave, usuario, rol }) => {
   const [formData, setFormData] = useState({
     carnet: usuario?.carnet || '',
     nombre: usuario?.nombre || '',
-    email: usuario?.email || '',
+    correo: usuario?.correo || '',
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.carnet || !formData.nombre || !formData.email) {
+    if (!formData.carnet || !formData.nombre || !formData.correo) {
       alert('Por favor completa todos los campos');
       return;
     }
@@ -151,13 +151,13 @@ const EditModal = ({ isOpen, onClose, onSave, usuario, rol }) => {
             />
           </div>
           <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#4b5563', fontWeight: 500 }}>
-              Email *
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
+              Correo *
             </label>
             <input
               type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              value={formData.correo}
+              onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
               style={{
                 width: '100%',
                 padding: '8px 12px',
@@ -214,10 +214,10 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
     setCargando(true);
     const reader = new FileReader();
 
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const contenido = event.target.result;
-        const res = procesarCSV(contenido, rol);
+        const res = await procesarCSV(contenido, rol);
         setResultado(res);
         setCargando(false);
         if (res.exito && res.usuariosAgregados > 0) {
@@ -293,7 +293,7 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
                   {cargando ? 'Procesando...' : 'Haz clic o arrastra un archivo CSV'}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                  Formato: Carnet, Nombre, Email (sin encabezados o con encabezados)
+                  Formato: Carnet, Nombre, Correo (sin encabezados o con encabezados)
                 </div>
               </label>
             </div>
@@ -366,7 +366,7 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
 
             {resultado.errores && resultado.errores.length > 0 && (
               <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '0.875rem' }}>
+                <div style={{ fontWeight: '600', marginBottom: '8px', fontSize: '0.875rem' }}>
                   Errores encontrados:
                 </div>
                 <div style={{
@@ -375,11 +375,16 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
                   fontSize: '0.75rem',
                   color: '#666'
                 }}>
-                  {resultado.errores.map((error, idx) => (
-                    <div key={idx} style={{ marginBottom: '4px', padding: '4px', backgroundColor: '#f3f4f6', borderRadius: '3px' }}>
-                      {error}
-                    </div>
-                  ))}
+                  {resultado.errores.map((error, idx) => {
+                    const mensajeError = typeof error === 'string' 
+                      ? error 
+                      : `Fila ${error.fila}: ${error.razon}`;
+                    return (
+                      <div key={idx} style={{ marginBottom: '4px', padding: '4px', backgroundColor: '#f3f4f6', borderRadius: '3px' }}>
+                        {mensajeError}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -445,7 +450,7 @@ const TablaUsuarios = ({ usuarios, rol, onEditar, onEliminar, onToggleStatus }) 
           <tr style={{ background: '#f8fafc' }}>
             <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '0.875rem', color: '#4b5563', fontWeight: 600 }}>Carnet</th>
             <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '0.875rem', color: '#4b5563', fontWeight: 600 }}>Nombre</th>
-            <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '0.875rem', color: '#4b5563', fontWeight: 600 }}>Email</th>
+            <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '0.875rem', color: '#4b5563', fontWeight: 600 }}>Correo</th>
             <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '0.875rem', color: '#4b5563', fontWeight: 600 }}>Estado</th>
             <th style={{ padding: '12px 24px', textAlign: 'right', fontSize: '0.875rem', color: '#4b5563', fontWeight: 600 }}>Acciones</th>
           </tr>
@@ -462,7 +467,7 @@ const TablaUsuarios = ({ usuarios, rol, onEditar, onEliminar, onToggleStatus }) 
               <tr key={usuario.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                 <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#111827', fontFamily: 'monospace' }}>{usuario.carnet}</td>
                 <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#111827' }}>{usuario.nombre}</td>
-                <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#6b7280' }}>{usuario.email}</td>
+                <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#6b7280' }}>{usuario.correo}</td>
                 <td style={{ padding: '16px 24px' }}>
                   <button
                     onClick={() => onToggleStatus(usuario.id)}
@@ -527,7 +532,7 @@ const TablaUsuarios = ({ usuarios, rol, onEditar, onEliminar, onToggleStatus }) 
 };
 
 const GestionUsuarios = () => {
-  const [rolActivo, setRolActivo] = useState('jurados');
+  const [rolActivo, setRolActivo] = useState('poblacion');
   const [usuarios, setUsuarios] = useState({
     jurados: [],
     administradores: [],
@@ -538,16 +543,29 @@ const GestionUsuarios = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCSVModal, setShowCSVModal] = useState(false);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
   // Cargar usuarios al montar
   useEffect(() => {
-    const nuevosUsuarios = {
-      jurados: getUsersByRole('jurados'),
-      administradores: getUsersByRole('administradores'),
-      poblacion: getUsersByRole('poblacion')
-    };
-    setUsuarios(nuevosUsuarios);
-  }, []);
+    cargarUsuarios();
+  }, [rolActivo]);
+
+  const cargarUsuarios = async () => {
+    try {
+      setCargando(true);
+      const nuevosUsuarios = {
+        jurados: await getUsersByRole('jurados'),
+        administradores: await getUsersByRole('administradores'),
+        poblacion: await getUsersByRole('poblacion')
+      };
+      setUsuarios(nuevosUsuarios);
+    } catch (error) {
+      console.error('Error cargando usuarios:', error);
+      alert('Error al cargar usuarios');
+    } finally {
+      setCargando(false);
+    }
+  };
 
   const handleEditar = (usuario) => {
     setUsuarioSeleccionado(usuario);
@@ -559,40 +577,56 @@ const GestionUsuarios = () => {
     setShowDeleteModal(true);
   };
 
-  const handleConfirmDelete = () => {
-    deleteUser(usuarioSeleccionado.id, rolActivo);
-    const nuevosUsuarios = {
-      ...usuarios,
-      [rolActivo]: usuarios[rolActivo].filter(u => u.id !== usuarioSeleccionado.id)
-    };
-    setUsuarios(nuevosUsuarios);
-    setShowDeleteModal(false);
-    setUsuarioSeleccionado(null);
-  };
-
-  const handleSaveEdit = (formData) => {
-    if (usuarioSeleccionado.id) {
-      updateUser(usuarioSeleccionado.id, rolActivo, formData);
-    } else {
-      createUser(rolActivo, formData);
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteUser(usuarioSeleccionado.id, rolActivo);
+      const nuevosUsuarios = {
+        ...usuarios,
+        [rolActivo]: usuarios[rolActivo].filter(u => u.id !== usuarioSeleccionado.id)
+      };
+      setUsuarios(nuevosUsuarios);
+      setShowDeleteModal(false);
+      setUsuarioSeleccionado(null);
+    } catch (error) {
+      console.error('Error eliminando usuario:', error);
+      alert('Error al eliminar usuario: ' + error.message);
     }
-
-    const nuevosUsuarios = {
-      ...usuarios,
-      [rolActivo]: getUsersByRole(rolActivo)
-    };
-    setUsuarios(nuevosUsuarios);
-    setShowEditModal(false);
-    setUsuarioSeleccionado(null);
   };
 
-  const handleToggleStatus = (id) => {
-    toggleUserStatus(id, rolActivo);
-    const nuevosUsuarios = {
-      ...usuarios,
-      [rolActivo]: getUsersByRole(rolActivo)
-    };
-    setUsuarios(nuevosUsuarios);
+  const handleSaveEdit = async (formData) => {
+    try {
+      if (usuarioSeleccionado?.id) {
+        await updateUser(usuarioSeleccionado.id, rolActivo, formData);
+      } else {
+        await createUser(rolActivo, formData);
+      }
+
+      // Recargar usuarios del rol actual
+      const usuariosActualizados = await getUsersByRole(rolActivo);
+      setUsuarios({
+        ...usuarios,
+        [rolActivo]: usuariosActualizados
+      });
+      setShowEditModal(false);
+      setUsuarioSeleccionado(null);
+    } catch (error) {
+      console.error('Error guardando usuario:', error);
+      alert('Error al guardar usuario: ' + error.message);
+    }
+  };
+
+  const handleToggleStatus = async (id) => {
+    try {
+      await toggleUserStatus(id, rolActivo);
+      const usuariosActualizados = await getUsersByRole(rolActivo);
+      setUsuarios({
+        ...usuarios,
+        [rolActivo]: usuariosActualizados
+      });
+    } catch (error) {
+      console.error('Error cambiando estado:', error);
+      alert('Error al cambiar estado del usuario');
+    }
   };
 
   const handleAnadirUsuario = () => {
@@ -600,12 +634,16 @@ const GestionUsuarios = () => {
     setShowEditModal(true);
   };
 
-  const handleCSVSuccess = () => {
-    const nuevosUsuarios = {
-      ...usuarios,
-      [rolActivo]: getUsersByRole(rolActivo)
-    };
-    setUsuarios(nuevosUsuarios);
+  const handleCSVSuccess = async () => {
+    try {
+      const usuariosActualizados = await getUsersByRole(rolActivo);
+      setUsuarios({
+        ...usuarios,
+        [rolActivo]: usuariosActualizados
+      });
+    } catch (error) {
+      console.error('Error recargando usuarios:', error);
+    }
   };
 
   const etiquetasRol = {
@@ -690,13 +728,27 @@ const GestionUsuarios = () => {
         </div>
 
         {/* Tabla de usuarios */}
-        <TablaUsuarios
-          usuarios={usuarios[rolActivo]}
-          rol={rolActivo}
-          onEditar={handleEditar}
-          onEliminar={handleEliminar}
-          onToggleStatus={handleToggleStatus}
-        />
+        {cargando ? (
+          <div style={{
+            background: '#fff',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+            padding: '40px',
+            textAlign: 'center',
+            color: '#9ca3af'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '12px' }}>⏳</div>
+            <div>Cargando usuarios...</div>
+          </div>
+        ) : (
+          <TablaUsuarios
+            usuarios={usuarios[rolActivo]}
+            rol={rolActivo}
+            onEditar={handleEditar}
+            onEliminar={handleEliminar}
+            onToggleStatus={handleToggleStatus}
+          />
+        )}
 
         {/* Botones de acción */}
         <div style={{

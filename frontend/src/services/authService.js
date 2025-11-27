@@ -83,6 +83,45 @@ export const resendVerificationCode = async (carnet) => {
   }
 };
 
+/**
+ * Autentica administradores, auditores o jurados con backend
+ * @param {string} carnet - Carnet de identidad
+ * @param {string} fechaNacimiento - Fecha de nacimiento (formato DD/MM/AAAA)
+ * @param {string} correo - Correo electrónico
+ * @param {string} password - Contraseña
+ * @returns {Promise<object>} - Resultado de la autenticación
+ */
+export const authenticateAdmin = async (
+  carnet,
+  fechaNacimiento,
+  correo,
+  password
+) => {
+  try {
+    const response = await authAPI.adminLogin(
+      carnet,
+      fechaNacimiento,
+      correo,
+      password
+    );
+
+    if (response.success) {
+      return {
+        success: true,
+        user: response.data.user,
+      };
+    }
+
+    return { success: false };
+  } catch (error) {
+    console.error("Error en authenticateAdmin:", error);
+    return {
+      success: false,
+      error: error.message || "Error al autenticar",
+    };
+  }
+};
+
 // Guardar datos de usuario en localStorage
 export const saveUserData = (userData) => {
   localStorage.setItem("user", JSON.stringify(userData));
@@ -125,57 +164,4 @@ export const getUserDisplayData = (carnet) => {
   };
 
   return userDisplayData[carnet] || null;
-};
-
-/**
- * Autentica administradores, auditores o jurados (con contraseña)
- * Esta función mantiene autenticación local para roles administrativos
- * @param {string} carnet - Carnet de identidad
- * @param {string} fechaNacimiento - Fecha de nacimiento (formato DD/MM/AAAA)
- * @param {string} password - Contraseña
- * @returns {object} - Resultado de la autenticación
- */
-export const authenticateAdmin = (carnet, fechaNacimiento, password) => {
-  // Lista de usuarios administrativos predefinidos
-  const adminUsers = [
-    {
-      carnet: "8466316",
-      fechaNacimiento: "19/08/2003",
-      password: "12345",
-      role: "admin",
-    },
-    {
-      carnet: "8812438",
-      fechaNacimiento: "27/07/2003",
-      password: "12345",
-      role: "auditor",
-    },
-    {
-      carnet: "13491987",
-      fechaNacimiento: "04/02/2004",
-      password: "12345",
-      role: "jurado",
-    },
-  ];
-
-  const user = adminUsers.find(
-    (u) =>
-      u.carnet === carnet &&
-      u.fechaNacimiento === fechaNacimiento &&
-      (u.role === "auditor" || u.role === "jurado" || u.role === "admin") &&
-      u.password === password
-  );
-
-  if (user) {
-    return {
-      success: true,
-      user: {
-        carnet: user.carnet,
-        fechaNacimiento: user.fechaNacimiento,
-        role: user.role,
-      },
-    };
-  }
-
-  return { success: false };
 };

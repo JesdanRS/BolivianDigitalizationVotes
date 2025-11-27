@@ -1,11 +1,13 @@
 // src/pages/Votacion.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CandidatoCard from '../components/voting/CandidatoCard';
 import Navbar from '../components/common/Navbar';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import SecurityModal from '../components/common/SecurityModal';
 import SuccessModal from '../components/common/SuccessModal';
+import { getUserData } from '../services/authService';
 import candidatoA from '../assets/images/paz.png';
 import candidatoB from '../assets/images/tuto.png';
 import imagenCC from '../assets/images/cc.jpg';
@@ -29,6 +31,7 @@ const imagenesLocales = {
 };
 
 const Votacion = () => {
+  const navigate = useNavigate();
   const [candidatos, setCandidatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorBackend, setErrorBackend] = useState(null);
@@ -39,7 +42,41 @@ const Votacion = () => {
   const [securityBlocked, setSecurityBlocked] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [errorCamara, setErrorCamara] = useState(null);
+  const [yaVoto, setYaVoto] = useState(false);
+  const [verificandoVoto, setVerificandoVoto] = useState(true);
+  const [usuario, setUsuario] = useState(null);
   const videoRef = React.useRef(null);
+
+  // Verificar autenticación y estado de votación
+  useEffect(() => {
+    const verificarUsuario = async () => {
+      const userData = getUserData();
+
+      if (!userData || !userData._id) {
+        // Si no hay usuario autenticado, redirigir al login
+        navigate('/login');
+        return;
+      }
+
+      setUsuario(userData);
+
+      // Verificar si el usuario ya votó
+      try {
+        const response = await fetch(`${API_BASE_URL}/verificar/${userData._id}`);
+        const data = await response.json();
+
+        if (data.success && data.data.haVotado) {
+          setYaVoto(true);
+        }
+      } catch (error) {
+        console.error('Error al verificar estado de votación:', error);
+      } finally {
+        setVerificandoVoto(false);
+      }
+    };
+
+    verificarUsuario();
+  }, [navigate]);
 
   // Cargar candidatos desde el backend
   useEffect(() => {
@@ -98,6 +135,8 @@ const Votacion = () => {
 
   // Detección de rostros con cámara
   React.useEffect(() => {
+    if (yaVoto) return; // No activar cámara si ya votó
+
     let stream;
     let model;
     let intervalId;
@@ -190,7 +229,7 @@ const Votacion = () => {
       if (intervalId) clearInterval(intervalId);
       if (stream) stream.getTracks().forEach(t => t.stop());
     };
-  }, []);
+  }, [yaVoto]);
 
   const handleRetryDetection = () => {
     setErrorCamara(null);
@@ -198,6 +237,10 @@ const Votacion = () => {
 
   const handleVotar = (candidato) => {
     if (securityBlocked) {
+      return;
+    }
+    if (yaVoto) {
+      alert('Ya has votado. No puedes votar nuevamente.');
       return;
     }
     setCandidatoSeleccionado(candidato);
@@ -208,14 +251,21 @@ const Votacion = () => {
     try {
       setModalOpen(false);
 
-      // Enviar el voto al backend
+      if (!usuario || !usuario._id) {
+        alert('Error: No se encontró información del usuario. Por favor, inicie sesión nuevamente.');
+        navigate('/login');
+        return;
+      }
+
+      // Enviar el voto al backend con votanteId
       const response = await fetch(`${API_BASE_URL}/votar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          candidatoId: candidatoSeleccionado.id
+          candidatoId: candidatoSeleccionado.id,
+          votanteId: usuario._id
         })
       });
 
@@ -223,8 +273,13 @@ const Votacion = () => {
 
       if (data.success) {
         setVotoSeleccionado(candidatoSeleccionado.id);
+        setYaVoto(true);
         setSuccessModalOpen(true);
         console.log('✅ Voto registrado:', data);
+      } else if (response.status === 403) {
+        // El usuario ya votó
+        setYaVoto(true);
+        alert('Ya has votado anteriormente. No puedes votar nuevamente.');
       } else {
         throw new Error(data.message || 'Error al registrar el voto');
       }
@@ -233,6 +288,95 @@ const Votacion = () => {
       alert(`❌ Error al registrar el voto: ${error.message}\n\nPor favor, verifica que el backend esté ejecutándose.`);
     }
   };
+
+  // Mostrar mensaje de cargando mientras verifica
+  if (verificandoVoto) {
+    return (
+      <div style={{
+        fontFamily: 'Arial, sans-serif',
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff'
+      }}>
+        <p style={{ fontSize: '1.2rem', color: '#666' }}>Verificando estado de votación...</p>
+      </div>
+    );
+  }
+
+  // Mostrar mensaje si ya votó
+  if (yaVoto) {
+    return (
+      <div style={{
+        fontFamily: 'Arial, sans-serif',
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        margin: 0,
+        padding: 0,
+        backgroundColor: '#fff',
+        color: '#000'
+      }}>
+        <Navbar />
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '40px',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            backgroundColor: '#f0f9ff',
+            border: '2px solid #3b82f6',
+            borderRadius: '12px',
+            padding: '40px',
+            maxWidth: '500px'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              backgroundColor: '#3b82f6',
+              margin: '0 auto 20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '15px', color: '#1e40af' }}>
+              Ya has votado
+            </h2>
+            <p style={{ color: '#666', marginBottom: '30px' }}>
+              Tu voto ha sido registrado exitosamente. No puedes votar nuevamente.
+            </p>
+            <button
+              onClick={() => navigate('/resultados')}
+              style={{
+                backgroundColor: '#3b82f6',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '12px 30px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              Ver Resultados
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -335,7 +479,10 @@ const Votacion = () => {
       {/* Modal de éxito */}
       <SuccessModal
         isOpen={successModalOpen}
-        onClose={() => setSuccessModalOpen(false)}
+        onClose={() => {
+          setSuccessModalOpen(false);
+          navigate('/resultados');
+        }}
       />
     </div>
   );

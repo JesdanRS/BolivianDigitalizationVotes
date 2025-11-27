@@ -1,143 +1,173 @@
-// Servicio de gestión de usuarios
+// Servicio de gestión de usuarios - Integración con MongoDB
 
-// Estado inicial de usuarios por rol
-const initialUsers = {
-  jurados: [
-    { id: 1, carnet: '8812438', nombre: 'Juan Carlos Rojas', email: 'juan.rojas@example.com', estado: true },
-    { id: 2, carnet: '9234567', nombre: 'María García López', email: 'maria.garcia@example.com', estado: true },
-  ],
-  administradores: [
-    { id: 3, carnet: '8466316', nombre: 'Roberto Fernández', email: 'roberto.fer@example.com', estado: true },
-  ],
-  poblacion: [
-    { id: 4, carnet: '13120200', nombre: 'Juan Pérez', email: 'juan.perez@example.com', estado: true },
-    { id: 5, carnet: '12735190', nombre: 'María Flores', email: 'maria.flores@example.com', estado: false },
-    { id: 6, carnet: '13491987', nombre: 'Carlos López', email: 'carlos.lopez@example.com', estado: true },
-  ]
-};
+// URL base de la API
+const API_BASE_URL = 'http://localhost:5000/api/usuarios';
 
-// Obtener usuarios del localStorage o usar iniciales
-const getStoredUsers = () => {
-  const stored = localStorage.getItem('usuarios');
-  return stored ? JSON.parse(stored) : initialUsers;
-};
-
-// Guardar usuarios en localStorage
-const saveUsers = (usuarios) => {
-  localStorage.setItem('usuarios', JSON.stringify(usuarios));
-};
-
-// Obtener todos los usuarios de un rol
-export const getUsersByRole = (rol) => {
-  const usuarios = getStoredUsers();
-  return usuarios[rol] || [];
+// Obtener usuarios del rol especificado
+export const getUsersByRole = async (rol) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${rol}`);
+    if (!response.ok) {
+      throw new Error('Error al obtener usuarios');
+    }
+    const data = await response.json();
+    return data.usuarios || [];
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
 };
 
 // Obtener usuario por ID
-export const getUserById = (id, rol) => {
-  const usuarios = getUsersByRole(rol);
-  return usuarios.find(u => u.id === id);
+export const getUserById = async (id, rol) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${rol}/${id}`);
+    if (!response.ok) {
+      throw new Error('Usuario no encontrado');
+    }
+    const data = await response.json();
+    return data.usuario;
+  } catch (error) {
+    console.error('Error:', error);
+    return null;
+  }
 };
 
 // Crear nuevo usuario
-export const createUser = (rol, userData) => {
-  const usuarios = getStoredUsers();
-  const nuevoUsuario = {
-    id: Math.max(...usuarios[rol].map(u => u.id), 0) + 1,
-    ...userData,
-    estado: true
-  };
-  usuarios[rol].push(nuevoUsuario);
-  saveUsers(usuarios);
-  return nuevoUsuario;
+export const createUser = async (rol, userData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${rol}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ...userData,
+        rol: rol,
+        haVotado: false,
+        estado: true
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Error al crear usuario');
+    }
+
+    const data = await response.json();
+    return data.usuario;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
 };
 
 // Actualizar usuario
-export const updateUser = (id, rol, userData) => {
-  const usuarios = getStoredUsers();
-  const index = usuarios[rol].findIndex(u => u.id === id);
-  if (index !== -1) {
-    usuarios[rol][index] = { ...usuarios[rol][index], ...userData };
-    saveUsers(usuarios);
-    return usuarios[rol][index];
+export const updateUser = async (id, rol, userData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${rol}/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(userData)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Error al actualizar usuario');
+    }
+
+    const data = await response.json();
+    return data.usuario;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
   }
-  return null;
 };
 
 // Cambiar estado de usuario (activar/desactivar)
-export const toggleUserStatus = (id, rol) => {
-  const usuarios = getStoredUsers();
-  const usuario = usuarios[rol].find(u => u.id === id);
-  if (usuario) {
-    usuario.estado = !usuario.estado;
-    saveUsers(usuarios);
-    return usuario;
+export const toggleUserStatus = async (id, rol) => {
+  try {
+    const usuarioActual = await getUserById(id, rol);
+    const response = await fetch(`${API_BASE_URL}/${rol}/${id}/estado`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        estado: !usuarioActual.estado
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Error al cambiar estado');
+    }
+
+    const data = await response.json();
+    return data.usuario;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
   }
-  return null;
 };
 
 // Eliminar usuario
-export const deleteUser = (id, rol) => {
-  const usuarios = getStoredUsers();
-  usuarios[rol] = usuarios[rol].filter(u => u.id !== id);
-  saveUsers(usuarios);
+export const deleteUser = async (id, rol) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${rol}/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Error al eliminar usuario');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
 };
 
-// Procesar archivo CSV
-export const procesarCSV = (contenido, rol) => {
-  const lineas = contenido.split('\n').filter(linea => linea.trim());
-  const usuarios = getStoredUsers();
-  let usuariosAgregados = 0;
-  let errores = [];
+// Procesar archivo CSV y cargarlo al backend
+export const procesarCSV = async (contenido, rol) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${rol}/import`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain'
+      },
+      body: contenido
+    });
 
-  // Saltar encabezado si existe
-  const inicio = lineas[0].toLowerCase().includes('carnet') ? 1 : 0;
+    const data = await response.json();
 
-  lineas.slice(inicio).forEach((linea, index) => {
-    try {
-      const [carnet, nombre, email] = linea.split(',').map(c => c.trim());
-
-      if (!carnet || !nombre || !email) {
-        errores.push(`Fila ${index + inicio + 1}: Faltan datos requeridos`);
-        return;
-      }
-
-      // Verificar si el usuario ya existe
-      const existe = usuarios[rol].some(u => u.carnet === carnet);
-      if (existe) {
-        errores.push(`Fila ${index + inicio + 1}: El carnet ${carnet} ya existe`);
-        return;
-      }
-
-      // Crear nuevo usuario
-      const nuevoUsuario = {
-        id: Math.max(...Object.values(usuarios).flat().map(u => u.id), 0) + 1,
-        carnet,
-        nombre,
-        email,
-        estado: true
-      };
-
-      usuarios[rol].push(nuevoUsuario);
-      usuariosAgregados++;
-    } catch (error) {
-      errores.push(`Fila ${index + inicio + 1}: Error al procesar - ${error.message}`);
-    }
-  });
-
-  saveUsers(usuarios);
-
-  return {
-    exito: true,
-    usuariosAgregados,
-    errores,
-    usuariosProcesados: lineas.slice(inicio).length
-  };
+    return {
+      exito: data.exito,
+      usuariosAgregados: data.usuariosImportados || 0,
+      usuariosProcesados: data.totalProcesados || 0,
+      errores: data.errores || []
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    return {
+      exito: false,
+      errores: ['Error al procesar CSV: ' + error.message],
+      usuariosAgregados: 0,
+      usuariosProcesados: 0
+    };
+  }
 };
 
 // Descargar plantilla CSV
 export const descargarPlantillaCSV = (rol) => {
-  const contenido = 'Carnet,Nombre,Email\n';
+  const contenido = 'nombre,carnet,fechaNacimiento,correo\nEjemplo,8812438,08/06/2004,ejemplo@votoseguro.bo\n';
   const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
@@ -150,21 +180,29 @@ export const descargarPlantillaCSV = (rol) => {
 };
 
 // Exportar usuarios a CSV
-export const exportarUsuariosCSV = (rol) => {
-  const usuarios = getUsersByRole(rol);
-  let contenido = 'ID,Carnet,Nombre,Email,Estado\n';
-  
-  usuarios.forEach(u => {
-    contenido += `${u.id},${u.carnet},${u.nombre},${u.email},${u.estado ? 'Activo' : 'Inactivo'}\n`;
-  });
+export const exportarUsuariosCSV = async (rol) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${rol}/export`, {
+      headers: {
+        'Accept': 'text/csv'
+      }
+    });
 
-  const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `usuarios-${rol}-${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    if (!response.ok) {
+      throw new Error('Error al exportar usuarios');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `usuarios-${rol}-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
 };
