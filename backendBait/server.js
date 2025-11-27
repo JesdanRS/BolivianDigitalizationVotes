@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { conectarDB } = require('./conexion');
 const votacionRoutes = require('./services/votaciones/routes/votacionRoutes');
+const usuarioRoutes = require('./services/usuarios/routes/usuarioRoutes');
 
 // Crear app de Express
 const app = express();
@@ -21,12 +22,13 @@ app.use(helmet());
 app.use(cors({
     origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'], // Ajusta según tu puerto del frontend
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Body parser - Para leer JSON
+// Body parser - Para leer JSON y texto plano
 app.use(express.json());
+app.use(express.text({ type: 'text/plain' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Logger de peticiones HTTP
@@ -38,6 +40,17 @@ app.get('/', (req, res) => {
         message: '🗳️ API de Votaciones - Sistema de Digitalización de Votos Bolivia',
         version: '1.0.0',
         endpoints: {
+            usuarios: {
+                listar: 'GET /api/usuarios',
+                crear: 'POST /api/usuarios',
+                actualizar: 'PUT /api/usuarios/:id',
+                eliminar: 'DELETE /api/usuarios/:id',
+                cambiarEstado: 'PATCH /api/usuarios/:id/estado',
+                marcarVotado: 'PATCH /api/usuarios/:id/votar',
+                importarCSV: 'POST /api/usuarios/bulk-import',
+                exportar: 'GET /api/usuarios/export',
+                estadisticas: 'GET /api/usuarios/estadisticas'
+            },
             candidatos: '/api/votaciones/candidatos',
             votar: '/api/votaciones/votar',
             resultados: '/api/votaciones/resultados',
@@ -48,6 +61,9 @@ app.get('/', (req, res) => {
 
 // Rutas de votaciones
 app.use('/api/votaciones', votacionRoutes);
+
+// Rutas de usuarios
+app.use('/api/usuarios', usuarioRoutes);
 
 // Manejo de rutas no encontradas
 app.use('*', (req, res) => {
@@ -96,9 +112,14 @@ process.on('SIGTERM', () => {
     process.exit(0);
 });
 
-process.on('SIGINT', () => {
-    console.log('\n🛑 SIGINT recibido, cerrando servidor...');
-    process.exit(0);
+// process.on('SIGINT', () => {
+//     console.log('\n🛑 SIGINT recibido, cerrando servidor...');
+//     process.exit(0);
+// });
+
+// Manejo de excepciones no capturadas
+process.on('uncaughtException', (error) => {
+    console.error('❌ Excepción no capturada:', error);
 });
 
 module.exports = app;
