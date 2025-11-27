@@ -9,7 +9,7 @@ import ResultadosAuditor from './pages/auditoria/ResultadosAuditor';
 import Resultados from './pages/Resultados';
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
-import MiVoto from './pages/MiVoto';
+import RegistroVoto from './pages/RegistroVoto';
 import GestionCandidatos from './pages/GestionCandidatos';
 import GestionUsuarios from './pages/GestionUsuarios';
 import JuradoEspera from './pages/JuradoEspera';
@@ -55,7 +55,7 @@ function App() {
 
           {/* Votante: requiere rol técnico USER */}
           <Route
-            path="/votacion"
+            path="/mi-voto"
             element={
               <ProtectedRoute requiredRole="USER">
                 <Votacion />
@@ -63,10 +63,10 @@ function App() {
             }
           />
           <Route
-            path="/mi-voto"
+            path="/registro-voto"
             element={
               <ProtectedRoute requiredRole="USER">
-                <MiVoto />
+                <RegistroVoto />
               </ProtectedRoute>
             }
           />

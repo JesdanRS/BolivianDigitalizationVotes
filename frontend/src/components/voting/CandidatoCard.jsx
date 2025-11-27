@@ -1,45 +1,112 @@
 // src/components/voting/CandidatoCard.jsx
-
 import React from 'react';
 
-const CandidatoCard = ({ nombre, descripcion, imagen, onVotar }) => {
+const CandidatoCard = ({
+  nombre,
+  descripcion,
+  imagen,
+  accentColor = '#ecfdf3',
+  isBlank = false,
+  personColor = '#4b5563',
+  onVotar,
+}) => {
   return (
     <div
       style={{
-        backgroundColor: '#e8f5e9',
-        borderRadius: '12px',
-        width: '250px',
+        backgroundColor: accentColor,
+        borderRadius: '16px',
         padding: '20px',
-        textAlign: 'center',
+        width: '240px',
+        boxShadow: '0 10px 20px rgba(15, 23, 42, 0.12)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
       }}
     >
-      <div style={{ width: '150px', height: '150px', overflow: 'hidden', marginBottom: '20px' }}>
+      {/* Icono de persona */}
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: '999px',
+          backgroundColor: personColor,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 10,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 24,
+            color: '#ffffff',
+            lineHeight: 1,
+          }}
+        >
+          👤
+        </span>
+      </div>
+
+      {/* Imagen (opcional) */}
+      {imagen && (
         <img
           src={imagen}
           alt={nombre}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{
+            width: 96,
+            height: 96,
+            objectFit: 'cover',
+            borderRadius: '999px',
+            marginBottom: 12,
+            border: '3px solid rgba(148, 163, 184, 0.4)',
+          }}
         />
-      </div>
-      <h2 style={{ fontSize: '1.2rem', marginBottom: '10px', color: '#000000' }}>{nombre}</h2>
-      <p style={{ color: '#666', marginBottom: '20px', fontSize: '0.9rem' }}>{descripcion}</p>
-      <button
-        onClick={onVotar}
+      )}
+
+      {/* Nombre candidato */}
+      <h2
         style={{
-          backgroundColor: '#e53e3e',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '9999px',
-          padding: '10px 20px',
           fontSize: '1rem',
-          cursor: 'pointer',
-          width: '100%',
+          fontWeight: 700,
+          marginBottom: 4,
+          color: '#111827',
         }}
       >
-        Votar →
+        {nombre}
+      </h2>
+
+      {/* Partido / descripción */}
+      <p
+        style={{
+          fontSize: '0.8rem',
+          color: '#4b5563',
+          marginBottom: 20,
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+        }}
+      >
+        {descripcion}
+      </p>
+
+      {/* Botón votar */}
+      <button
+        type="button"
+        onClick={onVotar}
+        style={{
+          marginTop: 'auto',
+          width: '100%',
+          padding: '10px 0',
+          borderRadius: '999px',
+          border: 'none',
+          cursor: 'pointer',
+          fontWeight: 700,
+          fontSize: '0.9rem',
+          backgroundColor: isBlank ? '#0f172a' : '#dc2626',
+          color: '#ffffff',
+        }}
+      >
+        {isBlank ? 'Votar en blanco' : 'Votar →'}
       </button>
     </div>
   );

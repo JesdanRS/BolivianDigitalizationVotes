@@ -83,9 +83,9 @@ const Login = () => {
       setIsVerificationModalOpen(false);
 
       // Redirección: primero vía router…
-      navigate('/votacion', { replace: true });
+      navigate('/resultados', { replace: true });
       // …y además forzamos navegación dura para que NO haya duda
-      window.location.href = '/votacion';
+      window.location.href = '/resultados';
     } catch (err) {
       console.error(err);
       alert(err.message || 'Código incorrecto o expirado. Por favor intente nuevamente.');
