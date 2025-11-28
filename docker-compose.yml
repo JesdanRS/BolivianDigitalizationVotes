@@ -199,6 +199,30 @@ services:
       - votaciones-net
 
   # ==========================
+  # Config Server
+  # ==========================
+  config-server:
+    image: config-server:latest
+    container_name: config-server
+    mem_limit: 512m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - ENCRYPT_KEY=${CONFIG_SERVER_ENCRYPT_KEY:MiClaveSuperSecreta}
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR:config-usr}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD:Config2025!}
+      - SPRING_SECURITY_USER_NAME=${CONFIG_SERVER_USR:config-usr}
+      - SPRING_SECURITY_USER_PASSWORD=${CONFIG_SERVER_PWD:Config2025!}
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -u ${CONFIG_SERVER_USR}:${CONFIG_SERVER_PWD} http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks:
+      - votaciones-net
+
+  # ==========================
   # Microservicios
   # ==========================
   usuarios-service:
@@ -303,32 +327,30 @@ services:
     networks:
       - votaciones-net
 
-  auditoria-service:
-    build:
-      context: .
-      dockerfile: auditoria_registros-services/Dockerfile
-    container_name: ms-auditoria
-    hostname: ms-auditoria
-    ports:
-      - "8085:8085"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-auditoria:5432/auditoria_db
-      - SPRING_DATASOURCE_USERNAME=auditoria_user
-      - SPRING_DATASOURCE_PASSWORD=auditoria_pass
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
-      - HOSTNAME=ms-auditoria
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      postgres-db-auditoria:
-        condition: service_healthy
-      eureka-server:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
-    networks:
-      - votaciones-net
+    auditoria-service:
+      build:
+        context: .
+        dockerfile: auditoria_registros-services/Dockerfile
+      container_name: ms-auditoria
+      hostname: ms-auditoria
+      ports:
+        - "8085:8085"
+      environment:
+        - SPRING_PROFILES_ACTIVE=docker
+        - CONFIG_SERVER_USR=${CONFIG_SERVER_USR:config-usr}
+        - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD:Config2025!}
+        # el resto de env que ya tienes (DB, EUREKA, JWT, etc.) puede quedarse
+      depends_on:
+        config-server:
+          condition: service_healthy
+        postgres-db-auditoria:
+          condition: service_healthy
+        eureka-server:
+          condition: service_healthy
+        keycloak:
+          condition: service_healthy
+      networks:
+        - votaciones-net
 
   # API Gateway
   api-gateway:
