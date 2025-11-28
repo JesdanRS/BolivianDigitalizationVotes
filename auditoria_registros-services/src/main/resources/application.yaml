@@ -2,12 +2,11 @@ spring:
   application:
     name: AUDITORIA-REGISTROS-SERVICE
 
+  config:
+    import: "configserver:,optional:classpath:application-openapi.yaml"
+
   cloud:
     config:
-      # Local
-      #uri: http://localhost:8888
-      # Para Docker
-      uri: http://config-server:8888
       fail-fast: true
       retry:
         initial-interval: 3000
@@ -17,10 +16,30 @@ spring:
       username: ${CONFIG_SERVER_USR:config-usr}
       password: ${CONFIG_SERVER_PWD:Config2025!}
 
+---
+# ========================================
+# PERFIL LOCAL
+# ========================================
+spring:
   config:
-    # Importa Config Server y luego tu openapi local
-    import: "configserver:http://config-server:8888,optional:classpath:application-openapi.yaml"
+    activate:
+      on-profile: local
+  cloud:
+    config:
+      uri: http://localhost:8888
+  banner:
+    location: classpath:banner-local.txt
 
-# Banner opcional
-banner:
-  location: classpath:banner-local.txt
+---
+# ========================================
+# PERFIL DOCKER
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    config:
+      uri: http://config-server:8888
+  banner:
+    location: classpath:banner-docker.txt
