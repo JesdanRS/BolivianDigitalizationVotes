@@ -3,6 +3,7 @@ import Votacion from './pages/votacion';
 import AuditoriaDashboard from './pages/auditoria/Dashboard';
 import AuditoriaRegistros from './pages/auditoria/Registros';
 import ResultadosAuditor from './pages/auditoria/ResultadosAuditor';
+import AuditoriaTest from './pages/AuditoriaTest';
 import Resultados from './pages/Resultados';
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
@@ -17,7 +18,7 @@ function App() {
       <span>•</span>
       <Link style={{color:'#fff'}} to="/resultados">Resultados</Link>
       <span>•</span>
-      <Link style={{color:'#fff'}} to="/auditoria">Auditoría</Link>
+      <Link style={{color:'#fff'}} to="/auditoriaTest">Auditoría Test</Link>
     </div>
   );
 
@@ -33,8 +34,9 @@ function App() {
         <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />
         <Route path="/resultados" element={<Resultados />} />
         <Route path="/ayuda" element={<Resultados />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/auditoriaTest" element={<AuditoriaTest />} />
+        <Route path="/" element={<Navigate to="/auditoriaTest" replace />} />
+        <Route path="*" element={<Navigate to="/auditoriaTest" replace />} />
       </Routes>
       {miniBar}
     </BrowserRouter>

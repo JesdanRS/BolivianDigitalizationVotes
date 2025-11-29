@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import reactor.core.publisher.Mono;
+import org.springframework.http.HttpMethod;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,16 +33,20 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(ServerHttpSecurity.CsrfSpec::disable)
+            .cors(cors -> { })   // <-- IMPORTANTE: usa la config de globalcors
             .authorizeExchange(exchanges -> exchanges
+                // Preflight CORS
+                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                 // RUTAS PÚBLICAS: swagger, docs, actuator, eureka
                 .pathMatchers(
                     "/",
                     "/swagger-ui.html",
                     "/swagger-ui/**",
                     "/webjars/**",
-                    "/v3/api-docs/**",   // docs propios del gateway, si los usas
-                    "/docs/**",          // <-- NUEVO: docs de todos los servicios
+                    "/v3/api-docs/**",
+                    "/docs/**",
                     "/actuator/**",
                     "/eureka/**",
                     "/gateway/info/**"
