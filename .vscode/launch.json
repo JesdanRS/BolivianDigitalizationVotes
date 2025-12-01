@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ConfigServerApplication",
+            "request": "launch",
+            "mainClass": "com.votaciones.config_server.ConfigServerApplication",
+            "projectName": "config-server"
+        },
+        {
+            "type": "java",
             "name": "ResultadosEstadisticasApplication",
             "request": "launch",
             "mainClass": "com.votaciones.resultados_estadisticas.ResultadosEstadisticasApplication",

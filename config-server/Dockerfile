@@ -1,29 +1,35 @@
-# Fase de construcción
-FROM eclipse-temurin:21-jre-alpine AS builder
-WORKDIR /extracted
+# ============================
+# FASE 1: BUILD con Maven
+# ============================
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} app.jar
+WORKDIR /app
 
-RUN java -Djarmode=layertools -jar app.jar extract
+# Copiar pom.xml y descargar dependencias (cacheado)
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-# Fase final
+# Copiar código fuente y compilar
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# ============================
+# FASE 2: Runtime
+# ============================
 FROM eclipse-temurin:21-jre-alpine
-WORKDIR /application
 
-# Instalar curl (para healthcheck opcional)
+WORKDIR /app
+
+# Instalar curl para healthcheck
 RUN apk add --no-cache curl
 
-# Crear usuario seguro
+# Crear usuario no-root
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
-# Copiar capas extraídas
-COPY --from=builder extracted/dependencies/ ./
-COPY --from=builder extracted/spring-boot-loader/ ./
-COPY --from=builder extracted/snapshot-dependencies/ ./
-COPY --from=builder extracted/application/ ./
+# Copiar JAR compilado
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8888
 
-ENTRYPOINT ["java", "-cp","/application","org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
