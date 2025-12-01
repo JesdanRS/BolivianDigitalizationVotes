@@ -171,6 +171,8 @@ services:
     hostname: localhost
     ports:
       - "8090:8080"
+    volumes:
+      - ./keycloak/votaciones-realm.json:/opt/keycloak/data/import/votaciones-realm.json:ro
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
@@ -185,7 +187,7 @@ services:
       - KC_DB_PASSWORD=keycloak
       - KC_HEALTH_ENABLED=true
       - KC_METRICS_ENABLED=true
-    command: start-dev
+    command: start-dev --import-realm
     depends_on:
       postgres-db-keycloak:
         condition: service_healthy
