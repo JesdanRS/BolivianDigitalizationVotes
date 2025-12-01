@@ -283,12 +283,18 @@ services:
     ports:
       - "8083:8082"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker   
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR:-config-usr}    
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD:-Config2025!}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-votaciones:5432/votaciones_db
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
     depends_on:
-      postgres-db-votaciones:
+      config-server:
+        condition: service_healthy      
+      postgres-db-votaciones:         
         condition: service_healthy
       eureka-server:
         condition: service_healthy
