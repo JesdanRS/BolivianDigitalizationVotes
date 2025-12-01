@@ -85,7 +85,7 @@ spring:
 
         # Resultados y Estadísticas (ruta nueva con StripPrefix)
         - id: resultados_service_route_new
-          uri: lb://resultados-service
+          uri: lb://RESULTADOS-ESTADISTICAS-SERVICE
           predicates:
             - Path=/ms-resultados/**
           filters:
@@ -93,7 +93,7 @@ spring:
 
         # Resultados y Estadísticas (ruta legacy)
         - id: resultados_service_route
-          uri: lb://resultados-service
+          uri: lb://RESULTADOS-ESTADISTICAS-SERVICE
           predicates:
             - Path=/api/resultados/**
 
@@ -109,7 +109,7 @@ spring:
 
         # --- Usuarios ---
         - id: usuarios_swagger
-          uri: lb://usuarios-service
+          uri: lb://RESULTADOS-ESTADISTICAS-SERVICE
           predicates:
             - Path=/docs/usuarios/swagger-ui/**
           filters:
@@ -139,14 +139,14 @@ spring:
 
         # --- Resultados/Estadísticas ---
         - id: resultados_swagger
-          uri: lb://resultados-service
+          uri: lb://RESULTADOS-ESTADISTICAS-SERVICE
           predicates:
             - Path=/docs/resultados/swagger-ui/**
           filters:
             - RewritePath=/docs/resultados/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
 
         - id: resultados_api_docs
-          uri: lb://resultados-service
+          uri: lb://RESULTADOS-ESTADISTICAS-SERVICE
           predicates:
             - Path=/docs/resultados/v3/api-docs
           filters:
