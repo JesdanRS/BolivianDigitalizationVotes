@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votaciones Web App</title>
+    <!-- Keycloak Adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@22.0.3/dist/keycloak.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #1a73e8;
+        }
+
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #1557b0;
+        }
+
+        button.logout {
+            background: #dc3545;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🗳️ Votaciones App (Demo)</h1>
+        <div id="not-logged-in">
+            <p>Bienvenido. Por favor inicia sesión para continuar.</p>
+            <button onclick="login()">Iniciar Sesión (Keycloak)</button>
+        </div>
+
+        <div id="logged-in" class="hidden">
+            <p>Hola, <strong id="username">User</strong> 👋</p>
+            <p>Roles: <strong id="user-roles" style="color: #e67e22;">Cargando...</strong></p>
+            <p>Token válido. <span class="success">✔ Autenticado</span></p>
+            <button class="logout" onclick="logout()">Cerrar Sesión</button>
+
+            <hr>
+            <h3>Prueba de Consumo (API Gateway)</h3>
+            <p>Consultando: <code>http://localhost:8080/ms-candidatos/api/candidatos</code></p>
+            <button onclick="callApi()">Consultar Candidatos</button>
+
+            <div id="result-area" class="hidden">
+                <h4>Resultado:</h4>
+                <pre id="api-response">Cargando...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Keycloak
+        const keycloak = new Keycloak({
+            url: 'http://localhost:8090',
+            realm: 'votaciones',
+            clientId: 'votaciones-app'
+        });
+
+        // Inicializar
+        keycloak.init({ onLoad: 'check-sso' }).then(authenticated => {
+            if (authenticated) {
+                document.getElementById('not-logged-in').classList.add('hidden');
+                document.getElementById('logged-in').classList.remove('hidden');
+                document.getElementById('username').innerText = keycloak.tokenParsed.preferred_username;
+
+                // Mostrar Roles
+                const roles = keycloak.tokenParsed.realm_access?.roles || [];
+                document.getElementById('user-roles').innerText = roles.join(', ');
+
+                console.log("Token:", keycloak.token);
+            } else {
+                console.log("No autenticado");
+            }
+        }).catch(err => {
+            console.error("Error al inicializar Keycloak", err);
+            alert("Error conectando con Keycloak. ¿Está corriendo en puerto 8090?");
+        });
+
+        function login() {
+            keycloak.login();
+        }
+
+        function logout() {
+            keycloak.logout();
+        }
+
+        async function callApi() {
+            const resultArea = document.getElementById('result-area');
+            const responsePre = document.getElementById('api-response');
+            resultArea.classList.remove('hidden');
+            responsePre.innerText = "Consultando...";
+
+            try {
+                // Intentamos llamar al endpoint protegido
+                // CORREGIDO: El Gateway usa el prefijo /ms-candidatos
+                const response = await fetch('http://localhost:8080/ms-candidatos/api/candidatos', {
+                    headers: {
+                        'Authorization': 'Bearer ' + keycloak.token
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    responsePre.innerHTML = '<span class="success">¡Éxito! 200 OK</span>\n' + JSON.stringify(data, null, 2);
+                } else {
+                    responsePre.innerHTML = '<span class="error">Error ' + response.status + '</span>\n' + response.statusText;
+
+                    // Si falla, intentamos con actuator/health como fallback para demostrar conectividad
+                    if (response.status === 404) {
+                        responsePre.innerText += "\nIntentando health check...\n";
+                        const health = await fetch('http://localhost:8080/ms-candidatos/actuator/health', {
+                            headers: { 'Authorization': 'Bearer ' + keycloak.token }
+                        });
+                        const healthData = await health.text();
+                        responsePre.innerText += "Health Check: " + healthData;
+                    }
+                }
+            } catch (error) {
+                responsePre.innerHTML = '<span class="error">Error de Red</span>\n' + error.message + '\n(Posible problema de CORS en el Gateway)';
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -270,6 +270,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+      keycloak:
+        condition: service_healthy
     networks:
       - votaciones-net
 
