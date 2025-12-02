@@ -8,7 +8,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <ReactKeycloakProvider
     authClient={keycloak}
     initOptions={{
-      onLoad: 'login-required', // loguearse antes de ver la app
+      onLoad: 'login-required',
       pkceMethod: 'S256',
       checkLoginIframe: false,
     }}
