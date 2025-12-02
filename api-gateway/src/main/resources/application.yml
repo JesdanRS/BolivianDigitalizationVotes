@@ -10,40 +10,10 @@ spring:
       resourceserver:
         jwt:
           # SecurityConfig usa jwk-set-uri
-          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://host.docker.internal:8090/realms/votaciones-realm/protocol/openid-connect/certs}
 
   cloud:
     gateway:
-      # Descubrimiento vía Eureka
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: false
-
-      # CORS global (frontend)
-      globalcors:
-        add-to-simple-url-handler-mapping: true
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:5173"      # Vite
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders:
-              - "*"
-            exposedHeaders:
-              - "*"
-            allowCredentials: true
-
-      # Evita duplicados de cabeceras CORS
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-        - TokenRelay
-
       routes:
         # ========== RUTAS DE MICROSERVICIOS ==========
 
@@ -128,22 +98,6 @@ spring:
           predicates:
             - Path=/docs/votaciones/swagger-ui/**
           filters:
-            - RewritePath=/docs/votaciones/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
-
-        - id: votaciones_api_docs
-          uri: lb://votaciones-service
-          predicates:
-            - Path=/docs/votaciones/v3/api-docs
-          filters:
-            - RewritePath=/docs/votaciones/v3/api-docs, /v3/api-docs
-
-        # --- Resultados/Estadísticas ---
-        - id: resultados_swagger
-          uri: lb://resultados-service
-          predicates:
-            - Path=/docs/resultados/swagger-ui/**
-          filters:
-            - RewritePath=/docs/resultados/swagger-ui/(?<segment>.*), /swagger-ui/${segment}
 
         - id: resultados_api_docs
           uri: lb://resultados-service
@@ -213,8 +167,8 @@ springdoc:
 logging:
   level:
     root: INFO
-    '[org.springframework.cloud.gateway]': DEBUG
-    '[org.springframework.cloud.loadbalancer]': DEBUG
-    '[com.netflix.discovery]': DEBUG
-    '[org.springframework.security]': TRACE
-    '[org.springframework.security.oauth2]': TRACE
+    "[org.springframework.cloud.gateway]": DEBUG
+    "[org.springframework.cloud.loadbalancer]": DEBUG
+    "[com.netflix.discovery]": DEBUG
+    "[org.springframework.security]": TRACE
+    "[org.springframework.security.oauth2]": TRACE

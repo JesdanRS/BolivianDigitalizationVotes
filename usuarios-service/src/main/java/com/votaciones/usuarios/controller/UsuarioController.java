@@ -40,12 +40,12 @@ public class UsuarioController {
      * URL: /api/usuarios/{carnet}/solicitar-codigo
      */
     @PostMapping("/{carnet}/solicitar-codigo")
-// ¡CAMBIO! Hemos eliminado @Valid @RequestBody SolicitudCodigoDto solicitudDto
-    public ResponseEntity<Void> solicitarCodigo(@PathVariable String carnet) { 
+    // ¡CAMBIO! Hemos eliminado @Valid @RequestBody SolicitudCodigoDto solicitudDto
+    public ResponseEntity<Void> solicitarCodigo(@PathVariable String carnet) {
         // ¡CAMBIO! Ahora solo pasamos el carnet al servicio
-        usuarioService.solicitarCodigoVerificacion(carnet); 
-    return ResponseEntity.ok().build();
-}
+        usuarioService.solicitarCodigoVerificacion(carnet);
+        return ResponseEntity.ok().build();
+    }
 
     /**
      * Endpoint para verificar el código enviado al correo.
@@ -53,18 +53,31 @@ public class UsuarioController {
      * URL: /api/usuarios/{carnet}/verificar-codigo
      */
     @PostMapping("/{carnet}/verificar-codigo")
-    public ResponseEntity<Void> verificarCodigo(@PathVariable String carnet, @Valid @RequestBody VerificacionCodigoDto verificacionDto) {
+    public ResponseEntity<Void> verificarCodigo(@PathVariable String carnet,
+            @Valid @RequestBody VerificacionCodigoDto verificacionDto) {
         usuarioService.verificarCodigo(carnet, verificacionDto.getCodigo());
         return ResponseEntity.ok().build();
     }
-    
+
     /**
-     * Endpoint para obtener el perfil de un usuario por su ID.
+     * Endpoint para obtener todos los usuarios.
+     * Requiere autenticación con token JWT.
      * HTTP Method: GET
-     * URL: /api/usuarios/perfil/{id}
+     * URL: /api/usuarios
      */
-    @GetMapping("/perfil/{id}")
-    public ResponseEntity<UsuarioDto> obtenerPerfil(@PathVariable Long id) {
+    @GetMapping
+    public ResponseEntity<List<UsuarioDto>> obtenerTodosUsuarios() {
+        List<UsuarioDto> usuarios = usuarioService.obtenerTodosUsuarios();
+        return ResponseEntity.ok(usuarios);
+    }
+
+    /**
+     * Endpoint para obtener un usuario por ID.
+     * HTTP Method: GET
+     * URL: /api/usuarios/{id}
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<UsuarioDto> obtenerUsuarioPorId(@PathVariable Long id) {
         UsuarioDto usuarioDto = usuarioService.obtenerPerfilUsuario(id);
         return ResponseEntity.ok(usuarioDto);
     }
