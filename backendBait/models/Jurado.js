@@ -3,6 +3,7 @@
 // Colección: jurados
 
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const juradoSchema = new mongoose.Schema({
   nombre: {
@@ -55,8 +56,20 @@ const juradoSchema = new mongoose.Schema({
 });
 
 // Actualizar timestamps antes de guardar
-juradoSchema.pre('save', function(next) {
-  next();
+// Actualizar timestamps y hashear password antes de guardar
+juradoSchema.pre('save', async function (next) {
+  // Solo hashear la contraseña si ha sido modificada (o es nueva)
+  if (!this.isModified('password')) {
+    return next();
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Índices para búsquedas rápidas
@@ -65,7 +78,7 @@ juradoSchema.index({ correo: 1 });
 juradoSchema.index({ estado: 1 });
 
 // Método para convertir a DTO
-juradoSchema.methods.toDTO = function() {
+juradoSchema.methods.toDTO = function () {
   return {
     id: this._id,
     nombre: this.nombre,
@@ -79,15 +92,27 @@ juradoSchema.methods.toDTO = function() {
 };
 
 // Método para marcar como votado
-juradoSchema.methods.marcarComoVotado = function() {
+juradoSchema.methods.marcarComoVotado = function () {
   this.haVotado = true;
   return this.save();
 };
 
 // Método para cambiar estado
-juradoSchema.methods.cambiarEstado = function(nuevoEstado) {
+juradoSchema.methods.cambiarEstado = function (nuevoEstado) {
   this.estado = nuevoEstado;
   return this.save();
+};
+
+// Método para comparar contraseñas
+juradoSchema.methods.compararPassword = async function (passwordIngresada) {
+  return await bcrypt.compare(passwordIngresada, this.password);
+};
+
+// Método para comparar fecha de nacimiento
+juradoSchema.methods.compararFechaNacimiento = function (fechaIngresada) {
+  const fechaDB = this.fechaNacimiento.trim();
+  const fechaInput = fechaIngresada.trim();
+  return fechaDB === fechaInput;
 };
 
 module.exports = mongoose.models.Jurado || mongoose.model('Jurado', juradoSchema);

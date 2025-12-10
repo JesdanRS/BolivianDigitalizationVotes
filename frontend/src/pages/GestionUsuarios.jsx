@@ -77,6 +77,7 @@ const EditModal = ({ isOpen, onClose, onSave, usuario, rol }) => {
   const [formData, setFormData] = useState({
     carnet: usuario?.carnet || '',
     nombre: usuario?.nombre || '',
+    fechaNacimiento: usuario?.fechaNacimiento || '',
     correo: usuario?.correo || '',
   });
 
@@ -141,6 +142,24 @@ const EditModal = ({ isOpen, onClose, onSave, usuario, rol }) => {
               type="text"
               value={formData.nombre}
               onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid #e5e7eb',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#4b5563', fontWeight: 500 }}>
+              Fecha de Nacimiento *
+            </label>
+            <input
+              type="text"
+              placeholder="DD/MM/YYYY"
+              value={formData.fechaNacimiento}
+              onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })}
               style={{
                 width: '100%',
                 padding: '8px 12px',
@@ -376,8 +395,8 @@ const CSVUploadModal = ({ isOpen, onClose, rol, onSuccess }) => {
                   color: '#666'
                 }}>
                   {resultado.errores.map((error, idx) => {
-                    const mensajeError = typeof error === 'string' 
-                      ? error 
+                    const mensajeError = typeof error === 'string'
+                      ? error
                       : `Fila ${error.fila}: ${error.razon}`;
                     return (
                       <div key={idx} style={{ marginBottom: '4px', padding: '4px', backgroundColor: '#f3f4f6', borderRadius: '3px' }}>

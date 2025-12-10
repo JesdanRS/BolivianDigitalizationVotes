@@ -12,6 +12,7 @@ import { useAuth } from "../context/AuthContext";
 const Login = () => {
   const navigate = useNavigate();
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // Nuevo estado para el modal de ayuda
   const [carnet, setCarnet] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [emailOculto, setEmailOculto] = useState("");
@@ -97,7 +98,7 @@ const Login = () => {
       if (result.success) {
         alert(
           "Se ha enviado un nuevo código de verificación a " +
-            result.emailOculto
+          result.emailOculto
         );
       } else {
         alert(result.error || "Error al reenviar el código");
@@ -259,6 +260,178 @@ const Login = () => {
         email={emailOculto}
         isLoading={isLoading}
       />
+
+      {/* Botón flotante de ayuda */}
+      <button
+        onClick={() => setIsHelpModalOpen(true)}
+        style={{
+          position: "fixed",
+          bottom: "30px",
+          left: "30px",
+          width: "60px",
+          height: "60px",
+          borderRadius: "50%",
+          backgroundColor: "#dc2626", // Azul profesional
+          color: "white",
+          border: "none",
+          fontSize: "24px",
+          fontWeight: "bold",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          cursor: "pointer",
+          zIndex: 1000,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          transition: "transform 0.2s",
+        }}
+        onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
+        onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        title="Guía de Votación"
+      >
+        ?
+      </button>
+
+      {/* Modal de Ayuda */}
+      {isHelpModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1100,
+          }}
+          onClick={() => setIsHelpModalOpen(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "40px",
+              borderRadius: "12px",
+              maxWidth: "600px",
+              width: "90%",
+              maxHeight: "85vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+              textAlign: "left",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsHelpModalOpen(false)}
+              style={{
+                position: "absolute",
+                top: "15px",
+                right: "15px",
+                background: "none",
+                border: "none",
+                fontSize: "24px",
+                cursor: "pointer",
+                color: "#6b7280",
+              }}
+            >
+              ×
+            </button>
+
+            <h2
+              style={{
+                marginTop: 0,
+                color: "#1e293b",
+                fontSize: "1.5rem",
+                borderBottom: "2px solid #e2e8f0",
+                paddingBottom: "15px",
+                marginBottom: "20px",
+                textAlign: "center"
+              }}
+            >
+              Guía Visual de Votación
+            </h2>
+
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "20px",
+              marginBottom: "20px"
+            }}>
+              {/* Paso 1 */}
+              <div style={{ textAlign: "center", padding: "10px", backgroundColor: "#f8fafc", borderRadius: "8px" }}>
+                <img
+                  src="/img/login_instruction_1765400829029.png"
+                  alt="Inicio de Sesión"
+                  style={{ width: "100%", height: "150px", objectFit: "contain", marginBottom: "10px" }}
+                />
+                <h3 style={{ fontSize: "1rem", color: "#111827", margin: "5px 0" }}>1. Inicio de Sesión</h3>
+                <p style={{ fontSize: "0.85rem", color: "#4b5563" }}>
+                  Ingrese su Carnet y Fecha de Nacimiento exactos.
+                </p>
+              </div>
+
+              {/* Paso 2 */}
+              <div style={{ textAlign: "center", padding: "10px", backgroundColor: "#f8fafc", borderRadius: "8px" }}>
+                <img
+                  src="/img/face_id_instruction_1765400843644.png"
+                  alt="Verificación Facial"
+                  style={{ width: "100%", height: "150px", objectFit: "contain", marginBottom: "10px" }}
+                />
+                <h3 style={{ fontSize: "1rem", color: "#111827", margin: "5px 0" }}>2. Verificación Facial</h3>
+                <p style={{ fontSize: "0.85rem", color: "#4b5563" }}>
+                  <strong>Encienda su cámara</strong> y ubíquese en un lugar iluminado.
+                </p>
+              </div>
+
+              {/* Paso 3 */}
+              <div style={{ textAlign: "center", padding: "10px", backgroundColor: "#f8fafc", borderRadius: "8px" }}>
+                <img
+                  src="/img/voting_instruction_1765400856126.png"
+                  alt="Votación"
+                  style={{ width: "100%", height: "150px", objectFit: "contain", marginBottom: "10px" }}
+                />
+                <h3 style={{ fontSize: "1rem", color: "#111827", margin: "5px 0" }}>3. Emisión del Voto</h3>
+                <p style={{ fontSize: "0.85rem", color: "#4b5563" }}>
+                  Seleccione sus candidatos. El voto es <strong>único y secreto</strong>.
+                </p>
+              </div>
+
+              {/* Paso 4 */}
+              <div style={{ textAlign: "center", padding: "10px", backgroundColor: "#f8fafc", borderRadius: "8px" }}>
+                <img
+                  src="/img/success_vote_instruction_1765400879213.png"
+                  alt="Confirmación"
+                  style={{ width: "100%", height: "150px", objectFit: "contain", marginBottom: "10px" }}
+                />
+                <h3 style={{ fontSize: "1rem", color: "#111827", margin: "5px 0" }}>4. Confirmación</h3>
+                <p style={{ fontSize: "0.85rem", color: "#4b5563" }}>
+                  Revise su selección y confirme para finalizar el proceso.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "30px", textAlign: "right" }}>
+              <button
+                onClick={() => setIsHelpModalOpen(false)}
+                style={{
+                  padding: "10px 24px",
+                  backgroundColor: "#dc2626",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

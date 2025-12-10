@@ -43,7 +43,7 @@ exports.obtenerUsuariosPorRol = async (req, res) => {
     if (rol === 'jurados') {
       filtro.role = 'jurado';
     } else if (rol === 'administradores') {
-      filtro.role = 'admin';
+      filtro.role = { $in: ['admin', 'administrador'] };
     }
 
     const skip = (pagina - 1) * limite;
@@ -59,7 +59,16 @@ exports.obtenerUsuariosPorRol = async (req, res) => {
       cantidad: usuarios.length,
       total,
       pagina: parseInt(pagina),
-      usuarios: usuarios.map(u => u.toDTO())
+      usuarios: usuarios.map(u => ({
+        id: u._id,
+        nombre: u.nombre,
+        carnet: u.carnet,
+        fechaNacimiento: u.fechaNacimiento,
+        correo: u.correo,
+        haVotado: u.haVotado,
+        estado: u.estado,
+        role: u.role
+      }))
     });
   } catch (error) {
     console.error('Error al obtener usuarios:', error);
@@ -147,13 +156,8 @@ exports.crearUsuario = async (req, res) => {
       });
     }
 
-    // Password es requerido para jurados y administradores
-    if ((rol === 'jurados' || rol === 'administradores') && !password) {
-      return res.status(400).json({
-        exito: false,
-        error: 'Password es requerido para este rol'
-      });
-    }
+    // Password ya no es requerido en el body, se genera automáticamente si falta
+    // if ((rol === 'jurados' || rol === 'administradores') && !password) { ... }
 
     const Modelo = obtenerModelo(rol);
 
@@ -179,9 +183,9 @@ exports.crearUsuario = async (req, res) => {
       estado: true
     };
 
-    // Agregar password si es necesario
+    // Agregar password si es necesario (default: carnet)
     if ((rol === 'jurados' || rol === 'administradores')) {
-      usuarioData.password = password;
+      usuarioData.password = password || carnet;
     }
 
     const usuario = new Modelo(usuarioData);
@@ -561,7 +565,7 @@ exports.obtenerEstadisticas = async (req, res) => {
     if (rol === 'jurados') {
       filtro.role = 'jurado';
     } else if (rol === 'administradores') {
-      filtro.role = 'admin';
+      filtro.role = { $in: ['admin', 'administrador'] };
     }
 
     const total = await Modelo.countDocuments(filtro);
