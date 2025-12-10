@@ -9,7 +9,10 @@ const {
     registrarVoto,
     obtenerResultados,
     obtenerEstadisticas,
-    verificarEstadoVotacion
+    verificarEstadoVotacion,
+    crearCandidato,
+    actualizarCandidato,
+    eliminarCandidato
 } = require('../controllers/votacionController');
 
 /**
@@ -25,6 +28,27 @@ router.get('/candidatos', obtenerCandidatos);
  * @access  Public
  */
 router.get('/candidatos/:id', obtenerCandidatoPorId);
+
+/**
+ * @route   POST /api/votaciones/candidatos
+ * @desc    Crear un nuevo candidato
+ * @access  Private (Admin)
+ */
+router.post('/candidatos', crearCandidato);
+
+/**
+ * @route   PUT /api/votaciones/candidatos/:id
+ * @desc    Actualizar un candidato existente
+ * @access  Private (Admin)
+ */
+router.put('/candidatos/:id', actualizarCandidato);
+
+/**
+ * @route   DELETE /api/votaciones/candidatos/:id
+ * @desc    Eliminar un candidato
+ * @access  Private (Admin)
+ */
+router.delete('/candidatos/:id', eliminarCandidato);
 
 /**
  * @route   POST /api/votaciones/votar

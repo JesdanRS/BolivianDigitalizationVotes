@@ -289,11 +289,127 @@ const verificarEstadoVotacion = async (req, res) => {
     }
 };
 
+/**
+ * Crear un nuevo candidato
+ */
+const crearCandidato = async (req, res) => {
+    try {
+        const { nombre, partido, descripcion } = req.body;
+
+        // Validaciones básicas
+        if (!nombre || !partido) {
+            return res.status(400).json({
+                success: false,
+                message: 'El nombre y el partido son requeridos'
+            });
+        }
+
+        const nuevoCandidato = new Candidato({
+            nombre,
+            partido,
+            descripcion: descripcion || 'Sin descripción',
+            votos: 0,
+            activo: true
+        });
+
+        const candidatoGuardado = await nuevoCandidato.save();
+
+        res.status(201).json({
+            success: true,
+            data: candidatoGuardado,
+            message: 'Candidato creado exitosamente'
+        });
+    } catch (error) {
+        console.error('Error al crear candidato:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al crear el candidato',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Actualizar un candidato existente
+ */
+const actualizarCandidato = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const datosActualizados = req.body;
+
+        const candidato = await Candidato.findByIdAndUpdate(
+            id,
+            datosActualizados,
+            { new: true, runValidators: true }
+        );
+
+        if (!candidato) {
+            return res.status(404).json({
+                success: false,
+                message: 'Candidato no encontrado'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: candidato,
+            message: 'Candidato actualizado exitosamente'
+        });
+    } catch (error) {
+        console.error('Error al actualizar candidato:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al actualizar el candidato',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Eliminar (lógicamente) un candidato
+ */
+const eliminarCandidato = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Eliminación física o lógica? Por ahora física para coincidir con el ABM standard, 
+        // pero idealmente sería activo: false. Si el usuario pide "eliminar", lo eliminamos.
+        // Pero para mantener historial de votos, mejor desactivar.
+        // Sin embargo, si es una gestión CRUD simple, delete es delete.
+        // Vamos a hacer Delete físico por simplicidad del request.
+
+        const candidato = await Candidato.findByIdAndDelete(id);
+
+        if (!candidato) {
+            return res.status(404).json({
+                success: false,
+                message: 'Candidato no encontrado'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {},
+            message: 'Candidato eliminado exitosamente'
+        });
+    } catch (error) {
+        console.error('Error al eliminar candidato:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al eliminar el candidato',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     obtenerCandidatos,
     obtenerCandidatoPorId,
     registrarVoto,
     obtenerResultados,
     obtenerEstadisticas,
-    verificarEstadoVotacion
+    verificarEstadoVotacion,
+    crearCandidato,
+    actualizarCandidato,
+    eliminarCandidato
 };

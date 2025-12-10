@@ -64,9 +64,59 @@ export const obtenerEstadisticas = async () => {
     }
 };
 
+/**
+ * Crear un nuevo candidato
+ */
+export const crearCandidato = async (candidato) => {
+    try {
+        const response = await apiRequest('/votaciones/candidatos', {
+            method: 'POST',
+            body: JSON.stringify(candidato)
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al crear candidato:', error);
+        throw error;
+    }
+};
+
+/**
+ * Actualizar un candidato existente
+ */
+export const actualizarCandidato = async (id, candidato) => {
+    try {
+        const response = await apiRequest(`/votaciones/candidatos/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(candidato)
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al actualizar candidato:', error);
+        throw error;
+    }
+};
+
+/**
+ * Eliminar un candidato
+ */
+export const eliminarCandidato = async (id) => {
+    try {
+        const response = await apiRequest(`/votaciones/candidatos/${id}`, {
+            method: 'DELETE'
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al eliminar candidato:', error);
+        throw error;
+    }
+};
+
 export default {
     obtenerCandidatos,
     registrarVoto,
     obtenerResultados,
-    obtenerEstadisticas
+    obtenerEstadisticas,
+    crearCandidato,
+    actualizarCandidato,
+    eliminarCandidato
 };
