@@ -1,34 +1,55 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/common/ProtectedRoute';
-import Votacion from './pages/votacion';
-import AuditoriaDashboard from './pages/auditoria/Dashboard';
-import AuditoriaRegistros from './pages/auditoria/Registros';
-import ResultadosAuditor from './pages/auditoria/ResultadosAuditor';
-import Resultados from './pages/Resultados';
-import Login from './pages/Login';
-import AdminLogin from './pages/AdminLogin';
-import MiVoto from './pages/MiVoto';
-import GestionCandidatos from './pages/GestionCandidatos';
-import GestionUsuarios from './pages/GestionUsuarios';
-import JuradoEspera from './pages/JuradoEspera';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import Votacion from "./pages/votacion";
+import AuditoriaDashboard from "./pages/auditoria/Dashboard";
+import AuditoriaRegistros from "./pages/auditoria/Registros";
+import ResultadosAuditor from "./pages/auditoria/ResultadosAuditor";
+import Resultados from "./pages/Resultados";
+import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
+import MiVoto from "./pages/MiVoto";
+import GestionCandidatos from "./pages/GestionCandidatos";
+import GestionUsuarios from "./pages/GestionUsuarios";
+import JuradoEspera from "./pages/JuradoEspera";
+import "./App.css";
 
 function App() {
   const miniBar = (
-    <div style={{
-      position: 'fixed', right: 12, bottom: 12, background: '#000', color: '#fff',
-      padding: '8px 12px', borderRadius: 8, opacity: .75, display: 'flex', gap: 10, zIndex: 999
-    }}>
-      <Link style={{ color: '#fff' }} to="/votacion">Votación</Link>
+    <div
+      style={{
+        position: "fixed",
+        right: 12,
+        bottom: 12,
+        background: "#000",
+        color: "#fff",
+        padding: "8px 12px",
+        borderRadius: 8,
+        opacity: 0.75,
+        display: "flex",
+        gap: 10,
+        zIndex: 999,
+      }}
+    >
+      <Link style={{ color: "#fff" }} to="/votacion">
+        Votación
+      </Link>
       <span>•</span>
-      <Link style={{ color: '#fff' }} to="/resultados">Resultados</Link>
+      <Link style={{ color: "#fff" }} to="/resultados">
+        Resultados
+      </Link>
       <span>•</span>
-      <Link style={{ color: '#fff' }} to="/auditoria">Auditoría</Link>
+      <Link style={{ color: "#fff" }} to="/auditoria">
+        Auditoría
+      </Link>
       <span>•</span>
-      <Link style={{ color: '#fff' }} to="/gestionar-candidatos">Gestionar Candidatos</Link>
+      <Link style={{ color: "#fff" }} to="/gestionar-candidatos">
+        Gestionar Candidatos
+      </Link>
       <span>•</span>
-      <Link style={{ color: '#fff' }} to="/gestionar-usuarios">Gestionar Usuarios</Link>
+      <Link style={{ color: "#fff" }} to="/gestionar-usuarios">
+        Gestionar Usuarios
+      </Link>
     </div>
   );
 
@@ -39,52 +60,79 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/votacion" element={<Votacion />} />
-          <Route path="/mi-voto" element={
-            <ProtectedRoute requiredRole="usuario">
-              <MiVoto />
-            </ProtectedRoute>
-          } />
-          <Route path="/auditoria" element={
-            <ProtectedRoute allowedRoles={['auditor', 'admin']}>
-              <AuditoriaDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/auditoria/registros" element={
-            <ProtectedRoute allowedRoles={['auditor', 'admin']}>
-              <AuditoriaRegistros />
-            </ProtectedRoute>
-          } />
-          <Route path="/auditoria/resultados" element={
-            <ProtectedRoute allowedRoles={['auditor', 'admin']}>
-              <ResultadosAuditor />
-            </ProtectedRoute>
-          } />
-          <Route path="/resultados" element={
-            <ProtectedRoute>
-              <Resultados />
-            </ProtectedRoute>
-          } />
-          <Route path="/ayuda" element={
-            <ProtectedRoute>
-              <Resultados />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/mi-voto"
+            element={
+              <ProtectedRoute requiredRole="usuario">
+                <MiVoto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/auditoria"
+            element={
+              <ProtectedRoute allowedRoles={["auditor", "admin"]}>
+                <AuditoriaDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/auditoria/registros"
+            element={
+              <ProtectedRoute allowedRoles={["auditor", "admin"]}>
+                <AuditoriaRegistros />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/auditoria/resultados"
+            element={
+              <ProtectedRoute allowedRoles={["auditor", "admin"]}>
+                <ResultadosAuditor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resultados"
+            element={
+              <ProtectedRoute>
+                <Resultados />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ayuda"
+            element={
+              <ProtectedRoute>
+                <Resultados />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/gestionar-candidatos" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <GestionCandidatos />
-            </ProtectedRoute>
-          } />
-          <Route path="/gestionar-usuarios" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <GestionUsuarios />
-            </ProtectedRoute>
-          } />
-          <Route path="/jurado-espera" element={
-            <ProtectedRoute allowedRoles={['jurado']}>
-              <JuradoEspera />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/gestionar-candidatos"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <GestionCandidatos />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gestionar-usuarios"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <GestionUsuarios />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/jurado-espera"
+            element={
+              <ProtectedRoute allowedRoles={["jurado"]}>
+                <JuradoEspera />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         {miniBar}
