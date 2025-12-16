@@ -56,3 +56,4 @@ Desktop.ini
 # Archivos de configuración local (nunca deben subirse al repo)
 application-local.properties
 application-local.yml
+.env

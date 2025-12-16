@@ -15,6 +15,17 @@ spring:
         max-attempts: 20
       username: ${CONFIG_SERVER_USR:config-usr}
       password: ${CONFIG_SERVER_PWD:Config2025!}
+
+    # Kafka Stream bindings para enviar notificaciones
+    stream:
+      kafka:
+        binder:
+          brokers: ${SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS:localhost:9092}
+      bindings:
+        # Output binding: envía códigos de verificación al topic de notificaciones
+        enviarNotificacion-out-0:
+          destination: topic-notificaciones
+          content-type: application/json
 ---
 # ========================================
 # PERFIL LOCAL

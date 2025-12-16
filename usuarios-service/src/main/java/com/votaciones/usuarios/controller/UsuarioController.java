@@ -22,14 +22,27 @@ public class UsuarioController {
     }
 
     /**
-     * Endpoint para autenticar a un usuario.
+     * Endpoint principal de autenticación para el frontend.
+     * Autentica al usuario y envía automáticamente un código de verificación a su
+     * correo.
+     * HTTP Method: POST
+     * URL: /api/usuarios/auth/login
+     */
+    @PostMapping("/auth/login")
+    public ResponseEntity<AuthResponseDto> loginConVerificacion(@Valid @RequestBody LoginRequestDto loginRequestDto) {
+        AuthResponseDto response = usuarioService.autenticarYEnviarCodigo(loginRequestDto);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint legacy para autenticar a un usuario (sin enviar código
+     * automáticamente).
      * HTTP Method: POST
      * URL: /api/usuarios/login
      */
     @PostMapping("/login")
     public ResponseEntity<UsuarioDto> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
         UsuarioDto usuarioDto = usuarioService.autenticarUsuario(loginRequestDto);
-        // En el futuro, aquí se generaría un token JWT y se devolvería en la respuesta.
         return ResponseEntity.ok(usuarioDto);
     }
 
@@ -40,23 +53,22 @@ public class UsuarioController {
      * URL: /api/usuarios/{carnet}/solicitar-codigo
      */
     @PostMapping("/{carnet}/solicitar-codigo")
-    // ¡CAMBIO! Hemos eliminado @Valid @RequestBody SolicitudCodigoDto solicitudDto
     public ResponseEntity<Void> solicitarCodigo(@PathVariable String carnet) {
-        // ¡CAMBIO! Ahora solo pasamos el carnet al servicio
         usuarioService.solicitarCodigoVerificacion(carnet);
         return ResponseEntity.ok().build();
     }
 
     /**
      * Endpoint para verificar el código enviado al correo.
+     * Devuelve los datos del usuario si el código es correcto.
      * HTTP Method: POST
      * URL: /api/usuarios/{carnet}/verificar-codigo
      */
     @PostMapping("/{carnet}/verificar-codigo")
-    public ResponseEntity<Void> verificarCodigo(@PathVariable String carnet,
+    public ResponseEntity<UsuarioDto> verificarCodigo(@PathVariable String carnet,
             @Valid @RequestBody VerificacionCodigoDto verificacionDto) {
-        usuarioService.verificarCodigo(carnet, verificacionDto.getCodigo());
-        return ResponseEntity.ok().build();
+        UsuarioDto usuario = usuarioService.verificarCodigoYObtenerUsuario(carnet, verificacionDto.getCodigo());
+        return ResponseEntity.ok(usuario);
     }
 
     /**

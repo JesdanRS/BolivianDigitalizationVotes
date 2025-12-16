@@ -2,7 +2,11 @@ package com.votaciones.notificaciones.service;
 
 import com.votaciones.notificaciones.dto.NotificacionDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import java.util.function.Consumer;
 
@@ -10,12 +14,22 @@ import java.util.function.Consumer;
 @Slf4j
 public class ListenerService {
 
-    // Spring Cloud Stream buscará un Bean de tipo Consumer o Function
-    // cuyo nombre coincida con la parte 'procesarNotificacion' del binding.
+    @Autowired(required = false)
+    private JavaMailSender mailSender;
+
+    @Value("${spring.mail.username:noreply@votaciones.com}")
+    private String fromEmail;
+
+    @Value("${app.email.enabled:false}")
+    private boolean emailEnabled;
+
+    /**
+     * Procesa notificaciones recibidas de Kafka y envía emails.
+     * Si el envío de email está deshabilitado o falla, solo logea el mensaje.
+     */
     @Bean
     public Consumer<NotificacionDto> procesarNotificacion() {
         return notificacion -> {
-            // Este es el código que se ejecuta cuando llega un mensaje de Kafka.
             log.info("===================================================");
             log.info("RECIBIDA NUEVA NOTIFICACIÓN PARA ENVIAR POR EMAIL:");
             log.info("Destinatario: {}", notificacion.getDestinatario());
@@ -23,8 +37,32 @@ public class ListenerService {
             log.info("Cuerpo: {}", notificacion.getCuerpo());
             log.info("===================================================");
 
-            // TODO: Aquí iría la lógica real para conectarse a un servicio
-            // de envío de emails (como SendGrid, AWS SES, etc.) y enviar el correo.
+            // Debug: mostrar configuración
+            log.info("🔧 DEBUG: emailEnabled={}, mailSender={}", emailEnabled,
+                    (mailSender != null ? "configurado" : "NULL"));
+
+            if (emailEnabled && mailSender != null) {
+                try {
+                    enviarEmail(notificacion);
+                    log.info("✅ Email enviado exitosamente a: {}", notificacion.getDestinatario());
+                } catch (Exception e) {
+                    log.error("❌ Error enviando email: {}. El código se puede ver en los logs.", e.getMessage(), e);
+                }
+            } else {
+                log.info("📧 Email deshabilitado. El código de verificación se puede ver arriba en los logs.");
+            }
         };
+    }
+
+    /**
+     * Envía un email usando JavaMailSender.
+     */
+    private void enviarEmail(NotificacionDto notificacion) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(notificacion.getDestinatario());
+        message.setSubject(notificacion.getAsunto());
+        message.setText(notificacion.getCuerpo());
+        mailSender.send(message);
     }
 }

@@ -28,9 +28,29 @@ spring:
 
       kafka:
         binder:
-          # En Docker este host existe; si quieres usar localhost en local,
-          # puedes sobreescribir con una env var, pero para ahora déjalo así.
           brokers: ${SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS:localhost:9092}
+
+  # Configuración de email (Mailtrap para desarrollo)
+  # Para habilitar el envío real de emails, configura estas variables de entorno:
+  # MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, APP_EMAIL_ENABLED=true
+  mail:
+    host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
+    port: ${MAIL_PORT:2525}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Configuración de la aplicación
+app:
+  email:
+    # Por defecto deshabilitado - los códigos se ven en los logs
+    # Para habilitar: APP_EMAIL_ENABLED=true
+    enabled: ${APP_EMAIL_ENABLED:false}
 
 eureka:
   client:

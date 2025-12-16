@@ -1,10 +1,11 @@
 // authService.js
-// Servicio de autenticación actualizado para trabajar con el backend
+// Servicio de autenticación para conectar con usuarios-service a través del API Gateway
 
-import { authAPI } from "./api";
+import { authAPI, ocultarEmail } from "./api";
 
 /**
- * Autentica un usuario con carnet y fecha de nacimiento
+ * Autentica un usuario con carnet y fecha de nacimiento.
+ * El backend envía automáticamente un código de verificación al correo registrado.
  * @param {string} carnet - Carnet de identidad
  * @param {string} fechaNacimiento - Fecha de nacimiento (formato DD/MM/AAAA)
  * @returns {Promise<object>} - Resultado de la autenticación
@@ -13,10 +14,15 @@ export const authenticateUser = async (carnet, fechaNacimiento) => {
   try {
     const response = await authAPI.login(carnet, fechaNacimiento);
 
-    if (response.success) {
+    // El backend devuelve AuthResponseDto con emailOculto
+    if (response) {
       return {
         success: true,
-        data: response.data,
+        data: {
+          emailOculto:
+            response.emailOculto || ocultarEmail(response.correoElectronico),
+          carnet: response.carnet || carnet,
+        },
       };
     }
 
@@ -34,20 +40,22 @@ export const authenticateUser = async (carnet, fechaNacimiento) => {
  * Verifica el código de verificación ingresado
  * @param {string} carnet - Carnet de identidad
  * @param {string} codigo - Código de verificación de 6 dígitos
- * @returns {Promise<object>} - Resultado de la verificación
+ * @returns {Promise<object>} - Resultado de la verificación con datos del usuario
  */
 export const verifyCode = async (carnet, codigo) => {
   try {
     const response = await authAPI.verifyCode(carnet, codigo);
 
-    if (response.success) {
-      return {
-        success: true,
-        user: response.data.user,
-      };
-    }
-
-    return { success: false };
+    // Si la respuesta es exitosa (puede ser vacía o con datos de usuario)
+    // Construimos el objeto user con los datos del carnet
+    return {
+      success: true,
+      user: response?.user || {
+        carnet: carnet,
+        role: "usuario",
+        isAuthenticated: true,
+      },
+    };
   } catch (error) {
     console.error("Error en verifyCode:", error);
     return {
@@ -64,16 +72,14 @@ export const verifyCode = async (carnet, codigo) => {
  */
 export const resendVerificationCode = async (carnet) => {
   try {
-    const response = await authAPI.resendCode(carnet);
+    await authAPI.resendCode(carnet);
 
-    if (response.success) {
-      return {
-        success: true,
-        emailOculto: response.data.emailOculto,
-      };
-    }
-
-    return { success: false };
+    // El backend responde con 200 OK sin body
+    // El código se envía al correo registrado del usuario
+    return {
+      success: true,
+      emailOculto: "tu correo registrado", // El frontend puede mostrar esto
+    };
   } catch (error) {
     console.error("Error en resendVerificationCode:", error);
     return {
@@ -84,7 +90,7 @@ export const resendVerificationCode = async (carnet) => {
 };
 
 /**
- * Autentica administradores, auditores o jurados con backend
+ * Autentica administradores, auditores o jurados
  * @param {string} carnet - Carnet de identidad
  * @param {string} fechaNacimiento - Fecha de nacimiento (formato DD/MM/AAAA)
  * @param {string} correo - Correo electrónico
@@ -105,10 +111,10 @@ export const authenticateAdmin = async (
       password
     );
 
-    if (response.success) {
+    if (response) {
       return {
         success: true,
-        user: response.data.user,
+        user: response.user || response,
       };
     }
 
@@ -141,27 +147,4 @@ export const isAuthenticated = () => {
 // Cerrar sesión
 export const logout = () => {
   localStorage.removeItem("user");
-};
-
-// Datos predefinidos de usuarios para mostrar en MiVoto
-export const getUserDisplayData = (carnet) => {
-  // Datos de ejemplo para mostrar en MiVoto según el carnet
-  const userDisplayData = {
-    13120200: {
-      nombreCompleto: "Juan Carlos Pérez",
-      cedulaIdentidad: "13120200",
-      lugarVotacion: "Unidad Educativa San Agustín",
-      mesaSufragio: "42",
-      fechaEmision: "23/10/2025",
-    },
-    12735190: {
-      nombreCompleto: "María Flores Rodríguez",
-      cedulaIdentidad: "12735190",
-      lugarVotacion: "Colegio Don Bosco",
-      mesaSufragio: "17",
-      fechaEmision: "23/10/2025",
-    },
-  };
-
-  return userDisplayData[carnet] || null;
 };
