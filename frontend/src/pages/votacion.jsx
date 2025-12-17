@@ -1,58 +1,38 @@
 // src/pages/Votacion.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useKeycloak } from '@react-keycloak/web';
 import CandidatoCard from '../components/voting/CandidatoCard';
 import Navbar from '../components/common/Navbar';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 
+// Datos estáticos de candidatos (temporal)
+const candidatosEstaticos = [
+  {
+    id: 1,
+    partido: 'MAS',
+    nombreCompletoPresidente: 'Luis Alberto Arce Catacora',
+    nombreCompletoVicepresidente: 'David Choquehuanca Céspedes',
+    descripcion: 'Movimiento al Socialismo - Propuesta enfocada en estabilidad económica y continuidad de políticas sociales.'
+  },
+  {
+    id: 2,
+    partido: 'Comunidad Ciudadana',
+    nombreCompletoPresidente: 'Carlos Diego Mesa Gisbert',
+    nombreCompletoVicepresidente: 'Gustavo Pedraza',
+    descripcion: 'Coalición de centro - Propuesta basada en democracia participativa y modernización del estado.'
+  }
+];
+
 const Votacion = () => {
   const { keycloak, initialized } = useKeycloak();
-  const [candidatos, setCandidatos] = useState([]);
+  const [candidatos] = useState(candidatosEstaticos);
   const [votoSeleccionado, setVotoSeleccionado] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [candidatoSeleccionado, setCandidatoSeleccionado] = useState(null);
   const [enviandoVoto, setEnviandoVoto] = useState(false);
-  const [cargandoCandidatos, setCargandoCandidatos] = useState(true);
   const [mensaje, setMensaje] = useState(null);
   const [error, setError] = useState(null);
-
-  // Cargar candidatos desde la API
-  useEffect(() => {
-    const fetchCandidatos = async () => {
-      if (!initialized || !keycloak?.token) return;
-
-      setCargandoCandidatos(true);
-      setError(null);
-
-      try {
-        const response = await fetch('http://localhost:8080/ms-candidatos/api/candidatos', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${keycloak.token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error al cargar candidatos: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Candidatos cargados:', data);
-        setCandidatos(data);
-
-      } catch (err) {
-        console.error('Error al cargar candidatos:', err);
-        setError(`No se pudieron cargar los candidatos: ${err.message}`);
-      } finally {
-        setCargandoCandidatos(false);
-      }
-    };
-
-    if (initialized && keycloak?.token) {
-      fetchCandidatos();
-    }
-  }, [initialized, keycloak?.token]);
 
   const handleVotar = (candidato) => {
     setCandidatoSeleccionado(candidato);
@@ -188,42 +168,26 @@ const Votacion = () => {
           </div>
         )}
 
-        {/* Estado de carga de candidatos */}
-        {cargandoCandidatos && (
-          <div style={{ fontSize: '1.2rem', color: '#666' }}>
-            Cargando candidatos...
-          </div>
-        )}
-
         {/* Lista de candidatos */}
-        {!cargandoCandidatos && candidatos.length > 0 && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '20px',
-            flexWrap: 'wrap',
-            padding: '0',
-            width: '100%'
-          }}>
-            {candidatos.map((candidato) => (
-              <CandidatoCard
-                key={candidato.id}
-                partido={candidato.partido}
-                nombrePresidente={candidato.nombreCompletoPresidente}
-                nombreVicepresidente={candidato.nombreCompletoVicepresidente}
-                descripcion={candidato.descripcion}
-                onVotar={() => handleVotar(candidato)}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Sin candidatos disponibles */}
-        {!cargandoCandidatos && candidatos.length === 0 && !error && (
-          <div style={{ fontSize: '1.2rem', color: '#666' }}>
-            No hay candidatos disponibles en este momento.
-          </div>
-        )}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '20px',
+          flexWrap: 'wrap',
+          padding: '0',
+          width: '100%'
+        }}>
+          {candidatos.map((candidato) => (
+            <CandidatoCard
+              key={candidato.id}
+              partido={candidato.partido}
+              nombrePresidente={candidato.nombreCompletoPresidente}
+              nombreVicepresidente={candidato.nombreCompletoVicepresidente}
+              descripcion={candidato.descripcion}
+              onVotar={() => handleVotar(candidato)}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Modal de confirmación */}
