@@ -43,7 +43,11 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
-
+<!-- 2b. AÑADIDO: Spring Cloud Config Client -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
 		<!-- 3. AÑADIDO: Dependencia a nuestro módulo de DTOs de notificaciones -->
 		<dependency>
 			<groupId>com.votaciones</groupId>
