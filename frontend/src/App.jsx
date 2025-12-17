@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { useKeycloak } from '@react-keycloak/web';
 import Votacion from './pages/votacion';
 import AuditoriaDashboard from './pages/auditoria/Dashboard';
 import AuditoriaRegistros from './pages/auditoria/Registros';
@@ -10,6 +11,29 @@ import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
 import MiVoto from './pages/MiVoto';
 import './App.css';
+
+// Componente para redirección basada en roles
+function RoleBasedRedirect() {
+  const { keycloak, initialized } = useKeycloak();
+
+  if (!initialized) {
+    return <div style={{ padding: '20px', textAlign: 'center' }}>Cargando...</div>;
+  }
+
+  // Verificar roles del usuario
+  const hasVotanteRole = keycloak?.hasRealmRole?.('votante') || keycloak?.hasRealmRole?.('USER');
+  const hasAuditorRole = keycloak?.hasRealmRole?.('auditor') || keycloak?.hasRealmRole?.('ADMIN');
+
+  // Redirigir según el rol
+  if (hasVotanteRole) {
+    return <Navigate to="/votacion" replace />;
+  } else if (hasAuditorRole) {
+    return <Navigate to="/auditoria" replace />;
+  }
+
+  // Por defecto, redirigir a votación si no hay roles específicos o si es un usuario nuevo
+  return <Navigate to="/votacion" replace />;
+}
 
 function App() {
   const miniBar = (
@@ -43,6 +67,8 @@ function App() {
         <Route path="/resultadosTest" element={<ResultadosTest />} />
         <Route path="/" element={<Navigate to="/resultadosTest" replace />} />
         <Route path="*" element={<Navigate to="/resultadosTest" replace />} />
+        <Route path="/" element={<RoleBasedRedirect />} />
+        <Route path="*" element={<RoleBasedRedirect />} />
       </Routes>
       {miniBar}
     </BrowserRouter>

@@ -1,0 +1,60 @@
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  packagesToScan: com.votaciones.controller
+  pathsToMatch: /**
+  override-with-generic-response: false
+
+api:
+  common:
+    version: 1.0.0
+    title: API Votaciones - Sistema de Votaciones
+    description: Microservicio para la gestión de votaciones dentro del sistema electoral.
+    termsOfService: https://www.tuvotacion.com/terminos
+    license: Licencia MIT
+    licenseUrl: https://opensource.org/licenses/MIT
+    externalDocDesc: Documentación en Wiki
+    externalDocUrl: https://www.tuvotacion.com/wiki
+    contact:
+      name: Soporte Sistema de Votaciones
+      url: https://www.tuvotacion.com/contacto
+      email: soporte@tuvotacion.com
+
+  responseCodes:
+    ok.description: OK
+    badRequest.description: Solicitud incorrecta, formato inválido o parámetros erróneos.
+    notFound.description: No encontrado, el id especificado no existe en los registros de votación.
+    unprocessableEntity.description: Entidad no procesable, no se pueden procesar los parámetros de entrada.
+
+  votaciones:
+    get-votacion:
+      description: Retorna la información de una votación según el ID proporcionado.
+      notes: |
+        # Respuesta exitosa
+        Si el ID de la votación existe, se retorna la información correspondiente.
+
+        # Respuestas con error
+        1. Si el ID es inválido o no existe, se devuelve un error **404 - Not Found**.
+      parameters:
+        id: ID de la votación a consultar
+    create-votacion:
+      description: Crea una nueva votación.
+      notes: |
+        # Respuesta exitosa
+        Retorna la votación creada.
+
+        # Respuestas con error
+        1. Si los datos enviados son inválidos se devuelve un error **400 - Bad Request**
+    delete-votacion:
+      description: Elimina una votación según el ID proporcionado.
+      notes: |
+        # Respuesta exitosa
+        Si el ID de la votación existe, se elimina el registro.
+
+        # Respuestas con error
+        1. Si el ID no existe se devuelve un error **404 - Not Found**
+        2. Si el ID enviado es inválido se devuelve un error **400 - Bad Request**
+      parameters:
+        id: ID de la votación a eliminar
