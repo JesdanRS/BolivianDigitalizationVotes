@@ -1,0 +1,71 @@
+INSERT INTO candidatos (
+    partido, 
+    nombre_completo_presidente, 
+    nombre_completo_vicepresidente, 
+    carnet_presidente, 
+    carnet_vicepresidente,
+    fecha_nacimiento_presidente, 
+    fecha_nacimiento_vicepresidente, 
+    descripcion, 
+    correo_electronico, 
+    correo_verificado,
+    creado_en,
+    actualizado_en
+) VALUES 
+(
+    'JUNTOS',
+    'Jeanine Áñez Chávez',
+    'Samuel Doria Medina',
+    '1234567-BEN',
+    '7654321-LP',
+    '1967-06-13',
+    '1958-12-04',
+    'Alianza Juntos - La unión hace la fuerza',
+    'juntos@bolivia.bo',
+    true,
+    NOW(),
+    NOW()
+),
+(
+    'CREEMOS',
+    'Luis Fernando Camacho',
+    'Marco Pumari',
+    '3456789-SC',
+    '9876543-PT',
+    '1979-02-15',
+    '1981-07-20',
+    'Creemos en una nueva Bolivia federal',
+    'contacto@creemos.bo',
+    true,
+    NOW(),
+    NOW()
+),
+(
+    'COMUNIDAD CIUDADANA',
+    'Carlos Mesa Gisbert',
+    'Gustavo Pedraza',
+    '4567890-LP',
+    '0987654-SC',
+    '1953-08-12',
+    '1963-04-30',
+    'Comunidad Ciudadana - Soluciones para la crisis',
+    'carlos@cc.bo',
+    true,
+    NOW(),
+    NOW()
+),
+(
+    'MAS-IPSP',
+    'Luis Arce Catacora',
+    'David Choquehuanca',
+    '2345678-LP',
+    '8765432-LP',
+    '1963-09-28',
+    '1961-05-07',
+    'Movimiento Al Socialismo - Instrumento Político por la Soberanía de los Pueblos',
+    'lucho@mas.bo',
+    true,
+    NOW(),
+    NOW()
+)
+ON CONFLICT (partido) DO NOTHING;
