@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import { AuthProvider } from "./context/AuthContext";
 import keycloak from "./keycloak";
 import { ReactKeycloakProvider } from "@react-keycloak/web";
 
@@ -13,6 +14,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       checkLoginIframe: false,
     }}
   >
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </ReactKeycloakProvider>
 );
