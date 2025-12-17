@@ -1,6 +1,6 @@
 spring:
   application:
-    name: RESULTADOS-ESTADISTICAS-SERVICE
+    name: VOTACIONES-SERVICE
 
   config:
     import: "configserver:,optional:classpath:application-openapi.yaml"

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class ResultadoMesaController {
      * HTTP Method: GET
      * URL: /api/resultados/resultados
      */
+    @PreAuthorize("hasAnyRole('AUDITOR', 'ADMIN')")
     @GetMapping("/resultados")
     public ResponseEntity<List<ResultadoMesaDto>> listarTodos() {
         return ResponseEntity.ok(service.listarTodos());
@@ -39,6 +41,7 @@ public class ResultadoMesaController {
      * HTTP Method: GET
      * URL: /api/resultados/resultados/{id}
      */
+    @PreAuthorize("hasAnyRole('AUDITOR', 'ADMIN')")
     @GetMapping("/resultados/{id}")
     public ResponseEntity<ResultadoMesaDto> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.obtenerPorId(id));
@@ -49,6 +52,7 @@ public class ResultadoMesaController {
      * HTTP Method: GET
      * URL: /api/resultados/resultados/departamento/{departamento}
      */
+    @PreAuthorize("hasAnyRole('AUDITOR', 'ADMIN')")
     @GetMapping("/resultados/departamento/{departamento}")
     public ResponseEntity<List<ResultadoMesaDto>> listarPorDepartamento(@PathVariable String departamento) {
         return ResponseEntity.ok(service.listarPorDepartamento(departamento));
@@ -59,6 +63,7 @@ public class ResultadoMesaController {
      * HTTP Method: GET
      * URL: /api/resultados/resultados/municipio/{municipio}
      */
+    @PreAuthorize("hasAnyRole('AUDITOR', 'ADMIN')")
     @GetMapping("/resultados/municipio/{municipio}")
     public ResponseEntity<List<ResultadoMesaDto>> listarPorMunicipio(@PathVariable String municipio) {
         return ResponseEntity.ok(service.listarPorMunicipio(municipio));
@@ -69,6 +74,7 @@ public class ResultadoMesaController {
      * HTTP Method: POST
      * URL: /api/resultados/resultados
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/resultados")
     public ResponseEntity<ResultadoMesaDto> crear(@Valid @RequestBody ResultadoMesaCreacionDto dto) {
         ResultadoMesaDto creado = service.crear(dto);
@@ -80,8 +86,10 @@ public class ResultadoMesaController {
      * HTTP Method: PUT
      * URL: /api/resultados/resultados/{id}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/resultados/{id}")
-    public ResponseEntity<ResultadoMesaDto> actualizar(@PathVariable Long id, @Valid @RequestBody ResultadoMesaActualizacionDto dto) {
+    public ResponseEntity<ResultadoMesaDto> actualizar(@PathVariable Long id,
+            @Valid @RequestBody ResultadoMesaActualizacionDto dto) {
         return ResponseEntity.ok(service.actualizar(id, dto));
     }
 
@@ -90,6 +98,7 @@ public class ResultadoMesaController {
      * HTTP Method: DELETE
      * URL: /api/resultados/resultados/{id}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/resultados/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
@@ -101,6 +110,7 @@ public class ResultadoMesaController {
      * HTTP Method: GET
      * URL: /api/resultados/resultados/estadisticas
      */
+    @PreAuthorize("hasAnyRole('AUDITOR', 'ADMIN')")
     @GetMapping("/resultados/estadisticas")
     public ResponseEntity<List<EstadisticaDto>> obtenerEstadisticas() {
         return ResponseEntity.ok(service.obtenerEstadisticasPorDepartamento());
@@ -111,6 +121,7 @@ public class ResultadoMesaController {
      * HTTP Method: GET
      * URL: /api/resultados/resultados/estadisticas/{departamento}
      */
+    @PreAuthorize("hasAnyRole('AUDITOR', 'ADMIN')")
     @GetMapping("/resultados/estadisticas/{departamento}")
     public ResponseEntity<EstadisticaDto> obtenerEstadisticaDepartamento(@PathVariable String departamento) {
         return ResponseEntity.ok(service.obtenerEstadisticaDepartamento(departamento));

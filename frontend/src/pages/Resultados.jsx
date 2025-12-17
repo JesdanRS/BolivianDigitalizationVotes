@@ -1,84 +1,120 @@
 import React, { useState, useEffect } from 'react';
+import { useKeycloak } from '@react-keycloak/web';
 import Navbar from '../components/common/Navbar';
 import StatCard from '../components/auditoria/StatCard';
 import ResultadoBar from '../components/voting/ResultadoBar';
 import { obtenerResultados, obtenerEstadisticas } from '../services/votacionService';
 
 const Resultados = () => {
-  const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date());
-  const [estadisticas, setEstadisticas] = useState({
-    totalVotos: 0,
-    votosValidos: 0,
-    votosNulos: 0,
-    participacion: 0,
-    mesasEscrutadas: 0,
-    mesasTotal: 1560
-  });
-  const [resultadosCandidatos, setResultadosCandidatos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { keycloak, initialized } = useKeycloak();
+
+  const [resultados, setResultados] = useState([]);
+  const [estadisticas, setEstadisticas] = useState(null);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
+  const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date());
 
-  // Función para cargar datos de la API
+  // Función para cargar datos desde la API
   const cargarDatos = async () => {
+    if (!initialized || !keycloak?.token) {
+      console.warn('No hay token todavía');
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
+      // Cargar estadísticas
+      const statsResponse = await fetch('http://localhost:8080/api/resultados/resultados/estadisticas', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${keycloak.token}`,
+        },
+      });
 
-      // Cargar estadísticas y resultados en paralelo
-      const [statsResponse, resultadosResponse] = await Promise.all([
-        obtenerEstadisticas(),
-        obtenerResultados()
-      ]);
-
-      // Actualizar estadísticas
-      if (statsResponse.success) {
-        setEstadisticas({
-          totalVotos: statsResponse.data.totalVotos || 0,
-          votosValidos: statsResponse.data.votosValidos || 0,
-          votosNulos: statsResponse.data.votosNulos || 0,
-          participacion: statsResponse.data.participacion || 0,
-          mesasEscrutadas: statsResponse.data.mesasEscrutadas || 0,
-          mesasTotal: statsResponse.data.mesasTotal || 1560
-        });
+      if (!statsResponse.ok) {
+        throw new Error(`Error HTTP: ${statsResponse.status}`);
       }
 
-      // Actualizar resultados de candidatos
-      if (resultadosResponse.success) {
-        const candidatos = resultadosResponse.data.map((candidato, index) => {
-          // Colores para cada candidato
-          const colores = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c'];
-          return {
-            nombre: candidato.nombre,
-            porcentaje: parseFloat(candidato.porcentaje) || 0,
-            votos: candidato.votos || 0,
-            color: colores[index % colores.length]
-          };
-        });
-        setResultadosCandidatos(candidatos);
+      const statsData = await statsResponse.json();
+      console.log('Estadísticas:', statsData);
+
+      // Si hay datos de estadísticas, tomar la primera
+      if (statsData && statsData.length > 0) {
+        setEstadisticas(statsData[0]);
       }
 
+      // Cargar resultados de todas las mesas
+      const resultsResponse = await fetch('http://localhost:8080/api/resultados/resultados', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${keycloak.token}`,
+        },
+      });
+
+      if (!resultsResponse.ok) {
+        throw new Error(`Error HTTP: ${resultsResponse.status}`);
+      }
+
+      const resultsData = await resultsResponse.json();
+      console.log('Resultados:', resultsData);
+      setResultados(resultsData);
       setUltimaActualizacion(new Date());
     } catch (err) {
-      console.error('Error al cargar datos:', err);
-      setError('Error al cargar los resultados. Intentando de nuevo...');
+      console.error(err);
+      setError(err.message);
     } finally {
-      setLoading(false);
+      setCargando(false);
     }
   };
 
-  // Cargar datos inicialmente
+  // Cargar datos al montar el componente y cuando el token esté listo
   useEffect(() => {
-    cargarDatos();
-  }, []);
+    if (initialized && keycloak?.token) {
+      cargarDatos();
+    }
+  }, [initialized, keycloak?.token]);
 
-  // Actualizar cada 5 minutos
+  // Auto-actualización cada 5 minutos
   useEffect(() => {
     const interval = setInterval(() => {
       cargarDatos();
     }, 5 * 60 * 1000); // 5 minutos
 
     return () => clearInterval(interval);
-  }, []);
+  }, [initialized, keycloak?.token]);
+
+  // Calcular agregados para la vista (datos de ejemplo si no hay estadísticas)
+  const calcularEstadisticas = () => {
+    if (estadisticas) {
+      return {
+        totalVotos: estadisticas.votosValidos + estadisticas.votosNulos + estadisticas.votosBlancos,
+        votosValidos: estadisticas.votosValidos,
+        votosNulos: estadisticas.votosNulos,
+        participacion: estadisticas.participacionPorcentaje || 0,
+        mesasEscrutadas: resultados.length,
+        mesasTotal: resultados.length, // Ajustar según necesidad
+      };
+    }
+    return {
+      totalVotos: 0,
+      votosValidos: 0,
+      votosNulos: 0,
+      participacion: 0,
+      mesasEscrutadas: 0,
+      mesasTotal: 0,
+    };
+  };
+
+  const stats = calcularEstadisticas();
+
+  // Por ahora, mostrar datos agregados básicos
+  // En producción, estos vendrían de un endpoint específico de candidatos
+  const resultadosCandidatos = [
+    { nombre: 'Votos Válidos', porcentaje: stats.totalVotos > 0 ? (stats.votosValidos / stats.totalVotos * 100).toFixed(1) : 0, votos: stats.votosValidos, color: '#2563eb' },
+    { nombre: 'Votos Nulos', porcentaje: stats.totalVotos > 0 ? (stats.votosNulos / stats.totalVotos * 100).toFixed(1) : 0, votos: stats.votosNulos, color: '#dc2626' },
+  ];
 
   return (
     <div style={{
@@ -157,9 +193,27 @@ const Resultados = () => {
           </div>
         )}
 
-        {/* Sección de Estadísticas Generales */}
-        {!loading || resultadosCandidatos.length > 0 ? (
+        {/* Estado de carga */}
+        {cargando && (
+          <div style={{ padding: '20px' }}>
+            <p>Cargando resultados...</p>
+          </div>
+        )}
+
+        {/* Estado de error */}
+        {error && (
+          <div style={{ padding: '20px', color: 'red' }}>
+            <p>Error al cargar resultados: {error}</p>
+            <button onClick={cargarDatos} style={{ marginTop: '10px', padding: '8px 16px', cursor: 'pointer' }}>
+              Reintentar
+            </button>
+          </div>
+        )}
+
+        {/* Mostrar datos solo si no hay error y no está cargando */}
+        {!cargando && !error && (
           <>
+            {/* Sección de Estadísticas Generales */}
             <div style={{
               display: 'flex',
               justifyContent: 'center',
@@ -169,12 +223,12 @@ const Resultados = () => {
               width: '100%',
               marginBottom: '40px'
             }}>
-              <StatCard label="Total de Votos" value={estadisticas.totalVotos.toLocaleString()} />
-              <StatCard label="Votos Válidos" value={estadisticas.votosValidos.toLocaleString()} />
-              <StatCard label="Votos Nulos" value={estadisticas.votosNulos.toLocaleString()} />
-              <StatCard label="Participación" value={`${estadisticas.participacion}%`} />
-              <StatCard label="Mesas Escrutadas" value={`${estadisticas.mesasEscrutadas}/${estadisticas.mesasTotal}`} />
-              <StatCard label="Progreso del Escrutinio" value={`${Math.round((estadisticas.mesasEscrutadas / estadisticas.mesasTotal) * 100)}%`} />
+              <StatCard label="Total de Votos" value={stats.totalVotos.toLocaleString()} />
+              <StatCard label="Votos Válidos" value={stats.votosValidos.toLocaleString()} />
+              <StatCard label="Votos Nulos" value={stats.votosNulos.toLocaleString()} />
+              <StatCard label="Participación" value={`${stats.participacion.toFixed(1)}%`} />
+              <StatCard label="Mesas Escrutadas" value={`${stats.mesasEscrutadas}/${stats.mesasTotal}`} />
+              <StatCard label="Progreso del Escrutinio" value={stats.mesasTotal > 0 ? `${Math.round((stats.mesasEscrutadas / stats.mesasTotal) * 100)}%` : '0%'} />
             </div>
 
             {/* Sección de Resultados por Candidato */}
@@ -210,11 +264,11 @@ const Resultados = () => {
                 })}
               </p>
               <p style={{ color: '#666', marginTop: '8px', fontSize: '0.9rem' }}>
-
+                Los resultados se actualizan cada 5 minutos
               </p>
             </div>
           </>
-        ) : null}
+        )}
       </div>
     </div>
   );
