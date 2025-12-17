@@ -235,7 +235,7 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
       # ojo: este endpoint de Keycloak lo pueden ajustar luego al nuevo realm
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones-realm/protocol/openid-connect/certs
     depends_on:
       postgres-db-usuarios:
         condition: service_healthy
@@ -261,6 +261,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - CONFIG_SERVER_USR=${CONFIG_SERVER_USR:-config-usr}
       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD:-Config2025!}
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/votaciones-realm/protocol/openid-connect/certs
     depends_on:
       config-server:
         condition: service_healthy
@@ -318,7 +319,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-resultados:5432/resultados_db
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones-realm/protocol/openid-connect/certs
     depends_on:
       postgres-db-resultados:
         condition: service_healthy
@@ -371,7 +372,7 @@ services:
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - HOSTNAME=api-gateway
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones-realm/protocol/openid-connect/certs
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

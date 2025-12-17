@@ -35,20 +35,32 @@ public class GlobalExceptionHandler {
 		error.put("message", "Los datos proporcionados no son válidos");
 		error.put("path", request.getRequestURI());
 		Map<String, String> fieldErrors = new HashMap<>();
-		ex.getBindingResult().getFieldErrors().forEach(fieldError ->
-			fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage())
-		);
+		ex.getBindingResult().getFieldErrors()
+				.forEach(fieldError -> fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage()));
 		error.put("fieldErrors", fieldErrors);
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
 	}
 
-	@ExceptionHandler({PartidoDuplicadoException.class, NombreDuplicadoException.class, IdDuplicadoException.class})
+	@ExceptionHandler({ PartidoDuplicadoException.class, NombreDuplicadoException.class, IdDuplicadoException.class })
 	public ResponseEntity<Map<String, Object>> manejarDuplicados(RuntimeException ex, HttpServletRequest request) {
 		Map<String, Object> error = new HashMap<>();
 		error.put("timestamp", Instant.now());
 		error.put("status", HttpStatus.CONFLICT.value());
 		error.put("error", "Conflicto de datos");
 		error.put("message", ex.getMessage());
+		error.put("path", request.getRequestURI());
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+	}
+
+	@ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+	public ResponseEntity<Map<String, Object>> manejarViolacionIntegridad(
+			org.springframework.dao.DataIntegrityViolationException ex, HttpServletRequest request) {
+		Map<String, Object> error = new HashMap<>();
+		error.put("timestamp", Instant.now());
+		error.put("status", HttpStatus.CONFLICT.value());
+		error.put("error", "Conflicto de datos");
+		error.put("message",
+				"Ya existe un registro con esos datos (violación de unicidad). " + ex.getRootCause().getMessage());
 		error.put("path", request.getRequestURI());
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
 	}
@@ -89,5 +101,3 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
 	}
 }
-
-

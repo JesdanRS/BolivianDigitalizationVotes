@@ -7,6 +7,7 @@ import ResultadosAuditor from './pages/auditoria/ResultadosAuditor';
 import Resultados from './pages/Resultados';
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
+import GestionCandidatos from './pages/GestionCandidatos';
 import MiVoto from './pages/MiVoto';
 import './App.css';
 
@@ -43,6 +44,8 @@ function App() {
       <span>•</span>
       <Link style={{ color: '#fff' }} to="/resultados">Resultados</Link>
       <span>•</span>
+      <Link style={{ color: '#fff' }} to="/gestionar-candidatos">Gestionar</Link>
+      <span>•</span>
       <Link style={{ color: '#fff' }} to="/auditoriaTest">Auditoría Test</Link>
     </div>
   );
@@ -57,6 +60,7 @@ function App() {
         <Route path="/auditoria" element={<AuditoriaDashboard />} />
         <Route path="/auditoria/registros" element={<AuditoriaRegistros />} />
         <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />
+        <Route path="/gestionar-candidatos" element={<GestionCandidatos />} />
         <Route path="/resultados" element={<Resultados />} />
         <Route path="/ayuda" element={<Resultados />} />
         <Route path="/" element={<RoleBasedRedirect />} />
