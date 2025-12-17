@@ -88,7 +88,9 @@ export async function fetchLogs({
   q = '',
   tipo = 'TODO',
   severidad = 'TODO',
-  modulo = 'TODO'
+  modulo = 'TODO',
+  fechaInicio = undefined,
+  fechaFin = undefined
 }, keycloakToken) {
   try {
     // Construir parámetros para el endpoint /filtros
@@ -97,6 +99,8 @@ export async function fetchLogs({
     if (tipo !== 'TODO') params.tipo = tipo;
     if (severidad !== 'TODO') params.severidad = severidad;
     if (modulo !== 'TODO') params.modulo = modulo;
+    if (fechaInicio) params.inicio = fechaInicio;
+    if (fechaFin) params.fin = fechaFin;
 
     // Obtener todos los registros filtrados
     const allItems = await fetchWithAuth('/filtros', keycloakToken, params);
@@ -162,4 +166,59 @@ function formatAuditoriaItem(item) {
     detalle: item.detalle || 'Sin detalles',
     correlacion: item.correlacion || 'N/A'
   };
+}
+
+/**
+ * Exporta los registros de auditoría a un archivo CSV
+ * Usa el endpoint GET /api/auditoria/formatoCsv
+ * @param {string} keycloakToken - Token de autenticación de Keycloak
+ */
+export async function exportToCsv(keycloakToken) {
+  try {
+    if (!keycloakToken) {
+      throw new Error('No hay token de autenticación disponible');
+    }
+
+    // Construir URL
+    const url = `${API_BASE_URL}/formatoCsv`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${keycloakToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    // El backend devuelve un array de strings (líneas CSV)
+    const csvLines = await response.json();
+
+    // Unir las líneas con saltos de línea
+    const csvContent = csvLines.join('\n');
+
+    // Crear un Blob con el contenido CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    // Crear un enlace temporal para descargar el archivo
+    const link = document.createElement('a');
+    const urlBlob = window.URL.createObjectURL(blob);
+
+    link.setAttribute('href', urlBlob);
+    link.setAttribute('download', `auditoria_registros_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log('CSV descargado exitosamente');
+  } catch (error) {
+    console.error('Error al exportar CSV:', error);
+    throw error;
+  }
 }
