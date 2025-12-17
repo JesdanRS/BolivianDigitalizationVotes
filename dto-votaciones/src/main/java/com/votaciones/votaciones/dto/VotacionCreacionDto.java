@@ -34,4 +34,7 @@ public class VotacionCreacionDto {
 	@Schema(description = "Fecha del registro", example = "2025-09-10T10:30:00Z", required = true)
 	@NotNull(message = "La fecha es obligatoria")
 	private Instant fecha;
+
+    @Schema(description = "Carnet del usuario que emite el voto", example = "1234567")
+    private String carnetUsuario;
 }

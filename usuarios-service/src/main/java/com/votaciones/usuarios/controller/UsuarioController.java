@@ -107,4 +107,16 @@ public class UsuarioController {
         int numeroCargados = usuarioService.cargarUsuariosMasivamente(usuarios);
         return ResponseEntity.ok("Carga masiva completada. Se insertaron " + numeroCargados + " usuarios nuevos.");
     }
+
+    /**
+     * Endpoint interno para marcar que un usuario ha votado.
+     * Debería ser llamado por el microservicio de votaciones.
+     * HTTP Method: POST
+     * URL: /api/usuarios/{carnet}/marcar-votado
+     */
+    @PostMapping("/{carnet}/marcar-votado")
+    public ResponseEntity<Void> marcarUsuarioComoVotado(@PathVariable String carnet) {
+        usuarioService.marcarUsuarioComoVotado(carnet);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useKeycloak } from '@react-keycloak/web';
+import { useAuth } from '../context/AuthContext';
 import CandidatoCard from '../components/voting/CandidatoCard';
 import Navbar from '../components/common/Navbar';
 import ConfirmationModal from '../components/common/ConfirmationModal';
@@ -25,6 +26,7 @@ const candidatosEstaticos = [
 ];
 
 const Votacion = () => {
+  const { user, login } = useAuth();
   const { keycloak, initialized } = useKeycloak();
   const [candidatos] = useState(candidatosEstaticos);
   const [votoSeleccionado, setVotoSeleccionado] = useState(null);
@@ -57,7 +59,8 @@ const Votacion = () => {
         partido: candidatoSeleccionado.partido,
         candidato: `${candidatoSeleccionado.nombreCompletoPresidente} - ${candidatoSeleccionado.nombreCompletoVicepresidente}`,
         localidad: 'La Paz',
-        fecha: new Date().toISOString()
+        fecha: new Date().toISOString(),
+        carnetUsuario: user?.carnet
       };
 
       console.log('Enviando voto:', votoData);
@@ -82,6 +85,11 @@ const Votacion = () => {
       setVotoSeleccionado(candidatoSeleccionado.id);
       setModalOpen(false);
       setMensaje(`¡Voto registrado exitosamente! Has votado por: ${candidatoSeleccionado.partido}`);
+
+      // Actualizar estado del usuario a "haVotado: true"
+      const updatedUser = { ...user, haVotado: true };
+      localStorage.setItem('user', JSON.stringify(updatedUser)); // Persistir
+      login(updatedUser); // Actualizar contexto
 
     } catch (err) {
       console.error('Error al enviar voto:', err);
@@ -137,68 +145,88 @@ const Votacion = () => {
         flex: '1',
         overflow: 'auto'
       }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>Elige tu Candidato</h1>
-        <p style={{ color: '#000000', marginBottom: '40px' }}>
-          Selecciona el candidato que mejor represente tus ideales para las elecciones en Bolivia.
-        </p>
-
-        {/* Mensajes de éxito o error */}
-        {mensaje && (
+        {user?.haVotado ? (
           <div style={{
-            padding: '15px',
+            marginTop: '50px',
+            padding: '30px',
             backgroundColor: '#e8f5e9',
-            color: '#2e7d32',
-            marginBottom: '20px',
-            borderRadius: '8px',
-            fontSize: '1.1rem'
+            borderRadius: '12px',
+            maxWidth: '600px',
+            margin: '50px auto',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
           }}>
-            {mensaje}
+            <h1 style={{ color: '#2e7d32', marginBottom: '20px' }}>¡Ya has votado!</h1>
+            <p style={{ fontSize: '1.2rem', color: '#555' }}>
+              Gracias por ejercer tu derecho al voto. Tu participación ya ha sido registrada.{mensaje ? <br /> : ''}
+              {mensaje && <span style={{ fontWeight: 'bold', color: '#1b5e20' }}>{mensaje}</span>}
+            </p>
           </div>
-        )}
+        ) : (
+          <>
+            <h1 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>Elige tu Candidato</h1>
+            <p style={{ color: '#000000', marginBottom: '40px' }}>
+              Selecciona el candidato que mejor represente tus ideales para las elecciones en Bolivia.
+            </p>
 
-        {error && (
-          <div style={{
-            padding: '15px',
-            backgroundColor: '#ffebee',
-            color: '#c62828',
-            marginBottom: '20px',
-            borderRadius: '8px',
-            fontSize: '1.1rem'
-          }}>
-            {error}
-          </div>
-        )}
+            {/* Mensajes de éxito o error */}
+            {mensaje && (
+              <div style={{
+                padding: '15px',
+                backgroundColor: '#e8f5e9',
+                color: '#2e7d32',
+                marginBottom: '20px',
+                borderRadius: '8px',
+                fontSize: '1.1rem'
+              }}>
+                {mensaje}
+              </div>
+            )}
 
-        {/* Lista de candidatos */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '20px',
-          flexWrap: 'wrap',
-          padding: '0',
-          width: '100%'
-        }}>
-          {candidatos.map((candidato) => (
-            <CandidatoCard
-              key={candidato.id}
-              partido={candidato.partido}
-              nombrePresidente={candidato.nombreCompletoPresidente}
-              nombreVicepresidente={candidato.nombreCompletoVicepresidente}
-              descripcion={candidato.descripcion}
-              onVotar={() => handleVotar(candidato)}
+            {error && (
+              <div style={{
+                padding: '15px',
+                backgroundColor: '#ffebee',
+                color: '#c62828',
+                marginBottom: '20px',
+                borderRadius: '8px',
+                fontSize: '1.1rem'
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Lista de candidatos */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '20px',
+              flexWrap: 'wrap',
+              padding: '0',
+              width: '100%'
+            }}>
+              {candidatos.map((candidato) => (
+                <CandidatoCard
+                  key={candidato.id}
+                  partido={candidato.partido}
+                  nombrePresidente={candidato.nombreCompletoPresidente}
+                  nombreVicepresidente={candidato.nombreCompletoVicepresidente}
+                  descripcion={candidato.descripcion}
+                  onVotar={() => handleVotar(candidato)}
+                />
+              ))}
+            </div>
+
+            {/* Modal de confirmación */}
+            <ConfirmationModal
+              isOpen={modalOpen}
+              onClose={() => !enviandoVoto && setModalOpen(false)}
+              onConfirm={confirmarVoto}
+              candidato={candidatoSeleccionado}
+              loading={enviandoVoto}
             />
-          ))}
-        </div>
+          </>
+        )}
       </div>
-
-      {/* Modal de confirmación */}
-      <ConfirmationModal
-        isOpen={modalOpen}
-        onClose={() => !enviandoVoto && setModalOpen(false)}
-        onConfirm={confirmarVoto}
-        candidato={candidatoSeleccionado}
-        loading={enviandoVoto}
-      />
     </div>
   );
 };

@@ -413,4 +413,32 @@ public class UsuarioService {
                                 .map(usuarioMapper::toDto)
                                 .toList();
         }
+
+        /**
+         * Marca al usuario como que ya ha ejercido su voto.
+         * 
+         * @param carnet El carnet del usuario.
+         */
+        @Transactional
+        public void marcarUsuarioComoVotado(String carnet) {
+                log.info("Marcando usuario con carnet {} como votado.", carnet);
+                Usuario usuario = usuarioRepository.findByCarnet(carnet)
+                                .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                "Usuario no encontrado con carnet: " + carnet));
+
+                if (usuario.isHaVotado()) {
+                        log.warn("El usuario con carnet {} ya había marcado su voto anteriormente.", carnet);
+                        // No lanzamos error, es idempotente, pero registramos el warning.
+                }
+
+                usuario.setHaVotado(true);
+                usuarioRepository.save(usuario);
+                
+                auditoriaClient.registrarEvento(
+                        "VOTO_REGISTRADO",
+                        "INFO",
+                        "Usuarios",
+                        carnet,
+                        "El usuario ha ejercido su voto y se ha marcado en el sistema");
+        }
 }

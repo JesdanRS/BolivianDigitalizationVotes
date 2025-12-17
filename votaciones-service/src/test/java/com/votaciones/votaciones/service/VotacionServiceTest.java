@@ -35,6 +35,9 @@ public class VotacionServiceTest {
 	@Mock
 	private StreamBridge streamBridge;
 
+	@Mock
+	private com.votaciones.votaciones.client.UsuarioServiceClient usuarioServiceClient;
+
 	@InjectMocks
 	private VotacionService votacionService;
 
@@ -74,8 +77,9 @@ public class VotacionServiceTest {
 		when(votacionMapper.toEntity(any(VotacionCreacionDto.class))).thenReturn(votacion);
 		when(votacionRepository.save(any(Votacion.class))).thenReturn(votacion);
 		when(votacionMapper.toDto(any(Votacion.class))).thenReturn(votacionDto);
+        doNothing().when(usuarioServiceClient).marcarUsuarioComoVotado(anyString());
 
-		VotacionDto resultado = votacionService.crear(creacionDto);
+		VotacionDto resultado = votacionService.crear(creacionDto, "1234567");
 
 		assertNotNull(resultado);
 		assertEquals(1L, resultado.getId());
@@ -86,6 +90,7 @@ public class VotacionServiceTest {
 		verify(votacionMapper).toEntity(any(VotacionCreacionDto.class));
 		verify(votacionRepository).save(any(Votacion.class));
 		verify(votacionMapper).toDto(any(Votacion.class));
+        verify(usuarioServiceClient).marcarUsuarioComoVotado("1234567");
 	}
 
 	@Test

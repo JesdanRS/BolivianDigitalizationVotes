@@ -17,4 +17,5 @@ public class UsuarioDto {
     private String correoElectronico; // Puede ser nulo si no lo ha registrado
     private boolean correoVerificado; // Para saber si ya completó el 2FA
     private Instant creadoEn;
+    private boolean haVotado; // Indica si el usuario ya votó
 }

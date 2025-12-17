@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 @RestController
 @RequestMapping("/api/votaciones")
@@ -37,8 +38,20 @@ public class VotacionController {
 	})
 	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@PostMapping
-	public ResponseEntity<VotacionDto> crear(@Valid @RequestBody VotacionCreacionDto dto) {
-		VotacionDto creado = votacionService.crear(dto);
+	public ResponseEntity<VotacionDto> crear(@Valid @RequestBody VotacionCreacionDto dto, JwtAuthenticationToken token) {
+        // Intentamos obtener el carnet del DTO primero (enviado por el frontend)
+        String carnet = dto.getCarnetUsuario();
+        
+        // Si no viene en el DTO, intentamos extraerlo del token (preferred_username)
+        if (carnet == null || carnet.isBlank()) {
+             carnet = (String) token.getTokenAttributes().get("preferred_username");
+        }
+        
+        if (carnet == null) {
+            throw new IllegalArgumentException("No se pudo identificar al usuario (carnet) en el DTO ni en el token JWT");
+        }
+
+		VotacionDto creado = votacionService.crear(dto, carnet);
 		return ResponseEntity.status(HttpStatus.CREATED).body(creado);
 	}
 

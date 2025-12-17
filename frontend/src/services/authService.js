@@ -46,11 +46,10 @@ export const verifyCode = async (carnet, codigo) => {
   try {
     const response = await authAPI.verifyCode(carnet, codigo);
 
-    // Si la respuesta es exitosa (puede ser vacía o con datos de usuario)
-    // Construimos el objeto user con los datos del carnet
+    // La respuesta ES el UsuarioDto devuelto por el backend
     return {
       success: true,
-      user: response?.user || {
+      user: response || {
         carnet: carnet,
         role: "usuario",
         isAuthenticated: true,

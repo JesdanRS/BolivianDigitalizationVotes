@@ -42,4 +42,7 @@ public class Usuario {
     private String codigoVerificacion;
 
     private Instant codigoExpiracion;
+
+    @Column(nullable = false)
+    private boolean haVotado = false; // Indica si el usuario ya ha ejercido su voto
 }

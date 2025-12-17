@@ -1,5 +1,7 @@
 com\votaciones\usuarios\dto\UsuarioDto.class
-com\votaciones\usuarios\dto\LoginRequestDto.class
-com\votaciones\usuarios\dto\SolicitudCodigoDto.class
 com\votaciones\usuarios\dto\UsuarioCargaDto.class
 com\votaciones\usuarios\dto\VerificacionCodigoDto.class
+com\votaciones\usuarios\dto\AuthResponseDto$AuthResponseDtoBuilder.class
+com\votaciones\usuarios\dto\LoginRequestDto.class
+com\votaciones\usuarios\dto\SolicitudCodigoDto.class
+com\votaciones\usuarios\dto\AuthResponseDto.class

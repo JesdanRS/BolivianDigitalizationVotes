@@ -25,18 +25,23 @@ public class VotacionService {
     private final VotacionMapper votacionMapper;
     private final StreamBridge streamBridge;
     private final AuditoriaClient auditoriaClient;
+    private final com.votaciones.votaciones.client.UsuarioServiceClient usuarioServiceClient;
 
     // Usuario anónimo para auditoría de votos
     private static final String USUARIO_ANONIMO_VOTO = "00000000"; // 8 dígitos, válido
 
     @Transactional
-    public VotacionDto crear(VotacionCreacionDto dto) {
+    public VotacionDto crear(VotacionCreacionDto dto, String carnetUsuario) {
         // 1) Lógica de negocio principal
         Votacion votacion = votacionMapper.toEntity(dto);
         Votacion guardada = votacionRepository.save(votacion);
         VotacionDto votacionDto = votacionMapper.toDto(guardada);
 
-        // 2) Notificación por Kafka (best-effort)
+        // 2) Marcar al usuario como que ya ha votado (Consistencia estricta)
+        // Si esto falla, lanzará excepción y hará rollback del voto guardado arriba.
+        usuarioServiceClient.marcarUsuarioComoVotado(carnetUsuario);
+
+        // 3) Notificación por Kafka (best-effort)
         try {
             enviarNotificacionVotacion(guardada);
         } catch (Exception ex) {
@@ -44,7 +49,7 @@ public class VotacionService {
                     guardada.getId(), ex);
         }
 
-        // 3) Enviar a resultados_estadisticas (best-effort)
+        // 4) Enviar a resultados_estadisticas (best-effort)
         try {
             enviarVotacionAResultados(votacionDto);
         } catch (Exception ex) {
@@ -62,7 +67,7 @@ public class VotacionService {
             );
         }
 
-        // 4) Registrar evento de voto emitido (best-effort, SIEMPRE anónimo)
+        // 5) Registrar evento de voto emitido (best-effort, SIEMPRE anónimo)
         String detalle = String.format(
                 "Voto registrado. Partido=%s, Candidato=%s, Localidad=%s, Fecha=%s",
                 guardada.getPartido(),
@@ -75,7 +80,7 @@ public class VotacionService {
                 "VOTO_EMITIDO",
                 "INFO",
                 "Votaciones",
-                USUARIO_ANONIMO_VOTO, // nunca el CI real
+                USUARIO_ANONIMO_VOTO, // nunca el CI real por secreto de voto
                 detalle
         );
 
