@@ -287,7 +287,7 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
       - SERVER_PORT=8082
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones-realm/protocol/openid-connect/certs
     depends_on:
       postgres-db-candidatos:
         condition: service_healthy
@@ -312,7 +312,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-votaciones:5432/votaciones_db
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones-realm/protocol/openid-connect/certs
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
     depends_on:
       config-server:
