@@ -2,14 +2,14 @@
 
 import React from 'react';
 
-const CandidatoCard = ({ nombre, descripcion, imagen, onVotar }) => {
+const CandidatoCard = ({ partido, nombrePresidente, nombreVicepresidente, descripcion, onVotar }) => {
   return (
     <div
       style={{
         backgroundColor: '#e8f5e9',
         borderRadius: '12px',
-        width: '250px',
-        padding: '20px',
+        width: '280px',
+        padding: '25px',
         textAlign: 'center',
         display: 'flex',
         flexDirection: 'column',
@@ -17,15 +17,65 @@ const CandidatoCard = ({ nombre, descripcion, imagen, onVotar }) => {
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
       }}
     >
-      <div style={{ width: '150px', height: '150px', overflow: 'hidden', marginBottom: '20px' }}>
-        <img
-          src={imagen}
-          alt={nombre}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
+      {/* Partido (título principal) */}
+      <h2 style={{
+        fontSize: '1.5rem',
+        marginBottom: '15px',
+        color: '#000000',
+        fontWeight: 'bold'
+      }}>
+        {partido}
+      </h2>
+
+      {/* Presidente */}
+      <div style={{ marginBottom: '10px' }}>
+        <p style={{
+          fontSize: '0.85rem',
+          color: '#666',
+          marginBottom: '3px',
+          fontWeight: '600'
+        }}>
+          Presidente:
+        </p>
+        <p style={{
+          fontSize: '1rem',
+          color: '#000',
+          fontWeight: '500'
+        }}>
+          {nombrePresidente}
+        </p>
       </div>
-      <h2 style={{ fontSize: '1.2rem', marginBottom: '10px', color: '#000000' }}>{nombre}</h2>
-      <p style={{ color: '#666', marginBottom: '20px', fontSize: '0.9rem' }}>{descripcion}</p>
+
+      {/* Vicepresidente */}
+      <div style={{ marginBottom: '15px' }}>
+        <p style={{
+          fontSize: '0.85rem',
+          color: '#666',
+          marginBottom: '3px',
+          fontWeight: '600'
+        }}>
+          Vicepresidente:
+        </p>
+        <p style={{
+          fontSize: '1rem',
+          color: '#000',
+          fontWeight: '500'
+        }}>
+          {nombreVicepresidente}
+        </p>
+      </div>
+
+      {/* Descripción */}
+      <p style={{
+        color: '#666',
+        marginBottom: '20px',
+        fontSize: '0.9rem',
+        lineHeight: '1.4'
+      }}>
+        {descripcion}
+      </p>
+
+      {/* Botón de votar */}
       <button
         onClick={onVotar}
         style={{
@@ -37,6 +87,7 @@ const CandidatoCard = ({ nombre, descripcion, imagen, onVotar }) => {
           fontSize: '1rem',
           cursor: 'pointer',
           width: '100%',
+          fontWeight: '600'
         }}
       >
         Votar →

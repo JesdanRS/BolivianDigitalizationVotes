@@ -33,9 +33,9 @@ public class VotacionController {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "Votación creada exitosamente"),
 		@ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
-		@ApiResponse(responseCode = "403", description = "Acceso denegado - Requiere rol ADMIN")
+		@ApiResponse(responseCode = "403", description = "Acceso denegado - Requiere rol USER o ADMIN")
 	})
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 	@PostMapping
 	public ResponseEntity<VotacionDto> crear(@Valid @RequestBody VotacionCreacionDto dto) {
 		VotacionDto creado = votacionService.crear(dto);
