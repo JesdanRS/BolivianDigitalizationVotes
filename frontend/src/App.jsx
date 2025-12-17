@@ -4,7 +4,6 @@ import Votacion from './pages/votacion';
 import AuditoriaDashboard from './pages/auditoria/Dashboard';
 import AuditoriaRegistros from './pages/auditoria/Registros';
 import ResultadosAuditor from './pages/auditoria/ResultadosAuditor';
-import AuditoriaTest from './pages/AuditoriaTest';
 import Resultados from './pages/Resultados';
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
@@ -27,7 +26,7 @@ function RoleBasedRedirect() {
   if (hasVotanteRole) {
     return <Navigate to="/votacion" replace />;
   } else if (hasAuditorRole) {
-    return <Navigate to="/auditoriaTest" replace />;
+    return <Navigate to="/auditoria" replace />;
   }
 
   // Por defecto, redirigir a votación si no hay roles específicos o si es un usuario nuevo
@@ -60,7 +59,6 @@ function App() {
         <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />
         <Route path="/resultados" element={<Resultados />} />
         <Route path="/ayuda" element={<Resultados />} />
-        <Route path="/auditoriaTest" element={<AuditoriaTest />} />
         <Route path="/" element={<RoleBasedRedirect />} />
         <Route path="*" element={<RoleBasedRedirect />} />
       </Routes>
