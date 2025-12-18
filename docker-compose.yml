@@ -310,8 +310,8 @@ services:
     ports:
       - "8083:8082"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker   
-      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR:-config-usr}    
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR:-config-usr}
       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD:-Config2025!}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-votaciones:5432/votaciones_db
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
@@ -320,8 +320,8 @@ services:
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
     depends_on:
       config-server:
-        condition: service_healthy      
-      postgres-db-votaciones:         
+        condition: service_healthy
+      postgres-db-votaciones:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
@@ -346,10 +346,15 @@ services:
       - CONFIG_SERVER_USR=${CONFIG_SERVER_USR:-config-usr}
       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD:-Config2025!}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-resultados:5432/resultados_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS=kafka:9092
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8090/realms/votaciones/protocol/openid-connect/certs
+      # KAFKA BINDING: Conectar el consumer procesarVotacion al topic topic-votaciones
+      - SPRING_CLOUD_STREAM_BINDINGS_PROCESARVOTACION-IN-0_DESTINATION=topic-votaciones
+      - SPRING_CLOUD_STREAM_BINDINGS_PROCESARVOTACION-IN-0_GROUP=resultados-group
     depends_on:
       postgres-db-resultados:
         condition: service_healthy

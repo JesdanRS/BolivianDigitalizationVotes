@@ -25,8 +25,12 @@
       "clientId": "votaciones-client",
       "enabled": true,
       "publicClient": true,
-      "redirectUris": ["*"],
-      "webOrigins": ["*"],
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
       "directAccessGrantsEnabled": true,
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -53,7 +57,9 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["ADMIN"],
+      "realmRoles": [
+        "ADMIN"
+      ],
       "clientRoles": {}
     },
     {
@@ -69,7 +75,27 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["USER"],
+      "realmRoles": [
+        "USER"
+      ],
+      "clientRoles": {}
+    },
+    {
+      "username": "12735190",
+      "enabled": true,
+      "email": "franz.carvajal04@gmail.com",
+      "firstName": "Franz",
+      "lastName": "Carvajal",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "07012004",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "USER"
+      ],
       "clientRoles": {}
     }
   ]

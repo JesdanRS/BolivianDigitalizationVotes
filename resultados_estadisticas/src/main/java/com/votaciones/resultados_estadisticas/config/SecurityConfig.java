@@ -2,6 +2,7 @@ package com.votaciones.resultados_estadisticas.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,8 +20,30 @@ import java.util.stream.Collectors;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+    /**
+     * Filter chain para el endpoint de partidos - SIN validación OAuth2
+     * Orden 1 (más alta prioridad) para ser evaluada primero
+     */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain partidosSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/resultados/partidos", "/api/resultados/partidos/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()); // Permitir TODO sin autenticación
+
+        return http.build();
+    }
+
+    /**
+     * Filter chain principal para el resto de endpoints - CON validación OAuth2
+     * Orden 2 (menor prioridad) se aplica a lo que no coincide con el anterior
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain mainSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

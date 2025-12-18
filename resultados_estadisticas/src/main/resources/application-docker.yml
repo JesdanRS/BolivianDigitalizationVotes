@@ -1,0 +1,13 @@
+spring:
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: kafka:9092
+      bindings:
+        # Binding para el consumer que procesa votaciones
+        procesarVotacion-in-0:
+          destination: topic-votaciones
+          group: resultados-group
+          consumer:
+            auto-startup: true

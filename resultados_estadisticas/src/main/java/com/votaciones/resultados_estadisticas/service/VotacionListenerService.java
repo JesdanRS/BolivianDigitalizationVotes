@@ -2,6 +2,7 @@ package com.votaciones.resultados_estadisticas.service;
 
 import com.votaciones.votaciones.dto.VotacionDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import java.util.function.Consumer;
@@ -9,6 +10,13 @@ import java.util.function.Consumer;
 @Service
 @Slf4j
 public class VotacionListenerService {
+
+    private final ResultadoPartidoService resultadoPartidoService;
+
+    @Autowired
+    public VotacionListenerService(ResultadoPartidoService resultadoPartidoService) {
+        this.resultadoPartidoService = resultadoPartidoService;
+    }
 
     /**
      * Consumer que procesa mensajes de votaciones recibidos desde Kafka.
@@ -28,9 +36,17 @@ public class VotacionListenerService {
             log.info("Fecha: {}", votacion.getFecha());
             log.info("===================================================");
 
-            // TODO: Aquí puedes agregar la lógica para procesar la votación
-            // Por ejemplo: actualizar estadísticas, registrar resultados, etc.
+            // Procesar la votación: incrementar conteo del partido
+            try {
+                if (votacion.getPartido() != null && !votacion.getPartido().isBlank()) {
+                    resultadoPartidoService.incrementarVoto(votacion.getPartido());
+                    log.info("Voto procesado exitosamente para partido: {}", votacion.getPartido());
+                } else {
+                    log.warn("Votación ID {} sin partido válido, ignorando", votacion.getId());
+                }
+            } catch (Exception e) {
+                log.error("Error procesando votación ID {}: {}", votacion.getId(), e.getMessage(), e);
+            }
         };
     }
 }
-
