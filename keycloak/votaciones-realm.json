@@ -17,6 +17,10 @@
       {
         "name": "USER",
         "description": "Usuario con acceso de lectura"
+      },
+      {
+        "name": "AUDITOR",
+        "description": "Auditor externo con acceso a logs y estadísticas"
       }
     ]
   },
@@ -24,7 +28,8 @@
     {
       "clientId": "votaciones-client",
       "enabled": true,
-      "publicClient": true,
+      "publicClient": false,
+      "secret": "votaciones-secret",
       "redirectUris": [
         "*"
       ],
@@ -34,12 +39,44 @@
       "directAccessGrantsEnabled": true,
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
-      "serviceAccountsEnabled": false,
+      "serviceAccountsEnabled": true,
       "authorizationServicesEnabled": false,
       "fullScopeAllowed": true,
       "protocol": "openid-connect",
       "attributes": {
         "access.token.lifespan": "3600"
+      }
+    },
+    {
+      "clientId": "frontend",
+      "name": "web-app-votaciones",
+      "description": "Cliente para el frontend React",
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "redirectUris": [
+        "http://localhost:8080",
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:8080"
+      ],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": true,
+      "frontchannelLogout": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "login_theme": "keycloak",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.sessions": "false",
+        "display.on.consent.screen": "false"
       }
     }
   ],
@@ -81,20 +118,20 @@
       "clientRoles": {}
     },
     {
-      "username": "12735190",
+      "username": "auditor",
       "enabled": true,
-      "email": "franz.carvajal04@gmail.com",
-      "firstName": "Franz",
-      "lastName": "Carvajal",
+      "email": "auditor@votaciones.bo",
+      "firstName": "Auditor",
+      "lastName": "Externo",
       "credentials": [
         {
           "type": "password",
-          "value": "07012004",
+          "value": "auditor123",
           "temporary": false
         }
       ],
       "realmRoles": [
-        "USER"
+        "AUDITOR"
       ],
       "clientRoles": {}
     }

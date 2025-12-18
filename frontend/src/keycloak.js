@@ -3,7 +3,7 @@ import Keycloak from "keycloak-js";
 const keycloak = new Keycloak({
   url: "http://localhost:8090",
   realm: "votaciones-realm",
-  clientId: "votaciones-client",
+  clientId: "frontend",
 });
 
 export default keycloak;
