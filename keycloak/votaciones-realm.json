@@ -28,7 +28,8 @@
     {
       "clientId": "votaciones-client",
       "enabled": true,
-      "publicClient": true,
+      "publicClient": false,
+      "secret": "votaciones-secret",
       "redirectUris": [
         "*"
       ],
@@ -38,7 +39,7 @@
       "directAccessGrantsEnabled": true,
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
-      "serviceAccountsEnabled": false,
+      "serviceAccountsEnabled": true,
       "authorizationServicesEnabled": false,
       "fullScopeAllowed": true,
       "protocol": "openid-connect",
