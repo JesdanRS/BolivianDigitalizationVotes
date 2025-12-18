@@ -1,149 +1,153 @@
 import React, { useState, useEffect } from 'react';
+import { useKeycloak } from '@react-keycloak/web';
 import AuditNavbar from '../../components/common/AuditNavbar';
-import StatCard from '../../components/auditoria/StatCard';
-import ResultadoBar from '../../components/voting/ResultadoBar';
-import { obtenerResultados, obtenerEstadisticas } from '../../services/votacionService';
 
 const ResultadosAuditor = () => {
-  const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date());
-  const [estadisticas, setEstadisticas] = useState({
-    totalVotos: 0,
-    votosValidos: 0,
-    votosNulos: 0,
-    participacion: 0,
-    mesasEscrutadas: 0,
-    mesasTotal: 1560
-  });
-  const [resultadosCandidatos, setResultadosCandidatos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { keycloak, initialized } = useKeycloak();
+
+  const [resultadosPartidos, setResultadosPartidos] = useState([]);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
-  const [actualizando, setActualizando] = useState(false);
+  const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date());
 
-  // Función para cargar datos de la API
-  const cargarDatos = async (esActualizacion = false) => {
+  // Colores predefinidos para los partidos
+  const coloresPartidos = [
+    '#2563eb', // Azul
+    '#dc2626', // Rojo
+    '#059669', // Verde
+    '#d97706', // Naranja
+    '#7c3aed', // Morado
+    '#0891b2', // Cyan
+    '#db2777', // Rosa
+    '#65a30d', // Lima
+  ];
+
+  // Función para cargar datos desde la API
+  const cargarDatos = async () => {
+    if (!initialized || !keycloak?.token) {
+      console.warn('No hay token todavía');
+      return;
+    }
+
+    setCargando(true);
+    setError(null);
+
     try {
-      if (esActualizacion) {
-        setActualizando(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
+      // Cargar resultados por partido
+      const partidosResponse = await fetch('http://localhost:8080/api/resultados/partidos', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${keycloak.token}`,
+        },
+      });
 
-      // Cargar estadísticas y resultados en paralelo
-      const [statsResponse, resultadosResponse] = await Promise.all([
-        obtenerEstadisticas(),
-        obtenerResultados()
-      ]);
-
-      // Actualizar estadísticas
-      if (statsResponse.success) {
-        setEstadisticas({
-          totalVotos: statsResponse.data.totalVotos || 0,
-          votosValidos: statsResponse.data.votosValidos || 0,
-          votosNulos: statsResponse.data.votosNulos || 0,
-          participacion: statsResponse.data.participacion || 0,
-          mesasEscrutadas: statsResponse.data.mesasEscrutadas || 0,
-          mesasTotal: statsResponse.data.mesasTotal || 1560
-        });
+      if (!partidosResponse.ok) {
+        throw new Error(`Error HTTP: ${partidosResponse.status}`);
       }
 
-      // Actualizar resultados de candidatos
-      if (resultadosResponse.success) {
-        const candidatos = resultadosResponse.data.map((candidato, index) => {
-          // Colores para cada candidato
-          const colores = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c'];
-          return {
-            nombre: candidato.nombre,
-            porcentaje: parseFloat(candidato.porcentaje) || 0,
-            votos: candidato.votos || 0,
-            color: colores[index % colores.length]
-          };
-        });
-        setResultadosCandidatos(candidatos);
-      }
+      const partidosData = await partidosResponse.json();
+      console.log('Resultados por partido (Auditor):', partidosData);
+      setResultadosPartidos(partidosData);
 
       setUltimaActualizacion(new Date());
     } catch (err) {
-      console.error('Error al cargar datos:', err);
-      setError('Error al cargar los resultados. Verificar conexión con el servidor.');
+      console.error(err);
+      setError(err.message);
     } finally {
-      setLoading(false);
-      setActualizando(false);
+      setCargando(false);
     }
   };
 
-  // Cargar datos inicialmente
+  // Cargar datos al montar el componente
   useEffect(() => {
-    cargarDatos();
-  }, []);
+    if (initialized && keycloak?.token) {
+      cargarDatos();
+    }
+  }, [initialized, keycloak?.token]);
 
-  // Actualizar en tiempo real cada 30 segundos para auditores
+  // Auto-actualización cada 15 segundos
   useEffect(() => {
+    if (!initialized || !keycloak?.token) return;
+
     const interval = setInterval(() => {
-      cargarDatos(true);
-    }, 30 * 1000); // 30 segundos
+      cargarDatos();
+    }, 15 * 1000); // 15 segundos
 
     return () => clearInterval(interval);
-  }, []);
+  }, [initialized, keycloak?.token]);
+
+  // Calcular total de votos
+  const totalVotos = resultadosPartidos.reduce((sum, p) => sum + p.conteoVotos, 0);
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', background: '#f9fafb', minHeight: '100dvh', color: '#111' }}>
+    <div style={{
+      fontFamily: 'Arial, sans-serif',
+      background: '#f9fafb',
+      minHeight: '100dvh',
+      color: '#111'
+    }}>
       <AuditNavbar />
 
-      <div style={{ padding: '24px 40px', width: '95%', maxWidth: '100%', margin: 0 }}>
-        {/* Header con indicador de actualización */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0 }}>Resultados Electorales - Auditor</h1>
-          {actualizando && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              backgroundColor: '#dbeafe',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              color: '#1e40af'
+      <div style={{ padding: '32px 40px', maxWidth: '1400px', margin: '0 auto' }}>
+        {/* Header con última actualización */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px'
+        }}>
+          <div>
+            <h1 style={{
+              fontSize: '2.5rem',
+              fontWeight: 800,
+              margin: 0,
+              marginBottom: '8px'
             }}>
-              <div style={{
-                width: '16px',
-                height: '16px',
-                border: '2px solid #60a5fa',
-                borderTop: '2px solid #1e40af',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }}></div>
-              Actualizando...
-            </div>
-          )}
-        </div>
+              📊 Resultados Electorales en Tiempo Real
+            </h1>
+            <p style={{ color: '#6b7280', margin: 0, fontSize: '0.95rem' }}>
+              Panel de Auditoría - Actualización automática cada 15 segundos
+            </p>
+          </div>
 
-        <p style={{ color: '#6b7280', marginBottom: '8px' }}>
-          Panel de control para auditores con actualización en tiempo real cada 30 segundos.
-        </p>
-        <p style={{ color: '#6b7280', marginBottom: '32px', fontSize: '0.9rem' }}>
-          Última actualización: {ultimaActualizacion.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-          })}
-        </p>
+          <div style={{
+            textAlign: 'right',
+            backgroundColor: '#fff',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '4px' }}>
+              Última actualización
+            </div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#111' }}>
+              {ultimaActualizacion.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              })}
+            </div>
+          </div>
+        </div>
 
         {/* Mensaje de error */}
         {error && (
           <div style={{
             backgroundColor: '#fee2e2',
-            border: '1px solid #ef4444',
+            border: '2px solid #ef4444',
             color: '#991b1b',
-            padding: '16px',
+            padding: '16px 20px',
             borderRadius: '12px',
-            marginBottom: '24px'
+            marginBottom: '24px',
+            fontWeight: 500
           }}>
-            <strong>⚠️ Error:</strong> {error}
+            ⚠️ Error: {error}
           </div>
         )}
 
-        {/* Indicador de carga inicial */}
-        {loading && resultadosCandidatos.length === 0 && (
+        {/* Indicador de carga */}
+        {cargando && resultadosPartidos.length === 0 && (
           <div style={{
             display: 'flex',
             justifyContent: 'center',
@@ -161,84 +165,172 @@ const ResultadosAuditor = () => {
                 animation: 'spin 1s linear infinite',
                 margin: '0 auto 16px'
               }}></div>
-              <p>Cargando datos en tiempo real...</p>
+              <p>Cargando resultados en tiempo real...</p>
             </div>
           </div>
         )}
 
-        {/* Contenido principal */}
-        {!loading || resultadosCandidatos.length > 0 ? (
-          <>
-            {/* Sección de Estadísticas Generales */}
-            <div style={{ marginBottom: '40px' }}>
-              <h2 style={{
-                fontSize: '1.8rem',
-                fontWeight: 700,
-                marginBottom: '20px'
-              }}>
-                Estadísticas Generales
-              </h2>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '16px',
-                marginBottom: '24px'
-              }}>
-                <StatCard label="Total de Votos" value={estadisticas.totalVotos.toLocaleString()} />
-                <StatCard label="Votos Válidos" value={estadisticas.votosValidos.toLocaleString()} />
-                <StatCard label="Votos Nulos" value={estadisticas.votosNulos.toLocaleString()} />
-                <StatCard label="Participación" value={`${estadisticas.participacion}%`} />
-                <StatCard label="Mesas Escrutadas" value={`${estadisticas.mesasEscrutadas}/${estadisticas.mesasTotal}`} />
-                <StatCard label="Progreso del Escrutinio" value={`${Math.round((estadisticas.mesasEscrutadas / estadisticas.mesasTotal) * 100)}%`} />
-              </div>
+        {/* Resumen de votos totales */}
+        {!cargando && totalVotos > 0 && (
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            padding: '24px 32px',
+            borderRadius: '16px',
+            marginBottom: '32px',
+            boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
+          }}>
+            <div style={{ fontSize: '0.95rem', opacity: 0.9, marginBottom: '8px' }}>
+              Total de Votos Emitidos
             </div>
-
-            {/* Sección de Resultados por Candidato */}
-            <div>
-              <h2 style={{
-                fontSize: '1.8rem',
-                fontWeight: 700,
-                marginBottom: '20px'
-              }}>
-                Resultados por Candidato
-              </h2>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-                gap: '20px'
-              }}>
-                {resultadosCandidatos.map((candidato, index) => (
-                  <ResultadoBar
-                    key={index}
-                    nombre={candidato.nombre}
-                    porcentaje={candidato.porcentaje}
-                    votos={candidato.votos}
-                    color={candidato.color}
-                  />
-                ))}
-              </div>
+            <div style={{ fontSize: '3rem', fontWeight: 800, letterSpacing: '-1px' }}>
+              {totalVotos.toLocaleString()}
             </div>
+          </div>
+        )}
 
-            {/* Información adicional */}
-            <div style={{
-              marginTop: '40px',
-              padding: '20px',
-              background: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '14px',
-              textAlign: 'center'
+        {/* Resultados por partido */}
+        {resultadosPartidos.length === 0 && !cargando ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '60px 20px',
+            backgroundColor: '#fff',
+            borderRadius: '16px',
+            border: '2px dashed #d1d5db'
+          }}>
+            <div style={{ fontSize: '4rem', marginBottom: '16px' }}>📭</div>
+            <h3 style={{ color: '#374151', marginBottom: '8px' }}>
+              No hay votos registrados aún
+            </h3>
+            <p style={{ color: '#6b7280' }}>
+              Los resultados aparecerán aquí cuando se emitan los primeros votos.
+            </p>
+          </div>
+        ) : (
+          <div>
+            <h2 style={{
+              fontSize: '1.8rem',
+              fontWeight: 700,
+              marginBottom: '20px',
+              color: '#111'
             }}>
-              <p style={{ color: '#6b7280', margin: 0 }}>
-                🔄 Los resultados se actualizan automáticamente en tiempo real cada 30 segundos para monitoreo continuo.
-              </p>
+              Resultados por Partido Político
+            </h2>
+
+            <div style={{
+              display: 'grid',
+              gap: '16px'
+            }}>
+              {resultadosPartidos.map((partido, index) => {
+                const porcentaje = totalVotos > 0
+                  ? ((partido.conteoVotos / totalVotos) * 100).toFixed(2)
+                  : 0;
+                const color = coloresPartidos[index % coloresPartidos.length];
+
+                return (
+                  <div
+                    key={partido.id}
+                    style={{
+                      backgroundColor: '#fff',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      border: '1px solid #e5e7eb',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      cursor: 'default'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '16px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '1.4rem',
+                        fontWeight: 700,
+                        margin: 0,
+                        color: '#111'
+                      }}>
+                        {partido.partido}
+                      </h3>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '20px'
+                      }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '2px' }}>
+                            Votos
+                          </div>
+                          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: color }}>
+                            {partido.conteoVotos.toLocaleString()}
+                          </div>
+                        </div>
+                        <div style={{
+                          backgroundColor: color,
+                          color: 'white',
+                          padding: '12px 20px',
+                          borderRadius: '12px',
+                          fontSize: '1.6rem',
+                          fontWeight: 800,
+                          minWidth: '100px',
+                          textAlign: 'center'
+                        }}>
+                          {porcentaje}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Barra de progreso */}
+                    <div style={{
+                      width: '100%',
+                      height: '12px',
+                      backgroundColor: '#f3f4f6',
+                      borderRadius: '8px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${porcentaje}%`,
+                        height: '100%',
+                        background: `linear-gradient(90deg, ${color} 0%, ${color}dd 100%)`,
+                        transition: 'width 0.8s ease-in-out',
+                        borderRadius: '8px'
+                      }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </>
-        ) : null}
+          </div>
+        )}
+
+        {/* Footer informativo */}
+        {resultadosPartidos.length > 0 && (
+          <div style={{
+            marginTop: '40px',
+            padding: '20px',
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            borderRadius: '14px',
+            textAlign: 'center'
+          }}>
+            <p style={{ color: '#6b7280', margin: 0, fontSize: '0.95rem' }}>
+              🔄 Los resultados se actualizan automáticamente cada 15 segundos para monitoreo en tiempo real.
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Estilos para las animaciones */}
+      {/* Estilos para animaciones */}
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
