@@ -415,6 +415,21 @@ public class UsuarioService {
         }
 
         /**
+         * Obtiene el perfil de un usuario por su carnet.
+         * 
+         * @param carnet El carnet del usuario.
+         * @return UsuarioDto con los datos del usuario.
+         */
+        @Transactional(readOnly = true)
+        public UsuarioDto obtenerPerfilUsuarioPorCarnet(String carnet) {
+                log.info("Obteniendo perfil de usuario con carnet: {}", carnet);
+                Usuario usuario = usuarioRepository.findByCarnet(carnet)
+                                .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                "Usuario no encontrado con carnet: " + carnet));
+                return usuarioMapper.toDto(usuario);
+        }
+
+        /**
          * Marca al usuario como que ya ha ejercido su voto.
          * 
          * @param carnet El carnet del usuario.
@@ -433,12 +448,12 @@ public class UsuarioService {
 
                 usuario.setHaVotado(true);
                 usuarioRepository.save(usuario);
-                
+
                 auditoriaClient.registrarEvento(
-                        "VOTO_REGISTRADO",
-                        "INFO",
-                        "Usuarios",
-                        carnet,
-                        "El usuario ha ejercido su voto y se ha marcado en el sistema");
+                                "VOTO_REGISTRADO",
+                                "INFO",
+                                "Usuarios",
+                                carnet,
+                                "El usuario ha ejercido su voto y se ha marcado en el sistema");
         }
 }

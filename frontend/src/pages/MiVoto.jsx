@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../components/common/Navbar";
 import { useAuth } from "../context/AuthContext";
+import { authAPI } from "../services/api";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -8,24 +9,62 @@ const MiVoto = () => {
   const { user } = useAuth();
   const [votanteData, setVotanteData] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   const carnetRef = useRef(null);
 
   useEffect(() => {
-    if (user && user.role === "usuario") {
-      // Formatear datos del usuario para el carnet
-      const formattedData = {
-        nombreCompleto: user.nombre || "Usuario",
-        cedulaIdentidad: user.carnet || "N/A",
-        lugarVotacion: "Recinto Electoral Asignado",
-        mesaSufragio: Math.floor(Math.random() * 100) + 1,
-        fechaEmision: new Date().toLocaleDateString("es-BO", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }),
-      };
-      setVotanteData(formattedData);
-    }
+    const fetchUserData = async () => {
+      if (user && user.carnet) {
+        try {
+          setIsLoading(true);
+          setError("");
+
+          // Opción 1: Si el usuario tiene ID, usar getUserById
+          // const userData = await authAPI.getUserById(user.id);
+
+          // Opción 2: Si solo tenemos carnet, usar getUserByCarnet
+          const userData = await authAPI.getUserByCarnet(user.carnet);
+
+          // Formatear datos del usuario para el carnet
+          const formattedData = {
+            nombreCompleto: userData.nombreCompleto || "Usuario",
+            cedulaIdentidad: userData.carnet || "N/A",
+            lugarVotacion: userData.departamento || "Departamento Asignado",
+            mesaSufragio: Math.floor(Math.random() * 100) + 1,
+            fechaEmision: new Date().toLocaleDateString("es-BO", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }),
+            haVotado: userData.haVotado || false,
+          };
+          setVotanteData(formattedData);
+        } catch (error) {
+          console.error("Error al obtener datos del usuario:", error);
+          setError("Error al cargar los datos del usuario");
+          // Fallback con datos del contexto si falla la llamada al backend
+          const formattedData = {
+            nombreCompleto: user.nombreCompleto || user.nombre || "Usuario",
+            cedulaIdentidad: user.carnet || "N/A",
+            lugarVotacion: user.departamento || "Recinto Electoral Asignado",
+            mesaSufragio: Math.floor(Math.random() * 100) + 1,
+            fechaEmision: new Date().toLocaleDateString("es-BO", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }),
+          };
+          setVotanteData(formattedData);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
   }, [user]);
 
   // Función para descargar el carnet como PDF
@@ -73,7 +112,7 @@ const MiVoto = () => {
   };
 
   // Renderizar un mensaje de carga si no hay datos de usuario aún
-  if (!votanteData) {
+  if (isLoading || !votanteData) {
     return (
       <div
         style={{
@@ -102,9 +141,22 @@ const MiVoto = () => {
             alignItems: "center",
             height: "100%",
             padding: "20px",
+            flexDirection: "column",
+            gap: "15px",
           }}
         >
-          <p>Cargando datos de su voto...</p>
+          {isLoading ? (
+            <p>Cargando datos de su voto...</p>
+          ) : error ? (
+            <>
+              <p style={{ color: "#dc2626" }}>{error}</p>
+              <p style={{ fontSize: "14px", color: "#666" }}>
+                Intentando usar datos locales...
+              </p>
+            </>
+          ) : (
+            <p>No hay datos de usuario disponibles</p>
+          )}
         </div>
       </div>
     );

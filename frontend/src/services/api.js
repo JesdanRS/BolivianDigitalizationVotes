@@ -111,6 +111,18 @@ export const authAPI = {
         password,
       }),
     }),
+
+  // Obtener usuario por ID
+  getUserById: (id) =>
+    apiRequest(`/api/usuarios/${id}`, {
+      method: "GET",
+    }),
+
+  // Obtener usuario por carnet
+  getUserByCarnet: (carnet) =>
+    apiRequest(`/api/usuarios/carnet/${carnet}`, {
+      method: "GET",
+    }),
 };
 
 export default apiRequest;

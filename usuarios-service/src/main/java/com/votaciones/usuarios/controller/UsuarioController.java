@@ -95,6 +95,17 @@ public class UsuarioController {
     }
 
     /**
+     * Endpoint para obtener un usuario por su carnet.
+     * HTTP Method: GET
+     * URL: /api/usuarios/carnet/{carnet}
+     */
+    @GetMapping("/carnet/{carnet}")
+    public ResponseEntity<UsuarioDto> obtenerUsuarioPorCarnet(@PathVariable String carnet) {
+        UsuarioDto usuarioDto = usuarioService.obtenerPerfilUsuarioPorCarnet(carnet);
+        return ResponseEntity.ok(usuarioDto);
+    }
+
+    /**
      * Endpoint para la carga masiva de usuarios.
      * ¡¡¡IMPORTANTE!!! Este endpoint requiere autenticación JWT con rol ADMIN.
      * Debe incluir el header: Authorization: Bearer <token_jwt>
