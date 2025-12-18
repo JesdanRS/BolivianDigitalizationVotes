@@ -33,4 +33,7 @@ public class VotacionDto {
 
 	@Schema(description = "Fecha de última actualización", example = "2025-09-10T10:30:00Z")
 	private Instant actualizadoEn;
+
+    @Schema(description = "Imagen del acta en Base64", example = "data:image/png;base64,iVBORw0KGgo...")
+    private String actas;
 }

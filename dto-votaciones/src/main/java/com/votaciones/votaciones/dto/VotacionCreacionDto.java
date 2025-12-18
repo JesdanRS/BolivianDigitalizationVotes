@@ -37,4 +37,7 @@ public class VotacionCreacionDto {
 
     @Schema(description = "Carnet del usuario que emite el voto", example = "1234567")
     private String carnetUsuario;
+
+    @Schema(description = "Imagen del acta en Base64", example = "data:image/png;base64,iVBORw0KGgo...")
+    private String actas;
 }
