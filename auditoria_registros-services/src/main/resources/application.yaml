@@ -15,7 +15,6 @@ spring:
         max-attempts: 20
       username: ${CONFIG_SERVER_USR:config-usr}
       password: ${CONFIG_SERVER_PWD:Config2025!}
-
 ---
 # ========================================
 # PERFIL LOCAL
@@ -43,3 +42,10 @@ spring:
       uri: http://config-server:8888
   banner:
     location: classpath:banner-docker.txt
+
+  # Override de configuración JWT para usar el realm correcto
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://host.docker.internal:8090/realms/votaciones-realm/protocol/openid-connect/certs

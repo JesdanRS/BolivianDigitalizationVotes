@@ -34,28 +34,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // Rutas públicas
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/v3/api-docs/**").permitAll()
-                .requestMatchers("/swagger-ui/**").permitAll()
-                .requestMatchers("/swagger-ui.html").permitAll()
-                .requestMatchers("/webjars/**").permitAll()
-                
-                // Endpoints específicos con roles
-                .requestMatchers(HttpMethod.GET, "/api/auditoria/**").hasAnyRole("USER", "AUDITOR")
-                .requestMatchers(HttpMethod.POST, "/api/auditoria/**").hasAnyRole("USER", "ADMIN", "AUDITOR")
-                .requestMatchers(HttpMethod.PUT, "/api/auditoria/**").hasRole("AUDITOR")
-                .requestMatchers(HttpMethod.DELETE, "/api/auditoria/**").hasRole("AUDITOR")
-                
-                // Cualquier otra petición requiere autenticación
-                .anyRequest().authenticated()
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
-            );
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // Rutas públicas
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+
+                        // Endpoints específicos con roles
+                        .requestMatchers(HttpMethod.GET, "/api/auditoria/**").hasAnyRole("USER", "AUDITOR", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/auditoria/**").hasAnyRole("USER", "ADMIN", "AUDITOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/auditoria/**").hasAnyRole("AUDITOR", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/auditoria/**").hasAnyRole("AUDITOR", "ADMIN")
+
+                        // Cualquier otra petición requiere autenticación
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         return http.build();
     }
@@ -70,7 +68,7 @@ public class SecurityConfig {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
             Collection<GrantedAuthority> authorities;
-            
+
             if (realmAccess != null && realmAccess.get("roles") != null) {
                 authorities = ((List<String>) realmAccess.get("roles")).stream()
                         .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
@@ -78,10 +76,10 @@ public class SecurityConfig {
             } else {
                 authorities = List.of();
             }
-            
+
             return authorities;
         });
-        
+
         return jwtAuthenticationConverter;
     }
 
@@ -95,13 +93,12 @@ public class SecurityConfig {
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
                 .withJwkSetUri(jwkSetUri)
                 .build();
-        
+
         // Desactivar validación del issuer configurando un validador vacío
         // Solo se validará la firma del JWT usando las claves públicas de Keycloak
-        jwtDecoder.setJwtValidator(token -> 
-            org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success()
-        );
-        
+        jwtDecoder.setJwtValidator(
+                token -> org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success());
+
         return jwtDecoder;
     }
 }

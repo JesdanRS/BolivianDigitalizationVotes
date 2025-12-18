@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 
-const Navbar = () => {
+const AdminNavbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout: authLogout } = useAuth();
@@ -40,38 +40,52 @@ const Navbar = () => {
           alt="Elecciones Bolivia"
           style={{ height: "24px", marginRight: "8px" }}
         />
-        Elecciones Bolivia
+        Elecciones Bolivia - Administración
       </div>
       <div style={{ display: "flex", gap: "20px" }}>
         <Link
-          to="/votacion"
+          to="/admin/gestionar-usuarios"
           style={{
-            color: location.pathname === "/votacion" ? "#dc2626" : "#666",
+            color:
+              location.pathname === "/admin/gestionar-usuarios"
+                ? "#dc2626"
+                : "#666",
             textDecoration: "none",
-            fontWeight: location.pathname === "/votacion" ? "bold" : "normal",
+            fontWeight:
+              location.pathname === "/admin/gestionar-usuarios"
+                ? "bold"
+                : "normal",
           }}
         >
-          Candidatos
+          Gestión de Usuarios
         </Link>
         <Link
-          to="/mi-voto"
+          to="/admin/gestionar-candidatos"
           style={{
-            color: location.pathname === "/mi-voto" ? "#dc2626" : "#666",
+            color:
+              location.pathname === "/admin/gestionar-candidatos"
+                ? "#dc2626"
+                : "#666",
             textDecoration: "none",
-            fontWeight: location.pathname === "/mi-voto" ? "bold" : "normal",
+            fontWeight:
+              location.pathname === "/admin/gestionar-candidatos"
+                ? "bold"
+                : "normal",
           }}
         >
-          Mi Voto
+          Gestión de Candidatos
         </Link>
         <Link
-          to="/resultados"
+          to="/admin/registros"
           style={{
-            color: location.pathname === "/resultados" ? "#dc2626" : "#666",
+            color:
+              location.pathname === "/admin/registros" ? "#dc2626" : "#666",
             textDecoration: "none",
-            fontWeight: location.pathname === "/resultados" ? "bold" : "normal",
+            fontWeight:
+              location.pathname === "/admin/registros" ? "bold" : "normal",
           }}
         >
-          Resultados
+          Registros
         </Link>
       </div>
       <div
@@ -104,4 +118,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default AdminNavbar;

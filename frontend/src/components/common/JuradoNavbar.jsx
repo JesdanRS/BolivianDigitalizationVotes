@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 
-const Navbar = () => {
+const JuradoNavbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout: authLogout } = useAuth();
@@ -40,38 +40,19 @@ const Navbar = () => {
           alt="Elecciones Bolivia"
           style={{ height: "24px", marginRight: "8px" }}
         />
-        Elecciones Bolivia
+        Elecciones Bolivia - Portal Jurado
       </div>
       <div style={{ display: "flex", gap: "20px" }}>
         <Link
-          to="/votacion"
+          to="/jurado-espera"
           style={{
-            color: location.pathname === "/votacion" ? "#dc2626" : "#666",
+            color: location.pathname === "/jurado-espera" ? "#dc2626" : "#666",
             textDecoration: "none",
-            fontWeight: location.pathname === "/votacion" ? "bold" : "normal",
+            fontWeight:
+              location.pathname === "/jurado-espera" ? "bold" : "normal",
           }}
         >
-          Candidatos
-        </Link>
-        <Link
-          to="/mi-voto"
-          style={{
-            color: location.pathname === "/mi-voto" ? "#dc2626" : "#666",
-            textDecoration: "none",
-            fontWeight: location.pathname === "/mi-voto" ? "bold" : "normal",
-          }}
-        >
-          Mi Voto
-        </Link>
-        <Link
-          to="/resultados"
-          style={{
-            color: location.pathname === "/resultados" ? "#dc2626" : "#666",
-            textDecoration: "none",
-            fontWeight: location.pathname === "/resultados" ? "bold" : "normal",
-          }}
-        >
-          Resultados
+          Panel de Espera
         </Link>
       </div>
       <div
@@ -104,4 +85,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default JuradoNavbar;

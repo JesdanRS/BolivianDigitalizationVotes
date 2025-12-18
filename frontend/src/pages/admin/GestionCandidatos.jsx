@@ -6,9 +6,9 @@ import {
   crearCandidato,
   actualizarCandidato,
   eliminarCandidato,
-} from "../services/candidatoService";
-import CandidateModal from "../components/candidatos/CandidateModal";
-import AuditNavbar from "../components/common/AuditNavbar";
+} from "../../services/candidatoService";
+import CandidateModal from "../../components/candidatos/CandidateModal";
+import AdminNavbar from "../../components/common/AdminNavbar";
 
 // Modal de Confirmación
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
@@ -208,7 +208,7 @@ const GestionCandidatos = () => {
       }}
     >
       {/* Barra de navegación superior */}
-      <AuditNavbar />
+      <AdminNavbar />
 
       {/* Contenido principal */}
       <div

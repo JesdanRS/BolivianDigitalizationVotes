@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { logout } from "../services/authService";
-
-import { useKeycloak } from '@react-keycloak/web';
+import JuradoNavbar from "../components/common/JuradoNavbar";
+import { useKeycloak } from "@react-keycloak/web";
 
 const JuradoEspera = () => {
   const navigate = useNavigate();
@@ -105,12 +105,13 @@ const JuradoEspera = () => {
   };
 
   // Convertir archivo a Base64
-  const toBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
+  const toBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
 
   // Subir archivos al servidor
   const handleUpload = async () => {
@@ -139,20 +140,17 @@ const JuradoEspera = () => {
             localidad: "La Paz", // Se podría pedir al usuario
             fecha: new Date().toISOString(),
             actas: base64Image,
-            carnetUsuario: user?.carnet || "0" // Carnet del jurado
+            carnetUsuario: user?.carnet || "0", // Carnet del jurado
           };
 
-          const response = await fetch(
-            "http://localhost:8080/api/votaciones",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${keycloak?.token}`
-              },
-              body: JSON.stringify(payload),
-            }
-          );
+          const response = await fetch("http://localhost:8080/api/votaciones", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${keycloak?.token}`,
+            },
+            body: JSON.stringify(payload),
+          });
 
           if (response.ok) {
             successCount++;
@@ -170,8 +168,9 @@ const JuradoEspera = () => {
       if (successCount > 0) {
         setUploadStatus({
           type: "success",
-          message: `${successCount} imagen(es) subida(s) exitosamente${errorCount > 0 ? `. ${errorCount} fallaron.` : ""
-            }`,
+          message: `${successCount} imagen(es) subida(s) exitosamente${
+            errorCount > 0 ? `. ${errorCount} fallaron.` : ""
+          }`,
         });
         setSelectedFiles([]);
       } else {
@@ -213,59 +212,7 @@ const JuradoEspera = () => {
       }}
     >
       {/* Barra de navegación */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 24px",
-          background: "#fff",
-          borderBottom: "1px solid #e5e7eb",
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#111" }}>
-            VotoSeguro
-          </div>
-          <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
-            · Jurado Electoral
-          </div>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 12, color: "#6b7280" }}>
-            {user?.nombre || "Jurado"}
-          </span>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "#c7d2fe",
-            }}
-          />
-          <button
-            onClick={handleLogout}
-            style={{
-              backgroundColor: "#dc2626",
-              color: "white",
-              padding: "5px 10px",
-              borderRadius: "4px",
-              border: "none",
-              textDecoration: "none",
-              fontSize: "12px",
-              fontWeight: "bold",
-              marginLeft: "10px",
-              cursor: "pointer",
-            }}
-          >
-            Cerrar Sesión
-          </button>
-        </div>
-      </nav>
+      <JuradoNavbar />
 
       {/* Contenido principal */}
       <div
@@ -374,8 +321,9 @@ const JuradoEspera = () => {
                 backgroundColor:
                   uploadStatus.type === "success" ? "#d1fae5" : "#fee2e2",
                 color: uploadStatus.type === "success" ? "#065f46" : "#991b1b",
-                border: `1px solid ${uploadStatus.type === "success" ? "#6ee7b7" : "#fca5a5"
-                  }`,
+                border: `1px solid ${
+                  uploadStatus.type === "success" ? "#6ee7b7" : "#fca5a5"
+                }`,
                 fontSize: "0.9rem",
               }}
             >
@@ -490,8 +438,9 @@ const JuradoEspera = () => {
             >
               {uploading
                 ? "⏳ Subiendo..."
-                : `📤 Subir ${selectedFiles.length > 0 ? `(${selectedFiles.length})` : ""
-                }`}
+                : `📤 Subir ${
+                    selectedFiles.length > 0 ? `(${selectedFiles.length})` : ""
+                  }`}
             </button>
 
             {selectedFiles.length > 0 && !uploading && (
