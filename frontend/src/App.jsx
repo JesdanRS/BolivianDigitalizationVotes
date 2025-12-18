@@ -7,6 +7,7 @@ import Resultados from "./pages/Resultados";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
 import MiVoto from "./pages/MiVoto";
+import JuradoEspera from "./pages/JuradoEspera";
 import "./App.css";
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
         <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />
         <Route path="/resultados" element={<Resultados />} />
         <Route path="/ayuda" element={<Resultados />} />
+        <Route path="/jurado-espera" element={<JuradoEspera />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

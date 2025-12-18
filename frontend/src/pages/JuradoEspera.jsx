@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { logout } from "../services/authService";
 
+import { useKeycloak } from '@react-keycloak/web';
+
 const JuradoEspera = () => {
   const navigate = useNavigate();
   const { user, logout: authLogout } = useAuth();
+  const { keycloak } = useKeycloak();
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -101,6 +104,14 @@ const JuradoEspera = () => {
     });
   };
 
+  // Convertir archivo a Base64
+  const toBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+
   // Subir archivos al servidor
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
@@ -111,9 +122,6 @@ const JuradoEspera = () => {
       return;
     }
 
-    // ID temporal para demo - usa el user.id si existe, sino usa un ID temporal
-    const juradoId = user?.id || "demo-jurado-" + Date.now();
-
     setUploading(true);
     setUploadStatus({ type: "", message: "" });
 
@@ -122,16 +130,27 @@ const JuradoEspera = () => {
       let errorCount = 0;
 
       for (const fileObj of selectedFiles) {
-        const formData = new FormData();
-        formData.append("imagen", fileObj.file);
-        formData.append("juradoId", juradoId);
-
         try {
+          const base64Image = await toBase64(fileObj.file);
+
+          const payload = {
+            partido: "ACTA_DIGITALIZADA", // Valor por defecto
+            candidato: "Carga Manual Jurado", // Valor por defecto
+            localidad: "La Paz", // Se podría pedir al usuario
+            fecha: new Date().toISOString(),
+            actas: base64Image,
+            carnetUsuario: user?.carnet || "0" // Carnet del jurado
+          };
+
           const response = await fetch(
-            "http://localhost:5000/api/votaciones/votos-manuales",
+            "http://localhost:8080/api/votaciones",
             {
               method: "POST",
-              body: formData,
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${keycloak?.token}`
+              },
+              body: JSON.stringify(payload),
             }
           );
 
@@ -139,6 +158,7 @@ const JuradoEspera = () => {
             successCount++;
             URL.revokeObjectURL(fileObj.preview);
           } else {
+            console.error("Error response:", await response.text());
             errorCount++;
           }
         } catch (error) {
@@ -150,9 +170,8 @@ const JuradoEspera = () => {
       if (successCount > 0) {
         setUploadStatus({
           type: "success",
-          message: `${successCount} imagen(es) subida(s) exitosamente${
-            errorCount > 0 ? `. ${errorCount} fallaron.` : ""
-          }`,
+          message: `${successCount} imagen(es) subida(s) exitosamente${errorCount > 0 ? `. ${errorCount} fallaron.` : ""
+            }`,
         });
         setSelectedFiles([]);
       } else {
@@ -355,9 +374,8 @@ const JuradoEspera = () => {
                 backgroundColor:
                   uploadStatus.type === "success" ? "#d1fae5" : "#fee2e2",
                 color: uploadStatus.type === "success" ? "#065f46" : "#991b1b",
-                border: `1px solid ${
-                  uploadStatus.type === "success" ? "#6ee7b7" : "#fca5a5"
-                }`,
+                border: `1px solid ${uploadStatus.type === "success" ? "#6ee7b7" : "#fca5a5"
+                  }`,
                 fontSize: "0.9rem",
               }}
             >
@@ -472,9 +490,8 @@ const JuradoEspera = () => {
             >
               {uploading
                 ? "⏳ Subiendo..."
-                : `📤 Subir ${
-                    selectedFiles.length > 0 ? `(${selectedFiles.length})` : ""
-                  }`}
+                : `📤 Subir ${selectedFiles.length > 0 ? `(${selectedFiles.length})` : ""
+                }`}
             </button>
 
             {selectedFiles.length > 0 && !uploading && (

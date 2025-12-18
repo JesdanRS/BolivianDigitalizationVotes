@@ -38,8 +38,12 @@ public class VotacionService {
         VotacionDto votacionDto = votacionMapper.toDto(guardada);
 
         // 2) Marcar al usuario como que ya ha votado (Consistencia estricta)
-        // Si esto falla, lanzará excepción y hará rollback del voto guardado arriba.
-        usuarioServiceClient.marcarUsuarioComoVotado(carnetUsuario);
+        // Solo si NO es un acta (carga manual de jurado)
+        if (dto.getActas() == null || dto.getActas().isBlank()) {
+            usuarioServiceClient.marcarUsuarioComoVotado(carnetUsuario);
+        } else {
+            log.info("Carga manual de acta detectada. Se omite marcar usuario como votado.");
+        }
 
         // 3) Notificación por Kafka (best-effort)
         try {

@@ -33,6 +33,9 @@ public class Votacion {
 	@Column(nullable = false)
 	private Instant fecha;
 
+    @Column(columnDefinition = "TEXT")
+    private String actas;
+
 	@Column(name = "creado_en", nullable = false, updatable = false)
 	private Instant creadoEn;
 
