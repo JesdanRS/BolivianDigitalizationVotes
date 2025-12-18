@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .requestMatchers("/webjars/**").permitAll()
                 
                 // Endpoints específicos con roles
-                .requestMatchers(HttpMethod.GET, "/api/auditoria/**").hasAnyRole("USER", "AUDITOR")
+                .requestMatchers(HttpMethod.GET, "/api/auditoria/**").hasAnyRole("ADMIN", "AUDITOR")
                 .requestMatchers(HttpMethod.POST, "/api/auditoria/**").hasAnyRole("USER", "ADMIN", "AUDITOR")
                 .requestMatchers(HttpMethod.PUT, "/api/auditoria/**").hasRole("AUDITOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/auditoria/**").hasRole("AUDITOR")
