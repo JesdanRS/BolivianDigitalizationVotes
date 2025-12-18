@@ -19,7 +19,7 @@
         "description": "Usuario con acceso de lectura"
       },
       {
-        "name": "auditor",
+        "name": "AUDITOR",
         "description": "Auditor externo con acceso a logs y estadísticas"
       }
     ]
@@ -130,7 +130,7 @@
         }
       ],
       "realmRoles": [
-        "auditor"
+        "AUDITOR"
       ],
       "clientRoles": {}
     }

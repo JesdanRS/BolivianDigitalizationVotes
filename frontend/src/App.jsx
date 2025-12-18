@@ -68,6 +68,11 @@ function App() {
       <Link style={{ color: "#fff" }} to="/auditoria">
         Auditoría
       </Link>
+      <span>•</span>
+      <Link style={{ color: "#fff" }} to="/admin/registros">
+        Auditoría
+      </Link>
+      <span>•</span>
       <Link style={{ color: "#fff" }} to="/gestionar-candidatos">
         Gestionar
       </Link>
