@@ -8,6 +8,7 @@ import Resultados from "./pages/Resultados";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
 import GestionCandidatos from "./pages/GestionCandidatos";
+import GestionUsuarios from "./pages/GestionUsuarios";
 import MiVoto from "./pages/MiVoto";
 import JuradoEspera from "./pages/JuradoEspera";
 import "./App.css";
@@ -84,6 +85,7 @@ function App() {
         <Route path="/auditoria/registros" element={<AuditoriaRegistros />} />
         <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />
         <Route path="/gestionar-candidatos" element={<GestionCandidatos />} />
+        <Route path="/gestionar-usuarios" element={<GestionUsuarios />} />
         <Route path="/resultados" element={<Resultados />} />
         <Route path="/ayuda" element={<Resultados />} />
         <Route path="/jurado-espera" element={<JuradoEspera />} />
