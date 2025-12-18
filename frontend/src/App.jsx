@@ -10,6 +10,7 @@ import AdminLogin from "./pages/AdminLogin";
 import GestionCandidatos from "./pages/GestionCandidatos";
 import MiVoto from "./pages/MiVoto";
 import JuradoEspera from "./pages/JuradoEspera";
+import RegistrosAdmin from "./pages/admin/RegistrosAdmin";
 import "./App.css";
 
 // Componente para redirección basada en roles
@@ -84,6 +85,7 @@ function App() {
         <Route path="/auditoria/registros" element={<AuditoriaRegistros />} />
         <Route path="/auditoria/resultados" element={<ResultadosAuditor />} />
         <Route path="/gestionar-candidatos" element={<GestionCandidatos />} />
+        <Route path="/admin/registros" element={<RegistrosAdmin />} />
         <Route path="/resultados" element={<Resultados />} />
         <Route path="/ayuda" element={<Resultados />} />
         <Route path="/jurado-espera" element={<JuradoEspera />} />
