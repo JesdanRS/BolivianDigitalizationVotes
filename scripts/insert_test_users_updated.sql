@@ -27,3 +27,12 @@ ON CONFLICT (carnet) DO UPDATE SET
     fecha_nacimiento = EXCLUDED.fecha_nacimiento,
     correo_electronico = EXCLUDED.correo_electronico,
     ha_votado = EXCLUDED.ha_votado;
+
+-- Insertar Franz Carvajal
+INSERT INTO usuarios (nombre_completo, carnet, fecha_nacimiento, departamento, correo_electronico, correo_verificado, ha_votado, creado_en)
+VALUES ('Franz Carvajal', '12735190', '2004-01-07', 'La Paz', 'franz.carvajal04@gmail.com', false, false, NOW())
+ON CONFLICT (carnet) DO UPDATE SET
+    nombre_completo = EXCLUDED.nombre_completo,
+    fecha_nacimiento = EXCLUDED.fecha_nacimiento,
+    correo_electronico = EXCLUDED.correo_electronico,
+    ha_votado = EXCLUDED.ha_votado;
