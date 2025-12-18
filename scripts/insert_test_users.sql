@@ -28,7 +28,16 @@ ON CONFLICT (carnet) DO UPDATE SET
     correo_electronico = EXCLUDED.correo_electronico,
     ha_votado = EXCLUDED.ha_votado;
 
+-- Insertar Carlos Caba (Nuevo)
+INSERT INTO usuarios (nombre_completo, carnet, fecha_nacimiento, departamento, correo_electronico, correo_verificado, ha_votado, creado_en)
+VALUES ('Carlos Caba', '13194987', '2004-04-02', 'La Paz', 'carlos.caba@ucb.edu.bo', false, false, NOW())
+ON CONFLICT (carnet) DO UPDATE SET
+    nombre_completo = EXCLUDED.nombre_completo,
+    fecha_nacimiento = EXCLUDED.fecha_nacimiento,
+    correo_electronico = EXCLUDED.correo_electronico,
+    ha_votado = EXCLUDED.ha_votado;
+
 -- Verificar inserción
 SELECT id, nombre_completo, carnet, fecha_nacimiento, correo_electronico, correo_verificado
 FROM usuarios
-WHERE carnet IN ('13120200', '12130200');
+WHERE carnet IN ('13120200', '12130200', '13491987', '13194987');
